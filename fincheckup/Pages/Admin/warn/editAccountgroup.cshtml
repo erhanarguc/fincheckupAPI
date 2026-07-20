@@ -1,0 +1,228 @@
+﻿@page
+
+@using fincheckup.Models.EarlyWarning
+@using fincheckup.ENTITY
+
+@model IndexModel
+@{
+    ViewData["Title"] = "Giriş Ekranı";
+    Layout = "~/Pages/Shared/_LayoutFirm.cshtml";
+}
+
+@functions {
+    public class IndexModel : PageModel
+    {
+        public long UserID;
+        public Companies mrequest;
+
+
+        public ReminderAccountGroup nRequestAccount;
+        public List<ReminderAccountGroup> nRequestAccountGroup;
+        public void OnGet(int accountid = 0)
+        {
+
+            if (accountid == 0)
+            {
+                mrequest = new Companies();
+                nRequestAccount = new ReminderAccountGroup();
+                UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+
+            }
+            else
+            {
+                nRequestAccount = ReminderAccountGroup.GetRow_ReminderAccountGroup(accountid);
+
+            }
+
+        }
+
+        public JsonResult OnGetAccountGroup(DataSourceLoadOptions options)
+        {
+
+            nRequestAccountGroup = ReminderAccountGroup.Get_ReminderAccountGroup().ToList();
+            return new JsonResult(DataSourceLoader.Load(nRequestAccountGroup, options));
+
+        }
+
+
+
+
+
+    }
+}
+@section Styles {
+    <link rel="stylesheet" href="/assets/plugins/jquery-datatable/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="/assets/plugins/morrisjs/morris.css">
+    <style>
+        .tdnormall {
+            padding-top: 0.1rem !important;
+            padding-left: 0.75rem !important;
+            padding-bottom: 0.1rem !important;
+            padding-right: 0.75rem !important;
+        }
+
+        #chartxt {
+            max-height: 255px !important;
+        }
+    </style>
+}
+<section class="content home">
+    <div class="container-fluid">
+        <div class="block-header">
+            <div class="row clearfix">
+                <div class="col-lg-5 col-md-5 col-sm-12">
+                    <h2>Hesap Grup Detayı</h2>
+                    <ul class="breadcrumb padding-0">
+                        <li class="breadcrumb-item"><a href=""><i class="zmdi zmdi-home"></i></a></li>
+                        <li class="breadcrumb-item active">Hesap Grup Detayı</li>
+                    </ul>
+                </div>
+                <div class="col-lg-7 col-md-7 col-sm-12">
+                    <div class="input-group m-b-0">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="body">
+                                    <div class="row">
+                                        <div class="col-6" style="text-align:left"> </div>
+                                        <div class="col-6" style="text-align:right">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="body">
+                        <div class="row">
+                            <div class="col-6"> </div>
+                            <div class="col-6" style="text-align:right">
+                                @(Html.DevExtreme().Button()
+                                    .ID("buttonz")
+                                    .Text("Geri Dön").OnClick((@<text>
+                                    function() {
+                                    history.back();
+                                    }
+                                </text>))
+                                    .Type(ButtonType.Default)
+                                    )
+
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row clearfix">
+
+            <div class="col-md-12 col-lg-12">
+                <div class="card">
+                    <div class="body">
+
+
+
+                        <form id="frm">
+                            @(Html.DevExtreme().Form<ReminderAccountGroup>
+                                ()
+                                .ID("form").ShowValidationSummary(false)
+                                .Items(items =>
+                                {
+                                    items.AddGroup().Caption("Hesap Grubu Detayı")
+                                    .ColCount(4)
+                                    .Items(groupItems =>
+                                    {
+                                        groupItems.AddGroup().ColSpan(4).Items(secondGroupItems =>
+                                    {
+                                        secondGroupItems.AddSimpleFor(m => m.ID).Editor(e => e.NumberBox().ReadOnly(true));
+                                        secondGroupItems.AddSimpleFor(m => m.Name).Editor(e => e.TextBox()).Label(l => l.Text("Hesap Grubu Adı"));
+
+
+                                    });
+                                    });
+                                    items.AddGroup()
+                                    .ColCount(4)
+                                    .Items(groupItems =>
+                                    {
+
+                                        groupItems.AddGroup().ColSpan(4).Items(secondGroupItems =>
+                                    {
+                                        secondGroupItems.AddButton()
+                                    .HorizontalAlignment(HorizontalAlignment.Right)
+                                    .ButtonOptions(b => b.Text("Kaydet")
+                                    .Type(ButtonType.Success)
+                                    .UseSubmitBehavior(true)
+                                    );
+
+                                    });
+                                    });
+
+
+
+
+
+                                })
+
+                                .FormData(Model.nRequestAccount)
+                                )
+
+                        </form>
+
+
+
+
+
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+
+        </div>
+
+
+
+
+
+    </div>
+</section>
+
+
+@section Scripts {
+
+
+    <script>
+
+        var dt1 = "105";
+        $("#frm").submit(function () {
+            var vals = $(this).serialize();
+            $.ajax({
+                url: "/ReportApi/FormAccountGroupPost",
+                method: "POST",
+                data: vals,
+                failure: function (data) {
+
+                    alert(data);
+                },
+                success: function (data) {
+
+                    location.href = "/index";
+                }
+            });
+            return false;
+        });
+
+
+
+
+    </script>
+} 

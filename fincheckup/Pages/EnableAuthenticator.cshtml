@@ -1,0 +1,52 @@
+﻿@page
+@model fincheckup.Pages.EnableAuthenticatorModel
+@{
+} 
+
+<h1>
+    Enable 2-factor Authentication
+</h1>
+
+<p>
+    Enter the following code in your authenticator App:
+</p>
+
+<h2 style="color:blue">
+
+    @Model.SharedKey
+
+</h2>
+
+<p>
+    Your app will give a code. <br />
+    Enter that code below to enable 2-factor authentication.
+</p>
+
+<div style="color:red;" asp-validation-summary="All"></div>
+
+<form method="post">
+
+    <table>
+
+        <tr>
+            <td>
+                <label asp-for="Code"></label>:
+            </td>
+            <td>
+                <input asp-for="Code" />
+            </td>
+            <td>
+                <span asp-validation-for="Code"></span>
+            </td>
+        </tr>
+
+        <tr>
+            <td colspan="2" style="text-align:right">
+                <input type="submit" value="Enable 2-factor Auth!" />
+            </td>
+        </tr>
+
+    </table>
+
+</form>
+

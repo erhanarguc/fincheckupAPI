@@ -1,0 +1,159 @@
+﻿@page "/iletisim"
+@model IndexModel
+@{
+    ViewData["Title"] = "contact";
+    Layout = "~/Pages/Shared/_LayoutMain.cshtml";
+}
+@functions {
+    public class IndexModel : PageModel
+    {
+
+
+        public void OnGet(string lng = "tr")
+        {
+
+        }
+    }
+}
+@section Styles {
+
+
+
+
+}
+
+
+<!-- Banner  -->
+<div class="dlab-bnr-inr text-center" style="max-height:121px !important">
+
+</div>
+<!-- Banner End -->
+<!-- Get A Quote --><section class="content-inner-2">
+    <div class="content-inner">
+
+        <div class="container">
+            <div class="section-head style-1">
+                <h1>Bizimle İletişime Geçin</h1>
+            </div>
+            <div class="row align-items-center">
+                <div class="col-xl-6 m-b30 wow fadeInLeft" data-wow-duration="2s" data-wow-delay="0.2s">
+                    <div class="dlab-media">
+                        <img src="/images/about/img3.png" class="move-3" alt="">
+                    </div>
+                </div>
+                <div class="col-xl-6 m-b30 wow fadeInRight" data-wow-duration="2s" data-wow-delay="0.4s">
+                    <form class="dlab-form dzForm" action="">
+                        @Html.AntiForgeryToken()
+                        <div class="dzFormMsg"></div>
+                        <input type="hidden" class="form-control" name="dzToDo" value="Contact" />
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="input-group">
+                                    <input id="txname" required type="text" class="form-control" placeholder="Adınız" />
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="input-group">
+                                    <input type="text" id="txlastname" class="form-control" placeholder="Soyadınız" />
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="input-group">
+                                    <input required type="text" id="txemail" class="form-control" placeholder="Email Adres" />
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="input-group">
+                                    <input required type="text" id="txphone" class="form-control" placeholder="Tel No." />
+                                </div>
+                            </div>
+
+                            <div class="col-sm-12">
+                                <div class="input-group">
+                                    <textarea required class="form-control" id="txmessage" placeholder="Mesajınız"></textarea>
+                                </div>
+                            </div>
+                            <div class="input-group"  style="display:none;"> 
+                                <input   id="txWebsite" required type="text" class="form-control" placeholder="Website" autocomplete="off" />
+                            </div>
+                            <div class="col-sm-12">
+                                <button name="submit" type="submit" value="Submit" class="btn btn-lg gradient btn-primary lblbilleditttozone">Gönder</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <iframe src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d12046.910997252984!2d29.067986999999995!3d40.987442!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14cac795566371bf%3A0x5377e96331b07778!2zTWVyZGl2ZW5rw7Z5LCAzNDczMiBLYWTEsWvDtnkvxLBzdGFuYnVsLCBUdXJrZXk!5e0!3m2!1sen!2sus!4v1634039313362!5m2!1sen!2sus" height="550" style="border:0; width:100%; vertical-align: middle;" allowfullscreen="" loading="lazy"></iframe>
+    <br />
+    <br />
+</section>
+
+@section Scripts{
+
+    <script>
+                $(".lblbilleditttozone").click(function () {
+
+            var student = {
+                "name": $("#txname").val() + " " + $("#txlastname").val(),
+                "mailto": $("#txemail").val(),
+                "phone": $("#txphone").val(),
+                "education": "",
+                "title": "",
+                "content": $("#txmessage").val(),
+                "Website": $("#txWebsite").val()
+            };
+
+            if ($("#txname").val().trim() == "" || $("#txemail").val().trim() == "" || $("#txphone").val().trim() == "" || $("#txlastname").val().trim() == "" || $("#txmessage").val().trim() == "") {
+                Swal.fire({
+                    type: 'error',
+                    title: 'Hata...',
+                    text: 'Lütfen Tüm alanları Doldurunuz',
+                    footer: 'Bekleniyor'
+                });
+            }
+            else {
+                var token = $('input[name="__RequestVerificationToken"]').val();
+
+                $.ajax({
+                    type: "POST",
+                    url: "/JsonService/MainPost/SendEmailAska",
+                    data: { __RequestVerificationToken: token, tmail: student, },
+                    contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                    dataType: "json",
+                    success: function (response) {
+
+                        Swal.fire({
+                            type: 'success',
+                            title: 'Başarılı...',
+                            text: 'Mesajınız İletilmiştir',
+                            footer: 'Gönderildi'
+                        });
+                        $("#txname").val("");
+                        $("#txlastname").val("");
+                        $("#txemail").val("");
+                        $("#txphone").val("");
+                        $("#txmessage").val("");
+                    },
+                    failure: function (response) {
+                        chkbool = "false";
+                        Swal.fire({
+                            type: 'error',
+                            title: 'Error...',
+                            text: response.d,
+                            footer: 'Please Fix Errors First'
+                        });
+                    }
+                });
+            }
+
+
+
+        });
+
+    </script>
+
+
+}

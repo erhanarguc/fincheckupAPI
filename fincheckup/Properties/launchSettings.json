@@ -1,0 +1,39 @@
+{
+  "profiles": {
+    "IIS Express": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "launchUrl": "https://localhost:58517",
+      "use64Bit": true,
+      "applicationUrl": "https://localhost:58517"
+    },
+    "fincheckup": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Production"
+      },
+      "applicationUrl": "https://localhost:44373;http://localhost:5005"
+    },
+    "Profile 1": {
+      "commandName": "IISExpress"
+    },
+    "Profile 2": {
+      "commandName": "IIS",
+      "launchBrowser": true,
+      "launchUrl": "https://localhost:58517"
+    }
+  },
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iis": {
+      "applicationUrl": "http://localhost/fincheckup",
+      "sslPort": 0
+    },
+    "iisExpress": {
+      "applicationUrl": "http://localhost:52391/",
+      "sslPort": 44395
+    }
+  }
+}

@@ -1,0 +1,855 @@
+﻿@page
+
+
+@model IndexModel
+@{
+    ViewData["Title"] = "Giriş Ekranı";
+    Layout = "~/Pages/Shared/_LayoutQnbMain.cshtml";
+}
+@using fincheckup.ENTITY
+@using fincheckup.Models.ViewM 
+@using fincheckup.Models.Hvvn
+@using fincheckup.Models.NKolay
+@using DevExpress.XtraCharts
+
+@functions {
+    public class IndexModel : PageModel
+    {
+        public IEnumerable<YearResult> myearResult;
+        public long UserID;
+        public long CompID;
+        public int CompCount;
+        public int YearCount;
+        public string CompName;
+        public List<DashYearlyResult> RasyoAnaliz;
+        public List<DashYearlyResult> OzetMali;
+        public List<DashYearlyResult> LikiditeRiskTrend;
+        public HhvnUsers CurrentUser;
+        public IEnumerable<DashBoard> dash;
+        public IEnumerable<DashBoardRasyo> dashrasyo; 
+        public DashYearlyResultChart RasyoAnalizView;
+        public DashYearlyResultChart OzetMaliView;
+        public DashYearlyResultChart LikiditeRiskTrendView;
+
+        public IEnumerable<Companies> mreqListCompany;
+        public int StartQuestions { get; set; }
+        public int AQuestions { get; set; }
+        public int BQuestions { get; set; }
+        public int CQuestions { get; set; }
+        public void OnGet()
+        {
+            myearResult = YearResult.getValue();
+            RasyoAnalizView = new DashYearlyResultChart();
+            OzetMaliView = new DashYearlyResultChart();
+            LikiditeRiskTrendView = new DashYearlyResultChart();
+
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            mreqListCompany = Companies.Getby_User(UserID);
+
+            CompID = mreqListCompany.Where(x => x.IsDefault == 1).FirstOrDefault().ID;
+            CompName = mreqListCompany.Where(x => x.IsDefault == 1).FirstOrDefault().CompanyName;
+            HhvnUsers.SetYearMain(CompID, UserID);
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+            YearCount = TBLXml.GetYearByComapnyID(CompID);
+            CompCount = mreqListCompany.Count();
+
+            //RasyoAnaliz = RasyoAnalizMain.RasyoAnalizTOTALFinal(CurrentUser.SelectedYear,CompID);
+            //OzetMali = DashOzetMali.OzetMaliFinal(CurrentUser.SelectedYear, CompID);
+            //LikiditeRiskTrend = DashLikiditeRiskTrend.LikiditeRiskTrend21Final(CurrentUser.SelectedYear, CompID);
+            //LikiditeRiskTrendView.SetResult(LikiditeRiskTrend, CurrentUser.SelectedYear);
+            //RasyoAnalizView.SetResult(RasyoAnaliz, CurrentUser.SelectedYear);
+            //OzetMaliView.SetResult(OzetMali, CurrentUser.SelectedYear);
+
+        }
+        public JsonResult OnGetCasino(DataSourceLoadOptions options)
+        {
+
+
+            dash = DashBoard.Get_ErroorList();
+
+            return new JsonResult(DataSourceLoader.Load(dash, options));
+        }
+
+        public JsonResult OnGetChartRasyo(DataSourceLoadOptions options)
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+
+            CompID= Companies.Getby_User(UserID).Where(x => x.IsDefault == 1).FirstOrDefault().ID;
+            RasyoAnalizView = new DashYearlyResultChart();
+            RasyoAnaliz = RasyoAnalizMain.RasyoAnalizTOTALFinal(CurrentUser.SelectedYear, CompID);
+            RasyoAnalizView.SetResult(RasyoAnaliz, CurrentUser.SelectedYear);
+
+
+            return new JsonResult(DataSourceLoader.Load(RasyoAnalizView.nresult.Where(x => x.TypeID == 1), options));
+        }
+        public JsonResult OnGetChartRasyoa(DataSourceLoadOptions options)
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+
+            CompID = Companies.Getby_User(UserID).Where(x => x.IsDefault == 1).FirstOrDefault().ID;
+            RasyoAnalizView = new DashYearlyResultChart();
+            RasyoAnaliz = RasyoAnalizMain.RasyoAnalizTOTALFinal(CurrentUser.SelectedYear, CompID);
+            RasyoAnalizView.SetResult(RasyoAnaliz, CurrentUser.SelectedYear);
+
+
+            return new JsonResult(DataSourceLoader.Load(RasyoAnalizView.nresult.Where(x=>x.TypeID==2), options));
+        }
+        public JsonResult OnGetChartRasyob(DataSourceLoadOptions options)
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+
+            CompID = Companies.Getby_User(UserID).Where(x => x.IsDefault == 1).FirstOrDefault().ID;
+            RasyoAnalizView = new DashYearlyResultChart();
+            RasyoAnaliz = RasyoAnalizMain.RasyoAnalizTOTALFinal(CurrentUser.SelectedYear, CompID);
+            RasyoAnalizView.SetResult(RasyoAnaliz, CurrentUser.SelectedYear);
+
+
+            return new JsonResult(DataSourceLoader.Load(RasyoAnalizView.nresult.Where(x => x.TypeID == 3), options));
+        }
+        public JsonResult OnGetChartMali(DataSourceLoadOptions options)
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+
+            CompID = Companies.Getby_User(UserID).Where(x => x.IsDefault == 1).FirstOrDefault().ID;
+            OzetMaliView = new DashYearlyResultChart();
+            OzetMali = DashOzetMali.OzetMaliFinal(CurrentUser.SelectedYear, CompID);
+            OzetMaliView.SetResult(OzetMali, CurrentUser.SelectedYear);
+
+
+            return new JsonResult(DataSourceLoader.Load(OzetMaliView.nresult, options));
+        }
+
+        public JsonResult OnGetChartLikid(DataSourceLoadOptions options)
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+
+            CompID = Companies.Getby_User(UserID).Where(x => x.IsDefault == 1).FirstOrDefault().ID;
+            LikiditeRiskTrendView = new DashYearlyResultChart();
+            LikiditeRiskTrend = DashLikiditeRiskTrend.LikiditeRiskTrend21Final(CurrentUser.SelectedYear, CompID);
+            LikiditeRiskTrendView.SetResult(LikiditeRiskTrend, CurrentUser.SelectedYear);
+
+
+            return new JsonResult(DataSourceLoader.Load(LikiditeRiskTrendView.nresult, options));
+        }
+        public JsonResult OnGetDashRasyo(DataSourceLoadOptions options)
+        {
+
+
+            dashrasyo = DashBoardRasyo.Get_List();
+
+            return new JsonResult(DataSourceLoader.Load(dashrasyo, options));
+        }
+        public JsonResult OnGetGraphYear(int nyear)
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            HhvnUsers.SetYear(nyear, UserID);
+            return new JsonResult("ok");
+        }
+       
+    }
+}
+@section Styles {
+    <link rel="stylesheet" href="/assets/plugins/jquery-datatable/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="/assets/plugins/morrisjs/morris.css">
+<style>
+
+    .dxc-tooltip {
+        z-index:1111;
+    }
+</style>
+}
+<section class="content home" id="employee">
+    @(Html.DevExtreme().LoadPanel()
+        .ID("loadPanel")
+        .ShadingColor("rgba(0,0,0,0.4)")
+        .Position(p => p.Of("#employee"))
+        .Visible(false)
+        .ShowIndicator(true)
+        .ShowPane(true)
+        .Shading(true)
+        .HideOnOutsideClick(false)
+        .OnShown("loadPanel_shown")
+    )
+
+    <input type="hidden" style="display:none" id="txtmyear" value="@Model.CurrentUser.SelectedYear" />
+    <input type="hidden" style="display:none" id="txtmcomp" value="@Model.CompID" />
+    <input type="hidden" style="display:none" id="txtyearcount" value="@Model.YearCount" />
+    <input type="hidden" style="display:none" id="txtcompcount" value="@Model.CompCount" />
+    <div class="container-fluid">
+        <div class="block-header">
+            <div class="row clearfix">
+                <div class="col-lg-5 col-md-5 col-sm-12">
+                    <h2>Rasyo-Dashboard</h2>
+                    <ul class="breadcrumb padding-0">
+                        <li class="breadcrumb-item"><a href=""><i class="zmdi zmdi-home"></i></a></li>
+                        <li class="breadcrumb-item active">Rasyo-Dashboard</li>
+                    </ul>
+                </div>
+                <div class="col-lg-7 col-md-7 col-sm-12">
+                    <div class="input-group m-b-0">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="body">
+                                    <div class="row">
+                                        <div class="col-6" style="text-align:left">
+
+                                            @(Html.DevExtreme().SelectBox()
+                    .DataSource(Model.myearResult).ID("slctYear").OnInitialized("selectYear_Initialized")
+                    .DisplayExpr("MText").OnSelectionChanged("selectYear_valueChanged")
+                    .ValueExpr("MYear").Width(105)
+                )
+                                        </div>
+                                        <div class="col-6" style="text-align:right">
+
+                                        
+                                            @(Html.DevExtreme().TextBox()
+                                .Value(Model.CompName)  .ReadOnly(true)
+                            )
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+       
+        <div class="row clearfix">
+            <div class="col-lg-12 col-md-12">
+                <div class="card visitors-map">
+
+
+
+
+                    <div class="body m-b-10">
+                        <h5 class="m-t-0 m-b-5">Rasyo Analiz- (Kaldıraç Oranları)</h5>
+                        @(Html.DevExtreme().Chart()
+        .ID("pivotgrid-chart")
+        .CommonSeriesSettings(s => s.Type(SeriesType.Bar)).Palette(new string[5] { "#DE5CAB", "#116FC4", "#904999", "#7C1151", "#65BBFC" })
+        .Tooltip(t => t.Enabled(true)
+        .Format(Format.Millions)
+        .CustomizeTooltip(@<text>
+            function (arg) {
+
+                return {
+                    text: arg.seriesName + "<br />" + arg.valueText
+                };
+            }
+        </text>
+    ).Format(Format.Decimal))
+        .Size(s => s.Height(200))
+        .AdaptiveLayout(l => l.Width(450))
+    )
+                        @(Html.DevExtreme().PivotGrid<DashYearlyResultMain>()
+        .ID("pivotgrid")
+        .AllowSortingBySummary(true)
+        .AllowFiltering(true)
+        .ShowBorders(true)
+        .ShowColumnGrandTotals(false).AllowExpandAll(true)
+        .ShowRowGrandTotals(false)
+        .ShowRowTotals(false)
+        .ShowColumnTotals(false)
+        .FieldChooser(c => c.Enabled(false).Height(400))
+        .DataSource(d => d
+            .Store(s => s.RemoteController().LoadUrl(Url.Page(null, "ChartRasyo")))
+            .Fields(fields => {
+                fields.AddFor(m => m.Description)
+                    .Width(120)
+                    .Area(PivotGridArea.Row)
+                    ;
+                fields.AddFor(m => m.Month).SortBy(PivotGridSortBy.Value).Area(PivotGridArea.Column).Expanded(true);
+
+                fields.AddFor(m => m.Value)
+                    .SummaryType(SummaryType.Max)
+                    .Format("#0.00")
+                    .Area(PivotGridArea.Data);
+            })
+        )
+        .OnInitialized("bind_chart")
+    )
+
+                        <script>
+
+                            function bind_chart(e) {
+                                e.component.bindChart($("#pivotgrid-chart"), {
+                                    dataFieldsDisplayMode: "splitPanes",
+                                    alternateDataFields: false
+                                });
+
+                            }
+
+                        </script>
+                    </div>
+
+
+                </div>
+                <div class="card visitors-map">
+
+
+
+
+                    <div class="body m-b-10">
+                        <h5 class="m-t-0 m-b-5">Rasyo Analiz - (Oran Analizleri)</h5>
+                        @(Html.DevExtreme().Chart()
+        .ID("pivotgrid-charta")
+        .CommonSeriesSettings(s => s.Type(SeriesType.Bar)).Palette(new string[5] { "#DE5CAB", "#116FC4", "#904999", "#7C1151", "#65BBFC" })
+        .Tooltip(t => t.Enabled(true)
+        .Format(Format.Millions)
+        .CustomizeTooltip(@<text>
+            function (arg) {
+
+                return {
+                    text: arg.seriesName + "<br />" + arg.valueText
+                };
+            }
+        </text>
+    ).Format(Format.Decimal))
+        .Size(s => s.Height(200))
+        .AdaptiveLayout(l => l.Width(450))
+    )
+                        @(Html.DevExtreme().PivotGrid<DashYearlyResultMain>()
+        .ID("pivotgrida")
+        .AllowSortingBySummary(true)
+        .AllowFiltering(true)
+        .ShowBorders(true)
+        .ShowColumnGrandTotals(false).AllowExpandAll(true)
+        .ShowRowGrandTotals(false)
+        .ShowRowTotals(false)
+        .ShowColumnTotals(false)
+        .FieldChooser(c => c.Enabled(false).Height(400))
+        .DataSource(d => d
+            .Store(s => s.RemoteController().LoadUrl(Url.Page(null, "ChartRasyoa")))
+            .Fields(fields => {
+                fields.AddFor(m => m.Description)
+                    .Width(120)
+                    .Area(PivotGridArea.Row)
+                    ;
+                fields.AddFor(m => m.Month).SortBy(PivotGridSortBy.Value).Area(PivotGridArea.Column).Expanded(true);
+
+                fields.AddFor(m => m.Value)
+                 .SummaryType(SummaryType.Max)
+                    .Format("#0.00")
+                    .Area(PivotGridArea.Data);
+            })
+        )
+        .OnInitialized("bind_charta")
+    )
+
+                        <script>
+
+                            function bind_charta(e) {
+                                e.component.bindChart($("#pivotgrid-charta"), {
+                                    dataFieldsDisplayMode: "splitPanes",
+                                    alternateDataFields: false
+                                });
+
+                            }
+
+                        </script>
+                    </div>
+
+
+                </div>
+                <div class="card visitors-map">
+
+                  
+
+
+                    <div class="body m-b-10">
+                        <h5 class="m-t-0 m-b-5">Rasyo Analiz - (Faaliyet Aktivite Oranları)</h5>
+                        @(Html.DevExtreme().Chart()
+        .ID("pivotgrid-chartb")
+        .CommonSeriesSettings(s => s.Type(SeriesType.Bar)).Palette(new string[5]{ "#DE5CAB", "#116FC4", "#904999", "#7C1151", "#65BBFC" })
+        .Tooltip(t => t.Enabled(true)
+        .Format(Format.Millions)
+        .CustomizeTooltip(@<text>
+            function (arg) {
+
+                return {
+                    text: arg.seriesName + "<br />" + arg.valueText
+                };
+            }
+        </text>
+    ).Format(Format.Decimal))
+        .Size(s => s.Height(200))
+        .AdaptiveLayout(l => l.Width(450))
+    )
+                        @(Html.DevExtreme().PivotGrid<DashYearlyResultMain>()
+        .ID("pivotgridb")
+        .AllowSortingBySummary(true)
+        .AllowFiltering(true)
+        .ShowBorders(true)
+        .ShowColumnGrandTotals(false).AllowExpandAll(true)
+        .ShowRowGrandTotals(false)
+        .ShowRowTotals(false)
+        .ShowColumnTotals(false)
+        .FieldChooser(c => c.Enabled(false).Height(400))
+        .DataSource(d => d
+            .Store(s => s.RemoteController().LoadUrl(Url.Page(null, "ChartRasyob")))
+            .Fields(fields => {
+                fields.AddFor(m => m.Description)
+                    .Width(120)
+                    .Area(PivotGridArea.Row)
+                    ;
+                fields.AddFor(m => m.Month).SortBy(PivotGridSortBy.Value).Area(PivotGridArea.Column).Expanded(true);
+
+                fields.AddFor(m => m.Value)
+               .SummaryType(SummaryType.Max)
+                    .Format("#0.00")
+                    .Area(PivotGridArea.Data);
+            })
+        )
+        .OnInitialized("bind_chartb")
+    )
+
+                        <script>
+
+                            function bind_chartb(e) {
+                                e.component.bindChart($("#pivotgrid-chartb"), {
+                                    dataFieldsDisplayMode: "splitPanes",
+                                    alternateDataFields: false
+                                });
+
+                            }
+
+                        </script>
+                    </div>
+
+
+                </div>
+                <div class="card">
+                    <div class="body m-b-10">
+                        <h5 class="m-t-0 m-b-5">Likidite Risk Trend</h5>
+                        @(Html.DevExtreme().Chart()
+        .ID("pivotgrid-charty")
+        .CommonSeriesSettings(s => s.Type(SeriesType.Bar)).Palette(new string[5] { "#DE5CAB", "#116FC4", "#904999", "#7C1151", "#65BBFC" })
+        .Tooltip(t => t.Enabled(true)
+        .Format(Format.Millions)
+        .CustomizeTooltip(@<text>
+            function (arg) {
+
+                return {
+                    text: arg.seriesName + "<br />" + arg.valueText
+                };
+            }
+        </text>
+    ).Format(Format.Decimal))
+        .Size(s => s.Height(200))
+        .AdaptiveLayout(l => l.Width(450))
+    )
+                        @(Html.DevExtreme().PivotGrid<DashYearlyResultMain>()
+        .ID("pivotgrid5")
+        .AllowSortingBySummary(true)
+        .AllowFiltering(true)
+        .ShowBorders(true)
+        .ShowColumnGrandTotals(false).AllowExpandAll(true)
+        .ShowRowGrandTotals(false)
+        .ShowRowTotals(false)
+        .ShowColumnTotals(false)
+        .FieldChooser(c => c.Enabled(false).Height(400))
+        .DataSource(d => d
+            .Store(s => s.RemoteController().LoadUrl(Url.Page(null, "ChartLikid")))
+            .Fields(fields => {
+                fields.AddFor(m => m.Description)
+                    .Width(295)
+                    .Area(PivotGridArea.Row)
+                    ;
+
+
+
+                fields.AddFor(m => m.Month).SortBy(PivotGridSortBy.Value).Area(PivotGridArea.Column).Expanded(true);
+
+
+
+
+
+                fields.AddFor(m => m.Value)
+                    .SummaryType(SummaryType.Sum)
+                    .Format(Format.FixedPoint)
+                    .Area(PivotGridArea.Data);
+            })
+        ).OnInitialized("bind_charty")
+    )<script>
+
+    function bind_charty(e) {
+        e.component.bindChart($("#pivotgrid-charty"), {
+            dataFieldsDisplayMode: "splitPanes",
+            alternateDataFields: false
+        });
+
+    }
+
+</script>
+                    </div>
+
+                </div>
+                <input id="txtool" type="hidden" />
+
+                <div class="card">
+
+                    <div class="body m-b-10">
+                        <h5 class="m-t-0 m-b-5">Özet Mali Tablo</h5>
+                        @(Html.DevExtreme().Chart()
+        .ID("pivotgrid-chartz")
+        .CommonSeriesSettings(s => s.Type(SeriesType.Bar)).Palette(new string[5] { "#DE5CAB", "#116FC4", "#904999", "#7C1151", "#65BBFC" })
+        .Tooltip(t => t.Enabled(true)
+        .Format(Format.Millions)
+        .CustomizeTooltip(@<text>
+            function (arg) {
+
+                return {
+                    text: arg.seriesName + "<br />" + arg.valueText
+                };
+            }
+        </text>
+    ).Format(Format.Decimal))
+        .Size(s => s.Height(200))
+        .AdaptiveLayout(l => l.Width(450))
+    )
+                        @(Html.DevExtreme().PivotGrid<DashYearlyResultMain>()
+        .ID("pivotgrid3")
+        .AllowFiltering(true)
+        .ShowBorders(true)
+        .ShowColumnGrandTotals(false).AllowExpandAll(true)
+        .ShowRowGrandTotals(false)
+        .ShowRowTotals(false)
+        .ShowColumnTotals(false)
+        .FieldChooser(c => c.Enabled(false).Height(400))
+        .DataSource(d => d
+            .Store(s => s.RemoteController().LoadUrl(Url.Page(null, "ChartMali")))
+            .Fields(fields => {
+                fields.AddFor(m => m.Description)
+                    .Width(295)
+                    .Area(PivotGridArea.Row)
+                    ;
+                fields.AddFor(m => m.Month).Area(PivotGridArea.Column).Expanded(true);
+                fields.AddFor(m => m.Value)
+                    .SummaryType(SummaryType.Sum)
+                    .Format(Format.FixedPoint)
+                    .Area(PivotGridArea.Data);
+            })
+        ).OnInitialized("bind_chartz")
+    )
+
+                        <script>
+
+                            function bind_chartz(e) {
+                                e.component.bindChart($("#pivotgrid-chartz"), {
+                                    dataFieldsDisplayMode: "splitPanes",
+                                    alternateDataFields: false
+                                });
+
+                            }
+
+                        </script>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+
+
+    </div>
+</section>
+
+@section Scripts{
+    <script>
+        var tyear = $("#txtmyear").val();
+        var mcompid = $("#txtmcomp").val();
+
+        function changeInnerHtml(elementPath, newText) {
+            $(elementPath).fadeOut(500, function () {
+                $(this).html(newText).fadeIn(500);
+            });
+        }
+        window.onmouseover = function (e) {
+            if (e.target.className =="dx-last-cell") {
+
+               /* $("").toggleClass("").siblings().removeClass("open stretchRight");*/
+
+                if ($(".right_menu #rightsidebar").hasClass("open stretchRight") == false) {
+                    
+                    $(".right_menu #rightsidebar").toggleClass("open stretchRight").siblings().removeClass("open stretchRight");
+                }
+
+                //$("#txtool").val(e.target.innerText);
+     
+         
+                if (e.target.innerText == "Cari Oran") {
+               
+                    $(e.target).css({ "cursor": "pointer" });
+           
+                    var txt = "Cari Oran : <br/>Birim : Katsayı  <br/>İşletmenin kısa vadeli borçlarını <br/> ödeme gücünü ölçer.<br/> İdeal Oran 1,5 - 2  aralığında olmasıdır.<br/>Cari Oranı arttıran nedenler : Firmanın normal faaliyeti sonucu yarattığı kaynaklar , Uzun Vadeli Borçlanma,Sermaye Artışı , Kısa süreli borçların ödenmesi.<br/>Cari Oranı düşüren nedenler : Frmanın zarar etmesi , Kar dağıtması,Uzun vadeli borçların ödenmesi ,Duran Varlık Satın alınması , Sermaye iştirakinde bulunmak,Kısa vadeli borçla stoğa yatırım yapılması sayılabilir";
+                    //changeInnerHtml("#maincrd", txt);
+       
+                    $("#maincrd").html(txt).fadeIn(500);
+                    //$("#maincrd").html().fadeOut(500, function () {
+                    //    $("#maincrd").html(txt).children().fadeIn(500);
+                    //});
+                    //$("#maincrd").html(txt).fadeIn(500);
+                }
+
+                if (e.target.innerText == "Finansal Borçlar - Aktifler Oranı (FBA)") {
+                 
+                    $(e.target).css({ "cursor": "pointer" });
+
+                    var txt = "Finansal Borçlar <br/>- Aktifler Oranı (FBA) : <br/>Birim : Yüzde (%)<br/> Şirketlerin toplam kaynakları içerisinde finansal borçların ağırlığını göstermekte olan bu oran,<br/> şirketler için risk göstergesi olarak kullanılabilecek oranlardan biridir.<br/>Diğer borç kalemlerine nazaran piyasa koşulları üzerinden faiz maliyeti ile<br/> edinilebilen finansal borçların zaman içerisinde aktifler içerisindeki ağırlığının artması,<br/> şirketlerin hem risklerinin arttığı, hem de faiz giderlerinin<br/> artması sonucu karlılıklarının azaldığı anlamına gelmektedir. ";
+                    //$("#maincrd").html().fadeOut(500, function () {
+                    //    $("#maincrd").html(txt).fadeIn(500);
+                    //});
+ 
+                    $("#maincrd").html(txt).fadeIn(500);
+                    //console.log(txt);
+                    //changeInnerHtml("#maincrd", txt);
+                  /*  $("#maincrd").html(txt).fadeIn(500);*/
+                }
+
+                if (e.target.innerText == "Likidite Oranı") {
+                   
+                    $(e.target).css({ "cursor": "pointer" });
+
+                    var txt = "Likidite Oranı :<br/>Birim : Katsayı  <br/>Süratle paraya çevrilebilen değerlerin kısa vadeli borçları karşılama oranıdır. <br/>Cari orana benzer , ancak daha likit değerleri dikkate alan bir rasyo olarakda tanımlayabilirz.<br/>Likitide oranı için istenen en düşük değer 1 ' dir. Ama 0,8 de kabul edilebilir olarak yorumlanır. <br/>Bunun altındaki değerlerde işletmenin likitide problemi olacağı ve kısa vadeli yükümlülüklerini<br/>yerine getirmekte sorun yaşayacağı olarak yorumlanmaktadır. "
+                    $("#maincrd").html(txt).fadeIn(500);
+                }
+
+                if (e.target.innerText == "Nakit Oranı") {
+                   
+                    $(e.target).css({ "cursor": "pointer" });
+
+                    var txt = "Nakit Oranı: <br/>Birim : Katsayı  <br/>İşletmenin elindeki mevcut hazır değerlerin kısa vadeli borçları ne ölçüde karşıladığını gösterir. <br/>Nakit Oranının 0.20’nin altına düşmemesi genel bir kural olarak istenir. Bu oranın 0.20’nin altında olması durumunda para bulma şansı oldukça azdır.Öte yandan oranın çok yüksek olması da arzulanmaz çünkü nakit fazlasının iyi kullanılamadığı ve hareketsiz bırakıldığı anlamını taşır.Bu durum işletmenin para kazanma durumunu azaltarak gelir düşüklüğüne neden olur"
+                    $("#maincrd").html(txt).fadeIn(500);
+                }
+
+                if (e.target.innerText == "Kısa Vadeli Borçlar - Aktifler Oranı") {
+                   
+                    $(e.target).css({ "cursor": "pointer" });
+
+                    var txt = "Kısa Vadeli Borçlar <br/>- Aktifler Oranı : <br/>Birim : Yüzde (%)<br/> İşletmenin işletmenin  toplam  varlıkları içinde kısa vadeli borçlarının payını gösterir.<br/>Bu oranın %30 olması idealdir<br/>%30 – %60   arası oran kabul edilebilir seviyede<br/>%60 ve üzeri    :  Oran riskli seviyede  <br/>Kısa vadeli borçların toplam aktif içindeki payının artması, cari oranı düşürücü etki yapmaktadır. <br/>Duran varlıklarını sürekli olarak kısa vadeli borçlarla finanse eden firmaların gelecekte ödeme güçlükleri ile karşılaşma olasılığı da yükselmektedir.<br/>Daha yüksek borçlanma faizine rağmen gelirleri büyük dalgalanmalar göstermeyen firmaların uzun vadeli borçlanmaya yönelmeleri en uygun olan borçlanma yapısıdır."
+                    $("#maincrd").html(txt).fadeIn(500);
+                }
+
+                if (e.target.innerText == "Finansal Kaldıraç ( Borç-Özsermaye oranı)") {
+                   
+                    $(e.target).css({ "cursor": "pointer" });
+
+                    var txt = "Finansal Kaldıraç <br/>(Borç-Özsermaye oranı): <br/>Birim : Yüzde (%)<br/> Borçlanma katsayısı olarak da bilinen bu oran, işletmenin varlıklarını finanse ederken kullandığı yabancı kaynaklar ile işletmeye ortaklar tarafından konan ve işletmenin kendi ürettiği öz kaynaklar arasındaki ilişkiyi gösterir.<br/> Oranın düşük olması işletmenin borçlanarak değil daha çok kendi kaynaklarından finansman sağladığını,<br/> büyük olması ise işletmenin finansman için agresif borçlanma yolunu seçtiğini gösterir.<br/> Bu oranın genel olarak %100'ü aşmaması düşünülürken sermaye yoğun  sektörlerde %200 ve üzeri,  emek yoğun sektörlerde %50 ve altı olması normal karşılanabilir."
+                    $("#maincrd").html(txt).fadeIn(500);
+                }
+
+                if (e.target.innerText == "Maddi Duran Varlık-Özsermaye oranı") {
+                   
+                    $(e.target).css({ "cursor": "pointer" });
+
+                    var txt = "Maddi Duran Varlık<br/>-Özsermaye oranı:  <br/>Birim : Yüzde (%)<br/>İşletmenin maddi duran varlıklarının ne kadarlık kısmının özkaynaklarla finanse edildiğini gösterir. Orandaki maddi duran varlıklar birikmiş amortismanlar çıktıktan sonra kalan net değerleri ifade eder.Oranın %100’den küçük olması istenir."
+                    $("#maincrd").html(txt).fadeIn(500);
+                }
+
+
+                if (e.target.innerText == "Net İşletme Sermayesi - Aktifler Oranı (NISA)") {
+                   
+                    $(e.target).css({ "cursor": "pointer" });
+
+                    var txt = "Net İşletme Sermayesi<br/> - Aktifler Oranı (NISA): <br/>Birim : Yüzde (%)<br/> Bu oran, şirketlerin faaliyetlerine devam etmek için ihtiyaç duydukları <br/>net işletme sermaye tutarının aktiflerin içindeki payını verir.<br/>  .Bu oranla yapılan analizlerde aktiflerin toplam büyüklüğündeki değişiklikler de gözönüne alınmalıdır.<br/>  Net işletme sermayesinin aktifler içindeki oranının şirket ihtiyaçları için optimal düzeyde olup olmadığını ölçmek için, sektör içerisindeki diğer şirketlerin oranları ile karşılaştırılabilir."
+                    $("#maincrd").html(txt).fadeIn(500);
+                }
+
+                if (e.target.innerText == "Sermaye - Özsermaye oranı") {
+                   
+                    $(e.target).css({ "cursor": "pointer" });
+
+                    var txt = "Sermaye - Özsermaye Oranı: <br/>Birim : Yüzde (%)<br/> Bu oran, şirketin ne kadar kaldıraçlı olduğunu göstermeye yardımcı olmak için şirketin toplam varlıklarını (cari ve cari olmayan) ve toplam özkaynağı kullanır. <br/>Borç kullanmadan varlık gereksinimlerini ne kadar etkili bir şekilde finanse ederler bunu gösterir. <br/> Öz sermaye oranı değeri .%50 veya altında olan herhangi bir şirket kaldıraçlı şirket olarak kabul edilir.  <br/>Değer ne kadar yüksekse, şirket o kadar az kaldıraçlıdır.  <br/>Tersine, öz sermaye oranı değeri .%50 veya üzerinde olan bir şirket, muhafazakar bir şirket olarak kabul edilir,  <br/>çünkü hissedar özsermayesinden daha fazla fona erişirler. <br/>Yatırımcılar daha az riskli oldukları için muhafazakar aralıktaki şirketleri arama eğilimindedir; bu tür şirketler, <br/> önemli miktarda borçlanmadan varlık gereksinimlerini nasıl toplayacaklarını ve fonlayacaklarını bilirler."
+                    $("#maincrd").html(txt).fadeIn(500);
+                }
+
+
+                if (e.target.innerText == "Özsermaye Devir Hızı") {
+
+                    $(e.target).css({ "cursor": "pointer" });
+
+                    var txt = "Özsermaye Devir Hızı: <br/>Birim: Katsayı<br/> Öz Sermaye devir hızı, şirket yönetiminin öz sermayeyi ne kadar etkin kullandığının bir göstergesidir.Dönemler arası öz sermayede aşırı farklılıklar(enflasyon etkisi) olduğu zamanlarda yıl sonu öz sermaye yerine ortalama öz sermayeyi almak daha anlamlı olacaktır. Öz sermaye devir hızını incelerken dikkat edilmesi gerekenler  oranın yüksek olmasının sebebi özsermayenin etkin bir şekilde kullanımı yüzünden olabileceği gibi, öz sermayenin yetersiz(fazla yabancı kaynak kullanımı) oluşundan da olabilir.Kesin bir yargıya varabilmek için firmanın mali yapısı ile ilgili oranlarla birlikte değerlendirme yapmak gerekir.Öz sermaye devir hızının düşüklüğünün firmanın öz sermaye karlılığını da etkiliyeceği gözardı edilmemelidir."
+                    $("#maincrd").html(txt).fadeIn(500);
+                }
+
+                if (e.target.innerText == "Özsermaye Karlılığı") {
+
+                    $(e.target).css({ "cursor": "pointer" });
+
+                    var txt = "Özsermaye Devir Hızı: <br/>Birim: Yüzde(%) <br/> Öz Sermaye, şirketlerin başlıca kaynaklarından biri olup, şirketlerin ortaklarının şirketlerden hak ettikleri kısmı oluşturmaktadır.Öz sermayeyi oluşturan kaynak kalemleri, ortakların koymuş oldukları sermaye ile hak ettikleri fakat şirkette bırakmış oldukları cari ve geçmiş dönemden dağıtılmamış karlardan oluşmaktadır.Öz Sermaye karlılığı ise, ortakların şirkete kaynak olarak bırakmış oldukları fonların bir birimine düşen karlılığı ölçen orandır. <br/>İşletmenin yönetimindeki başarı derecesi karlılık durumunun analizinde önemli bir göstergedir.Şirketlerin kullanımına bırakılmış olan bu fonları getirisinin ölçülmesi bakımından önem arzetmektedir."
+                    $("#maincrd").html(txt).fadeIn(500);
+                }
+                
+
+                if (e.target.innerText == "Aktif Kar Marjı (Aktif Karlılığı)") {
+
+                    $(e.target).css({ "cursor": "pointer" });
+
+                    var txt = "Aktif Kar Marjı (Aktif Karlılığı): <br/>Birim: Yüzde(%) <br/>Aktif karlılığı, şirketlerin ulaşmış oldukları büyüklük ile sağladıkları verimin ölçülmesinde kullanılır. Aktif karlılık şirketlerin edinmiş oldukları tüm varlıkların (yapılan maddi ve finansal yatırımlar dahil olmak üzere) hangi oranda etkin kullanıldığını göstermektedir. Esasında, aktif karlılık, net kar marjı ile aktif devir hızının bir birleşimidir."
+                    $("#maincrd").html(txt).fadeIn(500);
+                }
+
+                if (e.target.innerText == "Aktif Toplamı Devir Hızı") {
+
+                    $(e.target).css({ "cursor": "pointer" });
+
+                    var txt = "Aktif Devir Hızı: <br/>Birim: Katsayı<br/>Şirketlerin sahip oldukları varlıklar (toplam aktifler) ile yarattıkları satış hacmi başarısını ölçen bir orandır. Bu oran bize varlıklara aşırı yatırım yapılıp yapılmadığını yani şirketlerin aktif büyüklüklerinin gereksiz yere büyütülüp büyütülmediğini gösterir. Bu oran bir işletmede teknoloji kullanımının veya varlık kullanımının bir ölçüsü olabilir. Aktif toplamı içerisinde duran varlıklar önemli bir yer tutuyorsa, aktif devir hızı düşük çıkacaktır. Bu durum daha çok sermaye yoğun sanayi şirketlerinde karşımıza çıkacaktır. Buna karşılık sabit yatırımların daha az olduğu işletmelerde (örneğin ticaret veya finans şirketlerinde) bu oranın yüksek çıkması doğaldır. Varlık devir hızı işletmenin karlılğını tesbitte önemli bir göstergedir."
+                    $("#maincrd").html(txt).fadeIn(500);
+                }
+
+                if (e.target.innerText == "Ekonomik Rantabilite") {
+
+                    $(e.target).css({ "cursor": "pointer" });
+
+                    var txt = "Ekonomik Rantabilite: <br/>Birim: Katsayı<br/>Kaynakların verimli kullanılıp,kullanılmadığını gösterir.Yüksek olması beklenir ve olumlu yorumlanır.Ekonomik rantabile oranının Özsermaye karlılık oranından düşük olması beklenmektedir. Aksi durumda yabancı kaynaktan yararlanma maliyetinin normalin üzerinde olduğu düşünülür."
+                    $("#maincrd").html(txt).fadeIn(500);
+                }
+
+                if (e.target.innerText == "Faiz Karşılama Oranı") {
+
+                    $(e.target).css({ "cursor": "pointer" });
+
+                    var txt = "Faiz Karşılama Oranı: <br/>Birim:  Yüzde(%) <br/>Faiz karşılama oranı, şirketlerin göstermiş olduğu tüm faaliyetler sonucu elde ettiği kar (faiz ve vergi öncesi kar) ile finansman giderlerini hangi oranda karşılayabileceğini (faiz tutarını kaç defa karşıladığını) göstermektedir. Şirketler için birer risk ve emniyet göstergesi olarak da kullanılabilmektedir.  Bu oran ne kadar büyükse, firmanın faiz giderlerini ödeyebilme gücü artar. Oranın sektör/endüstri ortalamasına göre yüksek olması veya zaman içinde artma eğiliminde olması, finansal risk derecesini azaltır.."
+                    var txt = "Faiz Karşılama Oranı: <br/>Birim:  Yüzde(%) <br/>Faiz karşılama oranı, şirketlerin göstermiş olduğu tüm faaliyetler sonucu elde ettiği kar (faiz ve vergi öncesi kar) ile finansman giderlerini hangi oranda karşılayabileceğini (faiz tutarını kaç defa karşıladığını) göstermektedir. Şirketler için birer risk ve emniyet göstergesi olarak da kullanılabilmektedir.  Bu oran ne kadar büyükse, firmanın faiz giderlerini ödeyebilme gücü artar. Oranın sektör/endüstri ortalamasına göre yüksek olması veya zaman içinde artma eğiliminde olması, finansal risk derecesini azaltır.."
+                    $("#maincrd").html(txt).fadeIn(500);
+                }
+            
+                if (e.target.innerText == "Kısa vadeli yükümlülükler Toplamı") {
+
+                    $(".right_menu #rightsidebar").removeClass("open stretchRight");
+                }
+
+                if (e.target.innerText == "Uzun vadeli yükümlülükler Toplamı") {
+
+                    $(".right_menu #rightsidebar").removeClass("open stretchRight");
+                }
+
+                if (e.target.innerText == "Yükümlülükler toplamı") {
+
+                    $(".right_menu #rightsidebar").removeClass("open stretchRight");
+                }
+
+                if (e.target.innerText == "Duran Varlık Toplamı") {
+
+                    $(".right_menu #rightsidebar").removeClass("open stretchRight");
+                }
+
+                if (e.target.innerText == "Dönen Varlık Toplamı") {
+
+                    $(".right_menu #rightsidebar").removeClass("open stretchRight");
+                }
+
+
+                if (e.target.innerText == "Özkaynak") {
+
+                    $(".right_menu #rightsidebar").removeClass("open stretchRight");
+                }
+            }
+            else if (e.target.className == "overlay" || e.target.className == "" ) {
+          
+            }
+            else {
+                /*  $(".overlay").fadeOut();*/
+    
+                $(".right_menu #rightsidebar").removeClass("open stretchRight");
+       
+            }     
+         
+        };
+         
+        $('td').hover(function () {
+            // grab class attribute, split on space character (like you're doing already)
+            var class_names = $(this).attr('class').split(' ');
+
+            // loop through each class
+            $.each(class_names, function (k, v) {
+             
+                // see if this 1 class matches your example
+                if (v.indexOf("dx-pivotgrid-vertical-headers") > 0) {
+                    // if it does, remove text part of class name
+    /*                var this_num = v.replace('-example-class', '');*/
+                    // output numeric value only to console
+                     
+                }
+                if (v.indexOf("dx-last-cell") > 0) {
+                    // if it does, remove text part of class name
+                    /*                var this_num = v.replace('-example-class', '');*/
+                    // output numeric value only to console
+                    
+                }
+
+
+            });
+
+        });
+    </script>
+    <script>
+        function getLoadPanelInstance() {
+            return $("#loadPanel").dxLoadPanel("instance");
+        }
+        function loadPanel_shown(e) {
+            setTimeout(function () {
+                e.component.hide();
+            }, 7000);
+        }
+        var misready = "nok";
+        var chkReadyState = setInterval(function () {
+            if (document.readyState == "complete") {
+
+                clearInterval(chkReadyState);
+
+                misready = "ok";
+            }
+        }, 100);
+
+        function getselectYearInstance() {
+            return $("#slctYear").dxSelectBox("instance");
+        }
+        
+        function selectYear_Initialized() {
+            getselectYearInstance().option("value", parseInt($("#txtmyear").val()));
+            var chkco = parseInt($("#txtyearcount").val());
+
+            if (chkco < 2) {
+                getselectYearInstance().option("readOnly", true);
+            }
+
+
+        }
+
+       
+        function selectYear_valueChanged(data) {
+            var slctval = data.selectedItem.MYear;
+            var turl = '/admin/dashboard?handler=GraphYear&nyear=' + slctval;
+
+            if (misready == "ok" && tyear.toString() != slctval.toString()) {
+                getLoadPanelInstance().show();
+                $.ajax({
+                    type: "GET",
+                    url: turl,
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (response) {
+                        if (response == "ok") {
+                            location.reload();
+                        }
+                    },
+                    failure: function (response) {
+                        alert(response);
+                    }
+                });
+            }
+
+        }
+
+     
+
+    </script>
+}

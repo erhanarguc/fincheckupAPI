@@ -1,0 +1,1057 @@
+﻿@page
+
+@using fincheckup.Models.Hvvn
+@using fincheckup.Models.NKolay
+@using fincheckup.Models.NKolay.ViewM
+@using System.Drawing;
+@model IndexModel
+@{ ViewData["Title"] = "Report";
+    Layout = "~/Pages/Shared/_LayoutReport.cshtml"; }
+@using fincheckup.Models.NKolay.json
+@using fincheckup.ENTITY
+@using fincheckup.Models.ViewM
+@using fincheckup.Report
+@using DevExpress.AspNetCore
+@using DevExpress.DataAccess.ObjectBinding;
+@using DevExpress.XtraReports.UI
+@using DevExpress.XtraCharts
+
+
+@functions { public class IndexModel : PageModel
+    {
+
+        public long UserID;    
+        public int YearCurrent;
+        public List<DashBilancoViewQnb> ncheck;
+
+        public List<DashBilancoViewQnb> ncheck1;
+        public  DashBilancoViewQnb  ncheck3;
+        public DashBilancoViewQnb ncheck41;
+        public DashBilancoViewQnb ncheck43;
+        public List<DashBilancoViewQnb> ncheck5;
+
+
+        public List<DashBilancoViewQnb> ncheck7;
+        public List<DashBilancoViewQnb> ncheck9;
+        public List<DashBilancoViewQnb> ncheck11;
+        public DashBilancoViewQnb ncheck7b;
+        public DashBilancoViewQnb ncheck9b;
+        public DashBilancoViewQnb ncheck11b;
+
+        public DashBilancoViewQnb ncheck11c;
+        public DashBilancoViewQnb ncheck11d;
+        public LineSeriesView checkSeries;
+        public List<DashBilancoViewQnb> ncheckGelir;
+        public List<DashBilancoViewQnb> ncheck13;
+        public DashBilancoViewQnb ncheck13brut;
+
+        public DashBilancoViewQnb ncheck15;
+        public DashBilancoViewQnb ncheck15a;
+
+        public DashBilancoViewQnb ncheck17;
+        public DashBilancoViewQnb ncheck17a;
+        public List<ReportMainChartQnb> ncheckchartzone;
+        public List<ReportMainItemQnb> _ncheckzone;
+        public List<ReportMainItemQnb> _ncheck1;
+        public List<ReportMainChartQnb> ncheckchart1;
+        public List<ReportMainItemQnb> _ncheck2;
+        public List<ReportMainChartQnb> ncheckchart2;
+        public List<ReportMainItemQnb> _ncheck3;
+        public List<ReportMainChartQnb> ncheckchart3;
+        public List<ReportMainItemQnb> _ncheck4;
+        public List<ReportMainChartQnb> ncheckchart4;
+        public List<ReportMainItemQnb> _ncheck5;
+        public List<ReportMainChartQnb> ncheckchart5;
+        public List<ReportMainItemQnb> _ncheck7;
+        public List<ReportMainChartQnb> ncheckchart7;
+        public List<ReportMainItemQnb> _ncheck8;
+        public List<ReportMainChartQnb> ncheckchart8;
+        public List<ReportMainItemQnb> _ncheck9;
+        public List<ReportMainChartQnb> ncheckchart9;
+        public List<ReportMainItemQnb> _ncheck10;
+        public List<ReportMainChartQnb> ncheckchart10;
+        public List<ReportMainItemQnb> _ncheck11;
+        public List<ReportMainChartQnb> ncheckchart11;
+        public List<ReportMainItemQnb> _ncheck13;
+        public List<ReportMainChartQnb> ncheckchart13;
+        public List<ReportMainItemQnb> _ncheck14;
+        public List<ReportMainChartQnb> ncheckchart14;
+        public List<ReportMainItemQnb> _ncheck15;
+        public List<ReportMainChartQnb> ncheckchart15;
+        public List<ReportMainItemQnb> _ncheck16;
+        public List<ReportMainChartQnb> ncheckchart16;
+        public List<ReportMainItemQnb> _ncheck17;
+        public List<ReportMainChartQnb> ncheckchart17;
+        public List<ReportMainItemQnb> _ncheck18;
+        public List<ReportMainChartQnb> ncheckchart18;
+        public List<ReportMainItemQnb> _ncheck19;
+        public List<ReportMainChartQnb> ncheckchart19;
+        public List<ReportMainItemQnb> _ncheck20;
+        public List<ReportMainChartQnb> ncheckchart20;
+        public List<ReportMainItemQnb> _ncheck21;
+        public List<ReportMainChartQnb> ncheckchart21;
+        public List<ReportMainItemQnb> _ncheck22;
+        public List<ReportMainChartQnb> ncheckchart22;
+        public List<ReportMainItemQnb> _ncheck23;
+        public List<ReportMainChartQnb> ncheckchart23;
+        public List<ReportMainItemQnb> _ncheck24;
+        public List<ReportMainChartQnb> ncheckchart24;
+        public List<ReportMainItemQnb> _ncheck25;
+        public List<ReportMainChartQnb> ncheckchart25;
+        public List<ReportMainItemQnb> _ncheck27;
+        public List<ReportMainChartQnb> ncheckchart27;
+        public DashBilancoViewQnb ncheck19;
+          
+
+        public List<DashBilancoViewQnb> ncheck23;
+
+        public List<DashBilancoViewQnb> ncheck13Check;
+
+        public DashBilancoViewQnb ncheck25;
+        public DashBilancoViewQnb ncheck27;
+
+        public IEnumerable<Companies> mreqListCompany;
+        public HhvnUsers CurrentUser;
+        public Companies CCompanies;
+        public int compnacecode;
+        public long companyID;
+        public bool Isfailed;
+        public string repchakec;
+        public string header;
+        public string nccode;
+        public void OnGet(int nyear = 2021)
+        {
+            Isfailed = false;
+            //Color.FromArgb(182,33,45) red
+            //Color.FromArgb(23, 127, 117) greeen
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            checkSeries = new LineSeriesView();
+            mreqListCompany = Companies.Getby_User(UserID);
+            CCompanies = mreqListCompany.Where(x => x.IsDefault == 1).FirstOrDefault();
+
+            companyID = CCompanies.ID;
+            compnacecode = 2790;
+            if (!string.IsNullOrEmpty(CCompanies.NaceCode) && !string.IsNullOrWhiteSpace(CCompanies.NaceCode))
+            {
+                compnacecode = Convert.ToInt32(CCompanies.NaceCode.Replace(".", "").Substring(0, 4));
+            }
+            YearCurrent = nyear;
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+            repchakec = "Kayıtlarda Bir Sorunla Karşılaşıldı";
+            header = CCompanies.CompanyName;
+            nccode = CCompanies.NaceCode;
+            try
+            {
+
+                ncheck = MainDash.DataReportMainQnb(nyear, companyID);
+                ncheck1 = ncheck.Where(x => x.MainTypeID == 1).ToList();
+
+                ncheck3 = ncheck.Where(x => x.MainTypeID == 2).FirstOrDefault();
+                ncheck1 = reportZone.getReverse(ncheck1, ncheck3.Amount);
+
+
+                ncheck5 = ncheck.Where(x => x.MainTypeID  == 3).ToList();
+                ncheck41 = ncheck.Where(x => x.MainTypeID == 4 && x.TypeID == 471).FirstOrDefault();
+                ncheck43 = ncheck.Where(x => x.MainTypeID == 4 && x.TypeID == 473).FirstOrDefault();
+                ncheck3  = reportZone.getReverseSingle(ncheck3,  ncheck43.Amount);
+                ncheck41 = reportZone.getReverseSingle(ncheck41, ncheck43.Amount);
+                ncheck5  = reportZone.getReverse(ncheck5, ncheck41.Amount);
+
+                // 2.Sayfa
+
+                ncheck7 = ncheck.Where(x => x.MainTypeID == 5).ToList();
+                ncheck9 = ncheck.Where(x => x.MainTypeID == 7).ToList();
+                ncheck11 = ncheck.Where(x => x.MainTypeID == 9).ToList();
+                ncheck7b = ncheck.Where(x => x.MainTypeID == 6).FirstOrDefault();
+                ncheck9b = ncheck.Where(x => x.MainTypeID == 8).FirstOrDefault();
+                ncheck11b = ncheck.Where(x => x.TypeID == 951).FirstOrDefault();
+
+                ncheck11c = ncheck.Where(x => x.TypeID == 953).FirstOrDefault();
+                ncheck11d = ncheck.Where(x => x.TypeID == 955).FirstOrDefault();
+
+                ncheck7= reportZone.getReverse(ncheck7, ncheck7b.Amount);
+                ncheck9 = reportZone.getReverse(ncheck9, ncheck9b.Amount);
+                ncheck11 = reportZone.getReverse(ncheck11, ncheck11b.Amount);
+
+                ncheck7b = reportZone.getReverseSingle(ncheck7b, ncheck11d.Amount);
+                ncheck9b = reportZone.getReverseSingle(ncheck9b, ncheck11d.Amount);
+                ncheck11b = reportZone.getReverseSingle(ncheck11b, ncheck11d.Amount);
+                ncheck11c = reportZone.getReverseSingle(ncheck11c, ncheck11d.Amount);
+
+
+                //gelirler
+                ncheckGelir = MainDash.DataReportMainQnbGelir(nyear, companyID);
+                ncheck13 = ncheckGelir.Where(x => x.MainTypeID == 13).ToList();
+                ncheck13brut = ncheckGelir.Where(x => x.TypeID == 109).FirstOrDefault();
+
+                ncheck15 = ncheckGelir.Where(x => x.TypeID == 111).FirstOrDefault();
+                ncheck15a = ncheckGelir.Where(x => x.TypeID == 113).FirstOrDefault();
+
+                ncheck17 = ncheckGelir.Where(x => x.TypeID == 115).FirstOrDefault();
+                ncheck17a = ncheckGelir.Where(x => x.TypeID == 117).FirstOrDefault();
+
+                ncheck13Check = ncheckGelir.Where(x => x.MainTypeID == 23).ToList();
+
+                ncheck19 = ncheckGelir.Where(x => x.TypeID == 125).FirstOrDefault();
+
+                ncheck23 = ncheckGelir.Where(x => x.MainTypeID == 27).ToList();
+
+
+                ncheck25 = ncheckGelir.Where(x => x.TypeID == 133).FirstOrDefault();
+
+                ncheck27 = ncheckGelir.Where(x => x.TypeID == 135).FirstOrDefault();
+
+                var tst = ncheck13.Where(x => x.MainTypeID == 13 && x.TypeID==101).FirstOrDefault();
+                ncheck13 = reportZone.getReverse(ncheck13, ncheck25.Amount);
+                ncheck13brut = reportZone.getReverseSingle(ncheck13brut, ncheck25.Amount);
+                ncheck15 = reportZone.getReverseSingle(ncheck15, ncheck25.Amount);
+                ncheck15a = reportZone.getReverseSingle(ncheck15a, ncheck25.Amount);
+                ncheck17 = reportZone.getReverseSingle(ncheck17, ncheck25.Amount);
+                ncheck17a = reportZone.getReverseSingle(ncheck17a, ncheck25.Amount);
+
+                tst = reportZone.getReverseSingle(tst, tst.Amount);
+
+                ncheck13Check = reportZone.getReverse(ncheck13Check, ncheck25.Amount);
+
+                ncheck19 = reportZone.getReverseSingle(ncheck19, ncheck25.Amount);
+                ncheck23 = reportZone.getReverse(ncheck23, ncheck25.Amount);
+
+                ncheck25 = reportZone.getReverseSingle(ncheck25, ncheck25.Amount);
+                // chartlar
+                _ncheckzone = MainDash.DataReportMain1DynamicMain(companyID);
+                ncheckchartzone = MainDash.DataReportMain1DynamicMainChart(companyID);
+                _ncheck1 = _ncheckzone.Where(x => x.TypeID == 101).ToList();
+                ncheckchart1 = ncheckchartzone.Where(x => x.TypeID == 101).ToList();
+
+                _ncheck2 = _ncheckzone.Where(x => x.TypeID == 103).ToList();
+                ncheckchart2 = ncheckchartzone.Where(x => x.TypeID == 103).ToList();
+
+                _ncheck3 = _ncheckzone.Where(x => x.TypeID == 105).ToList();
+                ncheckchart3 = ncheckchartzone.Where(x => x.TypeID == 105).ToList();
+
+                _ncheck4 = _ncheckzone.Where(x => x.TypeID == 104).ToList();
+                ncheckchart4 = ncheckchartzone.Where(x => x.TypeID == 104).ToList();
+
+                _ncheck5 = _ncheckzone.Where(x => x.TypeID == 107).ToList();
+                ncheckchart5 = ncheckchartzone.Where(x => x.TypeID == 107).ToList();
+
+                _ncheck7 = _ncheckzone.Where(x => x.TypeID == 109).ToList();
+                ncheckchart7 = ncheckchartzone.Where(x => x.TypeID == 109).ToList();
+
+                _ncheck8 = _ncheckzone.Where(x => x.TypeID == 111).ToList();
+                ncheckchart8 = ncheckchartzone.Where(x => x.TypeID == 111).ToList();
+
+                _ncheck9 = _ncheckzone.Where(x => x.TypeID == 113).ToList();
+                ncheckchart9 = ncheckchartzone.Where(x => x.TypeID == 113).ToList();
+
+                _ncheck10 = _ncheckzone.Where(x => x.TypeID == 115).ToList();
+                ncheckchart10 = ncheckchartzone.Where(x => x.TypeID == 115).ToList();
+
+                _ncheck11 = _ncheckzone.Where(x => x.TypeID == 117).ToList();
+                ncheckchart11 = ncheckchartzone.Where(x => x.TypeID == 117).ToList();
+
+                _ncheck13 = _ncheckzone.Where(x => x.TypeID == 119).ToList();
+                ncheckchart13 = ncheckchartzone.Where(x => x.TypeID == 119).ToList();
+
+                _ncheck14 = _ncheckzone.Where(x => x.TypeID == 121).ToList();
+                ncheckchart14 = ncheckchartzone.Where(x => x.TypeID == 121).ToList();
+
+                _ncheck15 = _ncheckzone.Where(x => x.TypeID == 123).ToList();
+                ncheckchart15 = ncheckchartzone.Where(x => x.TypeID == 123).ToList();
+
+                _ncheck16 = _ncheckzone.Where(x => x.TypeID == 125).ToList();
+                ncheckchart16 = ncheckchartzone.Where(x => x.TypeID == 125).ToList();
+
+                _ncheck17= _ncheckzone.Where(x => x.TypeID == 127).ToList();
+                ncheckchart17 = ncheckchartzone.Where(x => x.TypeID == 127).ToList();
+
+                _ncheck18 = _ncheckzone.Where(x => x.TypeID == 129).ToList();
+                ncheckchart18 = ncheckchartzone.Where(x => x.TypeID == 129).ToList();
+
+                _ncheck19 = _ncheckzone.Where(x => x.TypeID == 131).ToList();
+                ncheckchart19 = ncheckchartzone.Where(x => x.TypeID == 131).ToList();
+
+                _ncheck20 = _ncheckzone.Where(x => x.TypeID == 133).ToList();
+                ncheckchart20 = ncheckchartzone.Where(x => x.TypeID == 133).ToList();
+
+                _ncheck21 = _ncheckzone.Where(x => x.TypeID == 135).ToList();
+                ncheckchart21 = ncheckchartzone.Where(x => x.TypeID == 135).ToList();
+
+                _ncheck22 = _ncheckzone.Where(x => x.TypeID == 137).ToList();
+                ncheckchart22 = ncheckchartzone.Where(x => x.TypeID == 137).ToList();
+
+                _ncheck23 = _ncheckzone.Where(x => x.TypeID == 139).ToList();
+                ncheckchart23 = ncheckchartzone.Where(x => x.TypeID == 139).ToList();
+
+                _ncheck24 = _ncheckzone.Where(x => x.TypeID == 141).ToList();
+                ncheckchart24 = ncheckchartzone.Where(x => x.TypeID == 141).ToList();
+
+                _ncheck25 = _ncheckzone.Where(x => x.TypeID == 143).ToList();
+                ncheckchart25 = ncheckchartzone.Where(x => x.TypeID == 143).ToList();
+
+                _ncheck27= _ncheckzone.Where(x => x.TypeID == 145).ToList();
+                ncheckchart27 = ncheckchartzone.Where(x => x.TypeID == 145).ToList();
+            }
+            catch
+            {
+
+                Isfailed = true;
+
+            }
+            //repchakec = "";
+
+
+
+
+
+
+            // 2790
+        }
+
+
+    } }
+@section Styles {
+    <link rel="stylesheet" href="~/css/viewer.part.bundle.css" />
+
+    <script src="~/js/viewer.part.bundle.js"></script>
+    <style>
+        .dxrd-toolbar-item-3 {
+            display: none !important;
+        }
+
+        .dxrd-toolbar-item-4 {
+            display: none !important;
+        }
+
+        .dxrd-preview.dxrd-designer-wrapper .dxrd-toolbar-wrapper .dxrd-preview-pager.dxrd-toolbar-item {
+            display: none !important;
+        }
+
+        dxrd-toolbar-item-0 {
+            display: none !important;
+        }
+
+        .dx-shadow-right {
+            display: none;
+        }
+    </style>
+
+}
+
+@{
+    FinansRaporu report = new FinansRaporu();
+    try
+    {
+        ObjectDataSource objectDataSourceChrt1 = new ObjectDataSource();
+        objectDataSourceChrt1.Name = "DataViewer";
+        objectDataSourceChrt1.DataSource = Model._ncheck1;
+        objectDataSourceChrt1.Fill();
+
+        ObjectDataSource objectDataSourceChrt2 = new ObjectDataSource();
+        objectDataSourceChrt2.Name = "DataViewerz";
+        objectDataSourceChrt2.DataSource = Model._ncheck2;
+        objectDataSourceChrt2.Fill();
+
+        ObjectDataSource objectDataSourceChrt3 = new ObjectDataSource();
+        objectDataSourceChrt3.Name = "DataViewerzz";
+        objectDataSourceChrt3.DataSource = Model._ncheck3;
+        objectDataSourceChrt3.Fill();
+
+        ObjectDataSource objectDataSourceChrt4 = new ObjectDataSource();
+        objectDataSourceChrt4.Name = "DataViewerzz1";
+        objectDataSourceChrt4.DataSource = Model._ncheck4;
+        objectDataSourceChrt4.Fill();
+
+        ObjectDataSource objectDataSourceChrt5 = new ObjectDataSource();
+        objectDataSourceChrt5.Name = "DataViewersszz1";
+        objectDataSourceChrt5.DataSource = Model._ncheck5;
+        objectDataSourceChrt5.Fill();
+
+        ObjectDataSource objectDataSource511 = new ObjectDataSource();
+        objectDataSource511.Name = "DataViewersszz1";
+        objectDataSource511.DataSource = Model.ncheck41;
+        objectDataSource511.Fill();
+
+
+        ObjectDataSource objectDataSourceChrt7 = new ObjectDataSource();
+        objectDataSourceChrt7.Name = "DataViewerzz1";
+        objectDataSourceChrt7.DataSource = Model._ncheck7;
+        objectDataSourceChrt7.Fill();
+
+        ObjectDataSource objectDataSourceChrt8 = new ObjectDataSource();
+        objectDataSourceChrt8.Name = "DataViewerzz1";
+        objectDataSourceChrt8.DataSource = Model._ncheck8;
+        objectDataSourceChrt8.Fill();
+
+
+        ObjectDataSource objectDataSourceChrt9 = new ObjectDataSource();
+        objectDataSourceChrt9.Name = "DataViewerzz1";
+        objectDataSourceChrt9.DataSource = Model._ncheck9;
+        objectDataSourceChrt9.Fill();
+
+
+        ObjectDataSource objectDataSourceChrt10= new ObjectDataSource();
+        objectDataSourceChrt10.Name = "DataViewerzz1";
+        objectDataSourceChrt10.DataSource = Model._ncheck10;
+        objectDataSourceChrt10.Fill();
+
+
+        ObjectDataSource objectDataSourceChrt11 = new ObjectDataSource();
+        objectDataSourceChrt11.Name = "DataViewerzz1";
+        objectDataSourceChrt11.DataSource = Model._ncheck11;
+        objectDataSourceChrt11.Fill();
+
+        ObjectDataSource objectDataSourceChrt13 = new ObjectDataSource();
+        objectDataSourceChrt13.Name = "DataViewerzz1";
+        objectDataSourceChrt13.DataSource = Model._ncheck13;
+        objectDataSourceChrt13.Fill();
+
+        ObjectDataSource objectDataSourceChrt14 = new ObjectDataSource();
+        objectDataSourceChrt14.Name = "DataViewerzz1";
+        objectDataSourceChrt14.DataSource = Model._ncheck14;
+        objectDataSourceChrt14.Fill();
+
+        ObjectDataSource objectDataSourceChrt15 = new ObjectDataSource();
+        objectDataSourceChrt15.Name = "DataViewerzz1";
+        objectDataSourceChrt15.DataSource = Model._ncheck15;
+        objectDataSourceChrt15.Fill();
+
+
+        ObjectDataSource objectDataSourceChrt16 = new ObjectDataSource();
+        objectDataSourceChrt16.Name = "DataViewerzz1";
+        objectDataSourceChrt16.DataSource = Model._ncheck16;
+        objectDataSourceChrt16.Fill();
+
+
+        ObjectDataSource objectDataSourceChrt17 = new ObjectDataSource();
+        objectDataSourceChrt17.Name = "DataViewerzz1";
+        objectDataSourceChrt17.DataSource = Model._ncheck17;
+        objectDataSourceChrt17.Fill();
+
+
+
+        ObjectDataSource objectDataSourceChrt18 = new ObjectDataSource();
+        objectDataSourceChrt18.Name = "DataViewerzz1";
+        objectDataSourceChrt18.DataSource = Model._ncheck18;
+        objectDataSourceChrt18.Fill();
+
+        ObjectDataSource objectDataSourceChrt19 = new ObjectDataSource();
+        objectDataSourceChrt19.Name = "DataViewerzz1";
+        objectDataSourceChrt19.DataSource = Model._ncheck19;
+        objectDataSourceChrt19.Fill();
+
+
+
+        ObjectDataSource objectDataSourceChrt20 = new ObjectDataSource();
+        objectDataSourceChrt20.Name = "DataViewerzz1";
+        objectDataSourceChrt20.DataSource = Model._ncheck20;
+        objectDataSourceChrt20.Fill();
+
+
+        ObjectDataSource objectDataSourceChrt21 = new ObjectDataSource();
+        objectDataSourceChrt21.Name = "DataViewerzz1";
+        objectDataSourceChrt21.DataSource = Model._ncheck21;
+        objectDataSourceChrt21.Fill();
+
+        ObjectDataSource objectDataSourceChrt22 = new ObjectDataSource();
+        objectDataSourceChrt22.Name = "DataViewerzz1";
+        objectDataSourceChrt22.DataSource = Model._ncheck22;
+        objectDataSourceChrt22.Fill();
+
+
+        ObjectDataSource objectDataSourceChrt23 = new ObjectDataSource();
+        objectDataSourceChrt23.Name = "DataViewerzz1";
+        objectDataSourceChrt23.DataSource = Model._ncheck23;
+        objectDataSourceChrt23.Fill();
+
+
+        ObjectDataSource objectDataSourceChrt24 = new ObjectDataSource();
+        objectDataSourceChrt24.Name = "DataViewerzz1";
+        objectDataSourceChrt24.DataSource = Model._ncheck24;
+        objectDataSourceChrt24.Fill();
+
+        ObjectDataSource objectDataSourceChrt25 = new ObjectDataSource();
+        objectDataSourceChrt25.Name = "DataViewerzz1";
+        objectDataSourceChrt25.DataSource = Model._ncheck25;
+        objectDataSourceChrt25.Fill();
+
+
+        ObjectDataSource objectDataSourceChrt27 = new ObjectDataSource();
+        objectDataSourceChrt27.Name = "DataViewerzz1";
+        objectDataSourceChrt27.DataSource = Model._ncheck27;
+        objectDataSourceChrt27.Fill();
+
+        ObjectDataSource objectDataSource = new ObjectDataSource();
+        objectDataSource.Name = "DataViewer1";
+        objectDataSource.DataSource = Model.ncheck1;
+
+        objectDataSource.Fill();
+
+        ObjectDataSource objectDataSource1 = new ObjectDataSource();
+        objectDataSource1.Name = "DataViewer2";
+        objectDataSource1.DataSource = Model.ncheck3;
+
+        objectDataSource1.Fill();
+
+        ObjectDataSource objectDataSource3 = new ObjectDataSource();
+        objectDataSource3.Name = "DataViewer3";
+        objectDataSource3.DataSource = Model.ncheck5;
+
+        objectDataSource3.Fill();
+
+        //ObjectDataSource objectDataSource5 = new ObjectDataSource();
+        //objectDataSource5.Name = "DataViewer4";
+        //objectDataSource5.DataSource = Model.ncheck41;
+
+        //objectDataSource5.Fill();
+
+
+        ObjectDataSource objectDataSource7 = new ObjectDataSource();
+        objectDataSource7.Name = "DataViewer5";
+        objectDataSource7.DataSource = Model.ncheck43;
+
+        objectDataSource7.Fill();
+
+        ObjectDataSource objectDataSource9 = new ObjectDataSource();
+        objectDataSource9.Name = "DataViewer6";
+        objectDataSource9.DataSource = Model.ncheck7;
+
+        objectDataSource9.Fill();
+
+
+        ObjectDataSource objectDataSource9b = new ObjectDataSource();
+        objectDataSource9b.Name = "DataViewer7";
+        objectDataSource9b.DataSource = Model.ncheck7b;
+
+        objectDataSource9b.Fill();
+
+        ObjectDataSource objectDataSource11 = new ObjectDataSource();
+        objectDataSource11.Name = "DataViewer8";
+        objectDataSource11.DataSource = Model.ncheck9;
+
+        objectDataSource11.Fill();
+
+
+        ObjectDataSource objectDataSource11b = new ObjectDataSource();
+        objectDataSource11b.Name = "DataViewer9";
+        objectDataSource11b.DataSource = Model.ncheck9b;
+
+        objectDataSource11b.Fill();
+
+        ObjectDataSource objectDataSource13 = new ObjectDataSource();
+        objectDataSource13.Name = "DataViewer10";
+        objectDataSource13.DataSource = Model.ncheck11;
+
+        objectDataSource13.Fill();
+
+
+        ObjectDataSource objectDataSource13b = new ObjectDataSource();
+        objectDataSource13b.Name = "DataViewer11";
+        objectDataSource13b.DataSource = Model.ncheck11b;
+
+        objectDataSource13b.Fill();
+
+        ObjectDataSource objectDataSource13b1 = new ObjectDataSource();
+        objectDataSource13b1.Name = "DataViewer12";
+        objectDataSource13b1.DataSource = Model.ncheck11c;
+
+        objectDataSource13b1.Fill();
+
+        ObjectDataSource objectDataSource13b3 = new ObjectDataSource();
+        objectDataSource13b3.Name = "DataViewer13";
+        objectDataSource13b3.DataSource = Model.ncheck11d;
+
+        objectDataSource13b3.Fill();
+        // Gelirler
+
+        ObjectDataSource objectDataSource15 = new ObjectDataSource();
+        objectDataSource15.Name = "DataViewer14";
+        objectDataSource15.DataSource = Model.ncheck13;
+
+        objectDataSource15.Fill();
+
+        ObjectDataSource objectDataSource15a = new ObjectDataSource();
+        objectDataSource15a.Name = "DataViewer15";
+        objectDataSource15a.DataSource = Model.ncheck13brut;
+
+        objectDataSource15a.Fill();
+
+        ObjectDataSource objectDataSource17 = new ObjectDataSource();
+        objectDataSource17.Name = "DataViewer16";
+        objectDataSource17.DataSource = Model.ncheck15;
+
+        objectDataSource17.Fill();
+
+        ObjectDataSource objectDataSource17a = new ObjectDataSource();
+        objectDataSource17a.Name = "DataViewer17";
+        objectDataSource17a.DataSource = Model.ncheck15a;
+
+        objectDataSource17a.Fill();
+
+
+        ObjectDataSource objectDataSource19 = new ObjectDataSource();
+        objectDataSource19.Name = "DataViewer18";
+        objectDataSource19.DataSource = Model.ncheck17;
+
+        objectDataSource19.Fill();
+
+        ObjectDataSource objectDataSource19a = new ObjectDataSource();
+        objectDataSource19a.Name = "DataViewer19";
+        objectDataSource19a.DataSource = Model.ncheck17a;
+
+        objectDataSource19a.Fill();
+
+        ObjectDataSource objectDataSource13check = new ObjectDataSource();
+        objectDataSource13check.Name = "DataViewer20";
+        objectDataSource13check.DataSource = Model.ncheck13Check;
+
+        objectDataSource13check.Fill();
+
+        ObjectDataSource objectDataSource21 = new ObjectDataSource();
+        objectDataSource21.Name = "DataViewer21";
+        objectDataSource21.DataSource = Model.ncheck19;
+
+        objectDataSource21.Fill();
+
+        // ObjectDataSource objectDataSource23 = new ObjectDataSource();
+        // objectDataSource23.Name = "DataViewer22";
+        // objectDataSource23.DataSource = Model.ncheck21;
+
+        // objectDataSource23.Fill();
+
+        ObjectDataSource objectDataSource25 = new ObjectDataSource();
+        objectDataSource25.Name = "DataViewer23";
+        objectDataSource25.DataSource = Model.ncheck23;
+
+        objectDataSource25.Fill();
+
+        ObjectDataSource objectDataSource27 = new ObjectDataSource();
+        objectDataSource27.Name = "DataViewer24";
+        objectDataSource27.DataSource = Model.ncheck25;
+
+        objectDataSource27.Fill();
+
+
+
+        ObjectDataSource objectDataSource29 = new ObjectDataSource();
+        objectDataSource29.Name = "DataViewer25";
+        objectDataSource29.DataSource = Model.ncheck27;
+        objectDataSource29.Fill();
+
+        DetailReportBand detailReport = report.Bands["DetailReport"] as DetailReportBand;
+        detailReport.DataSource = objectDataSource;
+
+        DetailReportBand detailReport1 = report.Bands["DetailReport2"] as DetailReportBand;
+        detailReport1.DataSource = objectDataSource1;
+
+        DetailReportBand detailReport3 = report.Bands["DetailReport1"] as DetailReportBand;
+        detailReport3.DataSource = objectDataSource3;
+
+        DetailReportBand detailReport5 = report.Bands["DetailReport3"] as DetailReportBand;
+        detailReport5.DataSource = objectDataSource511;
+
+        DetailReportBand detailReport7 = report.Bands["DetailReport4"] as DetailReportBand;
+        detailReport7.DataSource = objectDataSource7;
+
+        DetailReportBand detailReport9 = report.Bands["DetailReport6"] as DetailReportBand;
+        detailReport9.DataSource = objectDataSource9;
+
+        DetailReportBand detailReport9b = report.Bands["DetailReport7"] as DetailReportBand;
+        detailReport9b.DataSource = objectDataSource9b;
+
+        DetailReportBand detailReport11 = report.Bands["DetailReport8"] as DetailReportBand;
+        detailReport11.DataSource = objectDataSource11;
+
+        DetailReportBand detailReport11b = report.Bands["DetailReport9"] as DetailReportBand;
+        detailReport11b.DataSource = objectDataSource11b;
+
+        DetailReportBand detailReport13 = report.Bands["DetailReport10"] as DetailReportBand;
+        detailReport13.DataSource = objectDataSource13;
+
+        DetailReportBand detailReport13b = report.Bands["DetailReport11"] as DetailReportBand;
+        detailReport13b.DataSource = objectDataSource13b;
+
+        DetailReportBand detailReport13b1 = report.Bands["DetailReport12"] as DetailReportBand;
+        detailReport13b1.DataSource = objectDataSource13b1;
+
+        DetailReportBand detailReport13b2 = report.Bands["DetailReport13"] as DetailReportBand;
+        detailReport13b2.DataSource = objectDataSource13b3;
+
+
+        DetailReportBand detailReport15 = report.Bands["DetailReport14"] as DetailReportBand;
+        detailReport15.DataSource = objectDataSource15;
+
+
+        DetailReportBand detailReport15a = report.Bands["DetailReport15"] as DetailReportBand;
+        detailReport15a.DataSource = objectDataSource15a;
+
+
+        DetailReportBand detailReport17 = report.Bands["DetailReport16"] as DetailReportBand;
+        detailReport17.DataSource = objectDataSource17;
+
+        DetailReportBand detailReport17a = report.Bands["DetailReport17"] as DetailReportBand;
+        detailReport17a.DataSource = objectDataSource17a;
+
+
+        DetailReportBand detailReport19 = report.Bands["DetailReport18"] as DetailReportBand;
+        detailReport19.DataSource = objectDataSource19;
+
+
+        DetailReportBand detailReport19a = report.Bands["DetailReport19"] as DetailReportBand;
+        detailReport19a.DataSource = objectDataSource19a;
+
+
+
+        DetailReportBand detailReport13Check = report.Bands["DetailReport20"] as DetailReportBand;
+        detailReport13Check.DataSource = objectDataSource13check;
+
+
+        DetailReportBand detailReport21 = report.Bands["DetailReport21"] as DetailReportBand;
+        detailReport21.DataSource = objectDataSource21;
+
+
+
+        DetailReportBand detailReport25 = report.Bands["DetailReport23"] as DetailReportBand;
+        detailReport25.DataSource = objectDataSource25;
+
+
+        DetailReportBand detailReport27 = report.Bands["DetailReport24"] as DetailReportBand;
+        detailReport27.DataSource = objectDataSource27;
+
+
+        DetailReportBand detailReport29 = report.Bands["DetailReport25"] as DetailReportBand;
+        detailReport29.DataSource = objectDataSource29;
+
+        DetailReportBand detailReport22 = report.Bands["DetailReport22"] as DetailReportBand;
+        detailReport22.DataSource = objectDataSourceChrt1;
+
+        DetailReportBand detailReport30 = report.Bands["DetailReport29"] as DetailReportBand;
+        detailReport30.DataSource = objectDataSourceChrt2;
+
+        DetailReportBand detailReport31 = report.Bands["DetailReport31"] as DetailReportBand;
+        detailReport31.DataSource = objectDataSourceChrt3;
+
+        DetailReportBand detailReport33= report.Bands["DetailReport33"] as DetailReportBand;
+        detailReport33.DataSource = objectDataSourceChrt4;
+
+
+        DetailReportBand detailReport35 = report.Bands["DetailReport35"] as DetailReportBand;
+        detailReport35.DataSource = objectDataSourceChrt5;
+
+
+        DetailReportBand detailReport37 = report.Bands["DetailReport37"] as DetailReportBand;
+        detailReport37.DataSource = objectDataSourceChrt7;
+
+
+
+        DetailReportBand detailReport39= report.Bands["DetailReport39"] as DetailReportBand;
+        detailReport39.DataSource = objectDataSourceChrt8;
+
+
+
+        DetailReportBand detailReport41 = report.Bands["DetailReport41"] as DetailReportBand;
+        detailReport41.DataSource = objectDataSourceChrt9;
+
+
+        DetailReportBand detailReport43 = report.Bands["DetailReport43"] as DetailReportBand;
+        detailReport43.DataSource = objectDataSourceChrt10;
+
+
+        DetailReportBand detailReport45 = report.Bands["DetailReport45"] as DetailReportBand;
+        detailReport45.DataSource = objectDataSourceChrt11;
+
+
+        DetailReportBand detailReport47 = report.Bands["DetailReport47"] as DetailReportBand;
+        detailReport47.DataSource = objectDataSourceChrt13;
+
+
+        DetailReportBand detailReport49 = report.Bands["DetailReport49"] as DetailReportBand;
+        detailReport49.DataSource = objectDataSourceChrt14;
+
+
+        DetailReportBand detailReport51= report.Bands["DetailReport51"] as DetailReportBand;
+        detailReport51.DataSource = objectDataSourceChrt15;
+
+
+        DetailReportBand detailReport53 = report.Bands["DetailReport53"] as DetailReportBand;
+        detailReport53.DataSource = objectDataSourceChrt16;
+
+
+        DetailReportBand detailReport55 = report.Bands["DetailReport55"] as DetailReportBand;
+        detailReport55.DataSource = objectDataSourceChrt17;
+
+
+        DetailReportBand detailReport57 = report.Bands["DetailReport57"] as DetailReportBand;
+        detailReport57.DataSource = objectDataSourceChrt18;
+
+
+        DetailReportBand detailReport59 = report.Bands["DetailReport59"] as DetailReportBand;
+        detailReport59.DataSource = objectDataSourceChrt19;
+
+        DetailReportBand detailReport61 = report.Bands["DetailReport63"] as DetailReportBand;
+        detailReport61.DataSource = objectDataSourceChrt20;
+
+
+        DetailReportBand detailReport63 = report.Bands["DetailReport65"] as DetailReportBand;
+        detailReport63.DataSource = objectDataSourceChrt21;
+
+        DetailReportBand detailReport65 = report.Bands["DetailReport67"] as DetailReportBand;
+        detailReport65.DataSource = objectDataSourceChrt22;
+
+
+        DetailReportBand detailReport67 = report.Bands["DetailReport69"] as DetailReportBand;
+        detailReport67.DataSource = objectDataSourceChrt23;
+
+
+        DetailReportBand detailReport69 = report.Bands["DetailReport71"] as DetailReportBand;
+        detailReport69.DataSource = objectDataSourceChrt24;
+
+
+        DetailReportBand detailReport71 = report.Bands["DetailReport73"] as DetailReportBand;
+        detailReport71.DataSource = objectDataSourceChrt25;
+
+        DetailReportBand detailReport715 = report.Bands["DetailReport75"] as DetailReportBand;
+        detailReport715.DataSource = objectDataSourceChrt27;
+        //DetailReportBand detailReport73 = report.Bands["DetailReport73"] as DetailReportBand;
+        //detailReport73.DataSource = objectDataSourceChrt27;
+
+
+        //DetailReportBand detailReport75 = report.Bands["DetailReport75"] as DetailReportBand;
+        //detailReport75.DataSource = objectDataSourceChrt25;
+
+        var chart1 = (XRChart)report.FindControl("xrChart1", false);
+
+        chart1.DataSource = Model.ncheckchart1;//Method from documentation you reffered
+        chart1.SeriesTemplate.View = Model.checkSeries;
+        chart1.SeriesTemplate.SeriesDataMember = "GridName";
+        chart1.SeriesTemplate.Label.TextPattern = "{V:n0}";
+        chart1.SeriesTemplate.ArgumentDataMember = "GroupText";
+        chart1.SeriesTemplate.ValueDataMembers.AddRange("Amount");
+
+
+        var chart2 = (XRChart)report.FindControl("xrChart2", false);
+
+        chart2.DataSource = Model.ncheckchart2;//Method from documentation you reffered
+        chart2.SeriesTemplate.View = Model.checkSeries;
+        chart2.SeriesTemplate.SeriesDataMember = "GridName";
+        chart2.SeriesTemplate.Label.TextPattern = "{V:n0}";
+        chart2.SeriesTemplate.ArgumentDataMember = "GroupText";
+        chart2.SeriesTemplate.ValueDataMembers.AddRange("Amount");
+
+        var chart3 = (XRChart)report.FindControl("xrChart3", false);
+
+        chart3.DataSource = Model.ncheckchart3;//Method from documentation you reffered
+        chart3.SeriesTemplate.View = Model.checkSeries;
+        chart3.SeriesTemplate.SeriesDataMember = "GridName";
+        chart3.SeriesTemplate.Label.TextPattern = "{V:n2}";
+        chart3.SeriesTemplate.ArgumentDataMember = "GroupText";
+        chart3.SeriesTemplate.ValueDataMembers.AddRange("Amount");
+
+        var chart4 = (XRChart)report.FindControl("xrChart4", false);
+
+        chart4.DataSource = Model.ncheckchart4;//Method from documentation you reffered
+        chart4.SeriesTemplate.View = Model.checkSeries;
+        chart4.SeriesTemplate.SeriesDataMember = "GridName";
+        chart4.SeriesTemplate.Label.TextPattern = "{V:n2}";
+        chart4.SeriesTemplate.ArgumentDataMember = "GroupText";
+        chart4.SeriesTemplate.ValueDataMembers.AddRange("Amount");
+
+        var chart5 = (XRChart)report.FindControl("xrChart5", false);
+        chart5.DataSource = Model.ncheckchart5;//Method from documentation you reffered
+        chart5.SeriesTemplate.View = Model.checkSeries;
+        chart5.SeriesTemplate.SeriesDataMember = "GridName";
+        chart5.SeriesTemplate.Label.TextPattern = "{V:n2}";
+        chart5.SeriesTemplate.ArgumentDataMember = "GroupText";
+        chart5.SeriesTemplate.ValueDataMembers.AddRange("Amount");
+
+        var chart7 = (XRChart)report.FindControl("xrChart6", false);
+        chart7.DataSource = Model.ncheckchart7;//Method from documentation you reffered
+        chart7.SeriesTemplate.View = Model.checkSeries;
+        chart7.SeriesTemplate.SeriesDataMember = "GridName";
+        chart7.SeriesTemplate.Label.TextPattern = "{V:n2}";
+        chart7.SeriesTemplate.ArgumentDataMember = "GroupText";
+        chart7.SeriesTemplate.ValueDataMembers.AddRange("Amount");
+
+
+        var chart8 = (XRChart)report.FindControl("xrChart7", false);
+        chart8.DataSource = Model.ncheckchart8;//Method from documentation you reffered
+        chart8.SeriesTemplate.View = Model.checkSeries;
+        chart8.SeriesTemplate.SeriesDataMember = "GridName";
+        chart8.SeriesTemplate.Label.TextPattern = "{V:n2}";
+        chart8.SeriesTemplate.ArgumentDataMember = "GroupText";
+        chart8.SeriesTemplate.ValueDataMembers.AddRange("Amount");
+
+
+        var chart81 = (XRChart)report.FindControl("xrChart8", false);
+        chart81.DataSource = Model.ncheckchart9;//Method from documentation you reffered
+        chart81.SeriesTemplate.View = Model.checkSeries;
+        chart81.SeriesTemplate.SeriesDataMember = "GridName";
+        chart81.SeriesTemplate.Label.TextPattern = "{V:n2}";
+        chart81.SeriesTemplate.ArgumentDataMember = "GroupText";
+        chart81.SeriesTemplate.ValueDataMembers.AddRange("Amount");
+
+
+        var xrChart9 = (XRChart)report.FindControl("xrChart9", false);
+        xrChart9.DataSource = Model.ncheckchart10;//Method from documentation you reffered
+        xrChart9.SeriesTemplate.View = Model.checkSeries;
+        xrChart9.SeriesTemplate.SeriesDataMember = "GridName";
+        xrChart9.SeriesTemplate.Label.TextPattern = "{V:n2}";
+        xrChart9.SeriesTemplate.ArgumentDataMember = "GroupText";
+        xrChart9.SeriesTemplate.ValueDataMembers.AddRange("Amount");
+
+
+        var xrChart10 = (XRChart)report.FindControl("xrChart10", false);
+        xrChart10.DataSource = Model.ncheckchart11;//Method from documentation you reffered
+        xrChart10.SeriesTemplate.View = Model.checkSeries;
+        xrChart10.SeriesTemplate.SeriesDataMember = "GridName";
+        xrChart10.SeriesTemplate.Label.TextPattern = "{V:n2}";
+        xrChart10.SeriesTemplate.ArgumentDataMember = "GroupText";
+        xrChart10.SeriesTemplate.ValueDataMembers.AddRange("Amount");
+
+        var xrChart11 = (XRChart)report.FindControl("xrChart11", false);
+        xrChart11.DataSource = Model.ncheckchart13;//Method from documentation you reffered
+        xrChart11.SeriesTemplate.View = Model.checkSeries;
+        xrChart11.SeriesTemplate.SeriesDataMember = "GridName";
+        xrChart11.SeriesTemplate.Label.TextPattern = "{V:n2}";
+        xrChart11.SeriesTemplate.ArgumentDataMember = "GroupText";
+        xrChart11.SeriesTemplate.ValueDataMembers.AddRange("Amount");
+
+        var xrChart12 = (XRChart)report.FindControl("xrChart12", false);
+        xrChart12.DataSource = Model.ncheckchart14;//Method from documentation you reffered
+        xrChart12.SeriesTemplate.View = Model.checkSeries;
+        xrChart12.SeriesTemplate.SeriesDataMember = "GridName";
+        xrChart12.SeriesTemplate.Label.TextPattern = "{V:n2}";
+        xrChart12.SeriesTemplate.ArgumentDataMember = "GroupText";
+        xrChart12.SeriesTemplate.ValueDataMembers.AddRange("Amount");
+
+        var xrChart13 = (XRChart)report.FindControl("xrChart13", false);
+        xrChart13.DataSource = Model.ncheckchart15;//Method from documentation you reffered
+        xrChart13.SeriesTemplate.View = Model.checkSeries;
+        xrChart13.SeriesTemplate.SeriesDataMember = "GridName";
+        xrChart13.SeriesTemplate.Label.TextPattern = "{V:n2}";
+        xrChart13.SeriesTemplate.ArgumentDataMember = "GroupText";
+        xrChart13.SeriesTemplate.ValueDataMembers.AddRange("Amount");
+
+        var xrChart14 = (XRChart)report.FindControl("xrChart14", false);
+        xrChart14.DataSource = Model.ncheckchart16;//Method from documentation you reffered
+        xrChart14.SeriesTemplate.View = Model.checkSeries;
+        xrChart14.SeriesTemplate.SeriesDataMember = "GridName";
+        xrChart14.SeriesTemplate.Label.TextPattern = "{V:n2}";
+        xrChart14.SeriesTemplate.ArgumentDataMember = "GroupText";
+        xrChart14.SeriesTemplate.ValueDataMembers.AddRange("Amount");
+
+        var xrChart15 = (XRChart)report.FindControl("xrChart15", false);
+        xrChart15.DataSource = Model.ncheckchart17;//Method from documentation you reffered
+        xrChart15.SeriesTemplate.View = Model.checkSeries;
+        xrChart15.SeriesTemplate.SeriesDataMember = "GridName";
+        xrChart15.SeriesTemplate.Label.TextPattern = "{V:n2}";
+        xrChart15.SeriesTemplate.ArgumentDataMember = "GroupText";
+        xrChart15.SeriesTemplate.ValueDataMembers.AddRange("Amount");
+
+        var xrChart16 = (XRChart)report.FindControl("xrChart16", false);
+        xrChart16.DataSource = Model.ncheckchart18;//Method from documentation you reffered
+        xrChart16.SeriesTemplate.View = Model.checkSeries;
+        xrChart16.SeriesTemplate.SeriesDataMember = "GridName";
+        xrChart16.SeriesTemplate.Label.TextPattern = "{V:n2}";
+        xrChart16.SeriesTemplate.ArgumentDataMember = "GroupText";
+        xrChart16.SeriesTemplate.ValueDataMembers.AddRange("Amount");
+
+        var xrChart17 = (XRChart)report.FindControl("xrChart17", false);
+        xrChart17.DataSource = Model.ncheckchart19;//Method from documentation you reffered
+        xrChart17.SeriesTemplate.View = Model.checkSeries;
+        xrChart17.SeriesTemplate.SeriesDataMember = "GridName";
+        xrChart17.SeriesTemplate.Label.TextPattern = "{V:n2}";
+        xrChart17.SeriesTemplate.ArgumentDataMember = "GroupText";
+        xrChart17.SeriesTemplate.ValueDataMembers.AddRange("Amount");
+
+
+        var xrChart18 = (XRChart)report.FindControl("xrChart18", false);
+        xrChart18.DataSource = Model.ncheckchart20;//Method from documentation you reffered
+        xrChart18.SeriesTemplate.View = Model.checkSeries;
+        xrChart18.SeriesTemplate.SeriesDataMember = "GridName";
+        xrChart18.SeriesTemplate.Label.TextPattern = "{V:n2}";
+        xrChart18.SeriesTemplate.ArgumentDataMember = "GroupText";
+        xrChart18.SeriesTemplate.ValueDataMembers.AddRange("Amount");
+
+        var xrChart19 = (XRChart)report.FindControl("xrChart19", false);
+        xrChart19.DataSource = Model.ncheckchart21;//Method from documentation you reffered
+        xrChart19.SeriesTemplate.View = Model.checkSeries;
+        xrChart19.SeriesTemplate.SeriesDataMember = "GridName";
+        xrChart19.SeriesTemplate.Label.TextPattern = "{V:n2}";
+        xrChart19.SeriesTemplate.ArgumentDataMember = "GroupText";
+        xrChart19.SeriesTemplate.ValueDataMembers.AddRange("Amount");
+
+        var xrChart20 = (XRChart)report.FindControl("xrChart20", false);
+        xrChart20.DataSource = Model.ncheckchart22;//Method from documentation you reffered
+        xrChart20.SeriesTemplate.View = Model.checkSeries;
+        xrChart20.SeriesTemplate.SeriesDataMember = "GridName";
+        xrChart20.SeriesTemplate.Label.TextPattern = "{V:n2}";
+        xrChart20.SeriesTemplate.ArgumentDataMember = "GroupText";
+        xrChart20.SeriesTemplate.ValueDataMembers.AddRange("Amount");
+
+        var xrChart21 = (XRChart)report.FindControl("xrChart21", false);
+        xrChart21.DataSource = Model.ncheckchart23;//Method from documentation you reffered
+        xrChart21.SeriesTemplate.View = Model.checkSeries;
+        xrChart21.SeriesTemplate.SeriesDataMember = "GridName";
+        xrChart21.SeriesTemplate.Label.TextPattern = "{V:n2}";
+        xrChart21.SeriesTemplate.ArgumentDataMember = "GroupText";
+        xrChart21.SeriesTemplate.ValueDataMembers.AddRange("Amount");
+
+        var xrChart22 = (XRChart)report.FindControl("xrChart22", false);
+        xrChart22.DataSource = Model.ncheckchart24;//Method from documentation you reffered
+        xrChart22.SeriesTemplate.View = Model.checkSeries;
+        xrChart22.SeriesTemplate.SeriesDataMember = "GridName";
+        xrChart22.SeriesTemplate.Label.TextPattern = "{V:n2}";
+        xrChart22.SeriesTemplate.ArgumentDataMember = "GroupText";
+        xrChart22.SeriesTemplate.ValueDataMembers.AddRange("Amount");
+
+        var xrChart23 = (XRChart)report.FindControl("xrChart23", false);
+        xrChart23.DataSource = Model.ncheckchart25;//Method from documentation you reffered
+        xrChart23.SeriesTemplate.View = Model.checkSeries;
+        xrChart23.SeriesTemplate.SeriesDataMember = "GridName";
+        xrChart23.SeriesTemplate.Label.TextPattern = "{V:n2}";
+        xrChart23.SeriesTemplate.ArgumentDataMember = "GroupText";
+        xrChart23.SeriesTemplate.ValueDataMembers.AddRange("Amount");
+
+        var xrChart24 = (XRChart)report.FindControl("xrChart24", false);
+        xrChart24.DataSource = Model.ncheckchart27;//Method from documentation you reffered
+        xrChart24.SeriesTemplate.View = Model.checkSeries;
+        xrChart24.SeriesTemplate.SeriesDataMember = "GridName";
+        xrChart24.SeriesTemplate.Label.TextPattern = "{V:n2}";
+        xrChart24.SeriesTemplate.ArgumentDataMember = "GroupText";
+        xrChart24.SeriesTemplate.ValueDataMembers.AddRange("Amount");
+
+        //var xrChart25 = (XRChart)report.FindControl("xrChart25", false);
+        //xrChart25.DataSource = Model.ncheckchart27;//Method from documentation you reffered
+        //xrChart25.SeriesTemplate.View = Model.checkSeries;
+        //xrChart25.SeriesTemplate.SeriesDataMember = "GridName";
+        //xrChart25.SeriesTemplate.Label.TextPattern = "{V:n2}";
+        //xrChart25.SeriesTemplate.ArgumentDataMember = "GroupText";
+        //xrChart25.SeriesTemplate.ValueDataMembers.AddRange("Amount");
+
+
+
+        report.xrLblYear.Text = Model.YearCurrent.ToString();
+        report.xrlblYear1.Text = Model.YearCurrent.ToString();
+        report.xrlblYear3.Text = Model.YearCurrent.ToString();
+        // report.DataSource = objectDataSource;
+        report.PrintingSystem.Document.Name = "Balance_raporlar";
+        @Html.DevExpress().WebDocumentViewer("DocumentViewer").Height("1000px").Bind(report)
+    }
+    catch (Exception)
+    {
+        Model.Isfailed = true;
+
+    }
+
+
+}
+
+
+@if (Model.Isfailed)
+{
+    <h1>@Model.repchakec</h1>
+}
+@section Scripts{
+
+} 

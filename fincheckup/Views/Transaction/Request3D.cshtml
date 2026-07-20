@@ -1,0 +1,12 @@
+﻿@using Newtonsoft.Json
+@using fincheckup.Helper.Page
+
+@{
+    Layout = "";
+    var htmlContentData = JsonConvert.DeserializeObject(Pagethreedhelper.htmltext);
+}
+
+@model string
+
+
+@Html.Raw(htmlContentData)

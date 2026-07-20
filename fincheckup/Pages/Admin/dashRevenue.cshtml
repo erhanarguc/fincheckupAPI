@@ -1,0 +1,422 @@
+﻿@page
+
+@using fincheckup.Models.Hvvn
+@using fincheckup.Models.NKolay
+
+@model IndexModel
+@{
+    ViewData["Title"] = "Giriş Ekranı";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+@using fincheckup.Models.NKolay.json
+@using fincheckup.ENTITY
+@using fincheckup.Models.ViewM
+
+@functions {
+    public class IndexModel : PageModel
+    {
+        public IEnumerable<YearResult> myearResult;
+        public long UserID;
+        public long CompID;
+        public int CompCount;
+        public int YearCount;
+        public HhvnUsers CurrentUser;
+        public List<DashBilancoView> nRequestList;
+        public string CompName;
+        public IEnumerable<Companies> mreqListCompany;
+         
+
+        public DashYearlyRevenueChart ncart;
+        public IEnumerable<YearlyReportDash> dashEbitMarjin;
+        public IEnumerable<YearlyReportDash> dashGrossProfit;
+        public IEnumerable<YearlyReportDash> dashRevenue;
+        public IEnumerable<YearlyReportDash> dashDonemselKarzarar;
+        public DashRep NetEbitMarjin { get; set; }
+        public DashRep NetGrossProfit { get; set; }
+        public DashRep NetRevenue { get; set; }
+        public DashRep NetDonemselKarzarar { get; set; }
+
+
+        public string brutkarzararstr { get; set; }
+        public string ebitstr { get; set; }
+        public string donemkarzararstr { get; set; }
+        public void OnGet()
+        {
+
+
+
+            myearResult = YearResult.getValue();
+
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            mreqListCompany = Companies.Getby_User(UserID);
+
+            CompID = mreqListCompany.Where(x => x.IsDefault == 1).FirstOrDefault().ID;
+            HhvnUsers.SetYearMain(CompID, UserID);
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+            YearCount = TBLXml.GetYearByComapnyID(CompID);
+            CompCount = mreqListCompany.Count();
+
+            CompName = mreqListCompany.Where(x => x.IsDefault == 1).FirstOrDefault().CompanyName;
+            dashGrossProfit = ReportDash.Get_Data_GrossProfit(CurrentUser.SelectedYear, CompID);
+            dashRevenue = ReportDash.Get_Data_Revenue(CurrentUser.SelectedYear, CompID);
+            dashDonemselKarzarar = ReportDash.Get_Data_DonemselKarzarar(CurrentUser.SelectedYear, CompID);
+            dashEbitMarjin = ReportDash.Get_Data_EbitMarjin(CurrentUser.SelectedYear, CompID);
+
+            NetEbitMarjin = ReportDashViewWCap.getRealyVal(dashEbitMarjin);
+            NetGrossProfit = ReportDashViewWCap.getRealyVal(dashGrossProfit);
+            NetRevenue = ReportDashViewWCap.getRealyVal(dashRevenue);
+            NetDonemselKarzarar = ReportDashViewWCap.getRealyVal(dashDonemselKarzarar);
+
+            var doc = Convert.ToDecimal(NetRevenue.EntryCountTotal);
+            if (doc == 0)
+            {
+                doc = 1;
+            }
+
+            brutkarzararstr = "%" + String.Format("{0:0.##}", (Convert.ToDecimal(NetGrossProfit.EntryCountTotal) / doc * 100));
+            ebitstr = "%" + String.Format("{0:0.##}", (Convert.ToDecimal(NetEbitMarjin.EntryCountTotal) / doc * 100));
+            donemkarzararstr = "%" + String.Format("{0:0.##}", (Convert.ToDecimal(NetDonemselKarzarar.EntryCountTotal) / doc * 100));
+            //NetIsletme = DashGelirTablosuViewMain.getBrutKarZarar(CurrentUser.SelectedYear, CompID);
+            //CariOran = DashGelirTablosuViewMain.getVafokEbitda(CurrentUser.SelectedYear, CompID);
+            //NakitOran = DashGelirTablosuViewMain.getDonemKarZarar(CurrentUser.SelectedYear, CompID);
+        }
+ 
+        public JsonResult OnGetChartRasyo(DataSourceLoadOptions options)
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+
+            CompID = Companies.Getby_User(UserID).Where(x => x.IsDefault == 1).FirstOrDefault().ID;
+            ncart = new DashYearlyRevenueChart();
+            nRequestList = DashBilanco.Get_MAINRESULT(CurrentUser.SelectedYear, CompID).Where(x => x.IsHidden == 0).ToList();
+            ncart.SetResult(nRequestList, CurrentUser.SelectedYear);
+
+            return new JsonResult(DataSourceLoader.Load(ncart.nresult, options));
+        }
+        public JsonResult OnGetGraphYear(int nyear)
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+
+
+
+            HhvnUsers.SetYear(nyear, UserID);
+            return new JsonResult("ok");
+        }
+      
+    }
+}
+@section Styles {
+    <link rel="stylesheet" href="/assets/plugins/jquery-datatable/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="/assets/plugins/morrisjs/morris.css">
+    <style>
+        .tdnormall {
+            padding-top: 0.1rem !important;
+            padding-left: 0.75rem !important;
+            padding-bottom: 0.1rem !important;
+            padding-right: 0.75rem !important;
+        }
+
+        #chartxt {
+            max-height: 255px !important;
+        }
+    </style>
+}
+<section class="content home" id="employee">
+    @(Html.DevExtreme().LoadPanel()
+        .ID("loadPanel")
+        .ShadingColor("rgba(0,0,0,0.4)")
+        .Position(p => p.Of("#employee"))
+        .Visible(false)
+        .ShowIndicator(true)
+        .ShowPane(true)
+        .Shading(true)
+        .HideOnOutsideClick(false)
+        .OnShown("loadPanel_shown")
+    )
+
+    <input type="hidden" style="display:none" id="txtmyear" value="@Model.CurrentUser.SelectedYear" />
+    <input type="hidden" style="display:none" id="txtmcomp" value="@Model.CompID" />
+    <input type="hidden" style="display:none" id="txtyearcount" value="@Model.YearCount" />
+    <input type="hidden" style="display:none" id="txtcompcount" value="@Model.CompCount" />
+    <div class="container-fluid">
+        <div class="block-header">
+            <div class="row clearfix">
+                <div class="col-lg-5 col-md-5 col-sm-12">
+                    <h2>Gelir Tablosu</h2>
+                    <ul class="breadcrumb padding-0">
+                        <li class="breadcrumb-item"><a href=""><i class="zmdi zmdi-home"></i></a></li>
+                        <li class="breadcrumb-item active">Gelir Tablosu</li>
+                    </ul>
+                </div>
+                <div class="col-lg-7 col-md-7 col-sm-12">
+                    <div class="input-group m-b-0">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="body">
+                                    <div class="row">
+                                        <div class="col-6" style="text-align:left">
+
+                                            @(Html.DevExtreme().SelectBox() 
+                    .DataSource(Model.myearResult).ID("slctYear").OnInitialized("selectYear_Initialized")
+                    .DisplayExpr("MText").OnSelectionChanged("selectYear_valueChanged")
+                    .ValueExpr("MYear").Width(105)
+                )
+                                        </div>
+                                        <div class="col-6" style="text-align:right">
+
+                                           
+                                            
+                                            @(Html.DevExtreme().TextBox()
+                                .Value(Model.CompName)  .ReadOnly(true)
+                            )
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row clearfix">
+
+            <div class="col-md-12 col-lg-12">
+                <div class="card">
+                    <div class="body">
+
+                        <div class="row">
+
+                            <div class="col-md-12 col-lg-3">
+                                <div class="col-md-12 col-lg-12">
+                                    <div class="card">
+                                        <div class="body l-blue overflowhidden" style="height: 100%;">
+
+                                            <div class="row">
+                                                <div class="card p-b-20">
+                                                    <div class="body l-blue overflowhidden">
+                                                        <p class="m-b-0 font-23">Gross Profit (%)</p>
+                                                        <p class="m-b-0"><small>Brüt Kar Zarar Marjı (%)</small> </p>
+                                                        <p class="m-b-0"><small>Yüzdesel Ortalama</small> </p>
+                                                        <h3 class="m-t-0 m-b-0">@Model.brutkarzararstr</h3>
+
+                                                    </div>
+
+                                                </div>
+                                                <div class="card p-b-20">
+
+                                                    <div class="body l-blue overflowhidden">
+                                                        <p class="m-b-0 font-23">EBIT (favök) (%)</p>
+                                                        <p class="m-b-0"><small>Faaliyet Kar Zarar Marjı</small> </p>
+                                                        <p class="m-b-0"><small>Yüzdesel Ortalama</small> </p>
+                                                        <h3 class="m-t-0 m-b-0">@Model.ebitstr</h3>
+
+                                                    </div>
+                                                </div>
+                                                <div class="card p-b-125">
+                                                    <div class="body l-blue overflowhidden">
+                                                        <p class="m-b-0 font-23">  Profit&Loss Margin (%) </p>
+                                                        <p class="m-b-0"><small>Dönem Kar Zarar Marjı (%)</small> </p>
+                                                        <p class="m-b-0"><small>Yüzdesel Ortalama</small> </p>
+                                                        <h3 class="m-t-0 m-b-0">@Model.donemkarzararstr</h3>
+                                                    </div>
+
+                                                </div>
+
+                                                <div class="card p-b-125">
+                                                    <div class="body l-blue overflowhidden">
+
+                                                    </div>
+
+                                                </div>
+
+
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="col-md-12 col-lg-9">
+                                <div class="row clearfix">
+                                    <div class="col-md-12 col-lg-12">
+                                        <div class="card">
+                                            <div class="body">
+                                                <div class="row">
+
+
+                                                    @(Html.DevExtreme().PivotGrid<DashYearlyRevenueMain>()
+        .ID("pivotgrid")
+        .AllowSortingBySummary(true)
+        .AllowFiltering(true)
+        .ShowBorders(true)
+        .ShowColumnGrandTotals(true)
+        .ShowRowGrandTotals(false)
+        .ShowRowTotals(false)
+        .ShowColumnTotals(false).Export(e => e.Enabled(true))
+    .OnExporting("onExporting")
+       .FieldChooser(fc => fc
+        .AllowSearch(true)
+        .ApplyChangesMode(ApplyChangesMode.Instantly))
+               .DataSource(d => d
+            .Store(s => s.RemoteController().LoadUrl(Url.Page(null, "ChartRasyo")))
+            .Fields(fields => {
+                fields.AddFor(m => m.GroupName)
+               .Width(120)
+               .Area(PivotGridArea.Row)
+               ;
+
+                fields.AddFor(m => m.CountrZone).SortBy(PivotGridSortBy.Value).Visible(false)
+               .Width(120)
+               .Area(PivotGridArea.Row)
+               ;
+                fields.AddFor(m => m.Description)
+                    .Width(120).SortBy(PivotGridSortBy.None)
+                    .Area(PivotGridArea.Row)
+                    ;
+
+                fields.AddFor(m => m.Month).SortBy(PivotGridSortBy.Value).Area(PivotGridArea.Column).Expanded(true);
+
+                fields.AddFor(m => m.Value)
+                    .SummaryType(SummaryType.Sum).DataType(PivotGridDataType.Number)
+                   .Format(Format.FixedPoint)
+                    .Area(PivotGridArea.Data);
+            })
+        )
+    )
+
+
+
+                                                </div>
+
+
+                                            </div>
+                                        </div>
+
+
+                                    </div>
+
+                                </div>
+
+
+
+                            </div>
+
+                        </div>
+
+
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+
+        </div>
+
+
+
+
+
+    </div>
+</section>
+
+
+@section Scripts{
+    <script src="/js/a_poly.js"></script>
+    <script src="/js/a_excel.js"></script>
+    <script src="/js/a_filesave.js"></script>
+    <script>
+        function onExporting(e) {
+            var workbook = new ExcelJS.Workbook();
+            var worksheet = workbook.addWorksheet('Revenue');
+
+            DevExpress.excelExporter.exportPivotGrid({
+                component: e.component,
+                worksheet: worksheet
+            }).then(function () {
+                workbook.xlsx.writeBuffer().then(function (buffer) {
+                    saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'Revenue.xlsx');
+                });
+            });
+            e.cancel = true;
+        }
+    </script>
+
+    <script>
+        var tyear = $("#txtmyear").val();
+        var mcompid = $("#txtmcomp").val();
+    </script>
+    <script>
+        function getLoadPanelInstance() {
+            return $("#loadPanel").dxLoadPanel("instance");
+        }
+        function loadPanel_shown(e) {
+            setTimeout(function () {
+                e.component.hide();
+            }, 7000);
+        }
+        var misready = "nok";
+        var chkReadyState = setInterval(function () {
+            if (document.readyState == "complete") {
+
+                clearInterval(chkReadyState);
+
+                misready = "ok";
+            }
+        }, 100);
+
+        function getselectYearInstance() {
+            return $("#slctYear").dxSelectBox("instance");
+        }
+       
+        function selectYear_Initialized() {
+            getselectYearInstance().option("value", parseInt($("#txtmyear").val()));
+            var chkco = parseInt($("#txtyearcount").val());
+
+            if (chkco < 2) {
+                getselectYearInstance().option("readOnly", true);
+            }
+
+
+        }
+
+     
+
+
+        function selectYear_valueChanged(data) {
+            var slctval = data.selectedItem.MYear;
+            var turl = '/admin/dashboard?handler=GraphYear&nyear=' + slctval;
+
+            if (misready == "ok" && tyear.toString() != slctval.toString()) {
+                getLoadPanelInstance().show();
+                $.ajax({
+                    type: "GET",
+                    url: turl,
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (response) {
+                        if (response == "ok") {
+                            location.reload();
+                        }
+                    },
+                    failure: function (response) {
+                        alert(response);
+                    }
+                });
+            }
+
+        }
+
+      
+
+
+        var dt1 = "105";
+    </script>
+} 

@@ -1,0 +1,565 @@
+﻿@page
+
+@using fincheckup.Models.Hvvn
+@using fincheckup.Models.NKolay.ViewM
+@using fincheckup.Models.ViewM
+@model IndexModel
+@{
+    ViewData["Title"] = "Giriş Ekranı";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+@using fincheckup.ENTITY
+@functions {
+    public class IndexModel : PageModel
+    {
+        public IEnumerable<YearResult>
+    myearResult;
+        public long UserID;
+        public long CompID;
+        public int CompCount;
+        public int YearCount;
+        public string CompName;
+        public long curcomID;
+        public int curcomCount;
+        public int Nacenum;
+        
+        public Companies CurrentCom;
+        public HhvnUsers CurrentUser;   
+        public IEnumerable<Companies>
+            mreqListCompany;
+        
+
+        public string currentcompname { get; set; }
+
+        public void OnGet()
+        {
+            myearResult = YearResult.getValue();
+
+
+
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+            mreqListCompany = Companies.Getby_User(UserID);
+            CurrentCom = mreqListCompany.Where(x => x.IsDefault == 1).FirstOrDefault();
+            CompName = mreqListCompany.Where(x => x.IsDefault == 1).FirstOrDefault().CompanyName;
+            currentcompname = CurrentCom.CompanyName;
+            curcomID = CurrentCom.ID;
+            curcomCount = mreqListCompany.Count();
+            //currentUpload = UploadMain.Get_Data(DateTime.Now.Year, curcomID);
+            Nacenum = 80;
+            if (!string.IsNullOrEmpty(CurrentCom.NaceCode) && !string.IsNullOrWhiteSpace(CurrentCom.NaceCode)&& CurrentCom.NaceCode.Substring(0,2)== "41")
+            {
+                Nacenum = 15;
+            }
+            CompID = CurrentCom.ID;
+            YearCount = TBLXml.GetYearByComapnyID(CompID);
+            CompCount = mreqListCompany.Count();
+
+        }
+
+
+
+
+        public JsonResult OnGetSalerDate(DataSourceLoadOptions options)
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+
+            curcomID = Companies.Getby_User(UserID).Where(x => x.IsDefault == 1).FirstOrDefault().ID;
+
+            var currentUploadM = ReportSetMain.Get_StatbyCompany(curcomID);
+
+
+            return new JsonResult(DataSourceLoader.Load(currentUploadM.OrderBy(x => x.MainMonth).ToList(), options));
+
+        }
+        public JsonResult OnGetSalerYear(DataSourceLoadOptions options)
+        {
+
+
+            var YearSetm = YearResult.getValue().OrderByDescending(x => x.MYear);
+            return new JsonResult(DataSourceLoader.Load(YearSetm, options));
+
+        }
+        public JsonResult OnGetSalerComp(DataSourceLoadOptions options)
+        {
+
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            mreqListCompany = Companies.Getby_User(UserID);
+            return new JsonResult(DataSourceLoader.Load(mreqListCompany, options));
+
+        }
+
+         
+        public JsonResult OnGetGraphYear(int nyear)
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            HhvnUsers.SetYear(nyear, UserID);
+            return new JsonResult("ok");
+        }
+
+    }
+}
+@section Styles {
+    <script src="~/assets/progress.js"></script>
+
+    <style>
+        .orangecolor {
+            background-color: #874651;
+        }
+
+        .greencolor {
+            background-color: #004aad; 
+        }
+
+        /*   .dx-scrollview-content {
+                            position: absolute;
+                        }*/
+
+        #grdContYearDefter .centerdiv {
+            vertical-align: middle !important;
+            font-weight: bold;
+            font-size: 13px;
+            color: whitesmoke;
+        }
+
+        #grdContYearDefter .dx-header-row .centerdiv {
+            vertical-align: middle !important;
+            font-weight: bold;
+            font-size: 13px;
+            color: black;
+        }
+    </style>
+}
+<input type="hidden" style="display:none" id="txtcompname" value="@Model.currentcompname" />
+<input type="hidden" style="display:none" id="txtcurcomCount" value="@Model.curcomCount" />
+<input type="hidden" style="display:none" id="txtcurcomide" value="@Model.curcomID" />
+<section class="content home">
+    <div class="container-fluid">
+        <div class="block-header">
+            <div class="row clearfix">
+                <div class="col-lg-5 col-md-5 col-sm-12">
+                    <h2>Dashboard</h2>
+                    <ul class="breadcrumb padding-0">
+                        <li class="breadcrumb-item"><a href=""><i class="zmdi zmdi-home"></i></a></li>
+                        <li class="breadcrumb-item active">Dashboard</li>
+                    </ul>
+                </div>
+                <div class="col-lg-7 col-md-7 col-sm-12">
+                    <div class="input-group m-b-0">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="body">
+                                    <div class="row">
+                                        <div class="col-6" style="text-align:left">
+                                            @(Html.DevExtreme().SelectBox().Visible(false)
+                                                                .DataSource(Model.myearResult).ID("slctYear").OnInitialized("selectYear_Initialized")
+                                                                .DisplayExpr("MText").OnSelectionChanged("selectYear_valueChanged")
+                                                                .ValueExpr("MYear").Width(105)
+                                                                )
+
+                                        </div>
+                                        <div class="col-6" style="text-align:right">
+
+                                   
+                                            @(Html.DevExtreme().TextBox()
+                                .Value(Model.CompName)  .ReadOnly(true)
+                            )
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row clearfix">
+            <div class="col-lg-6 col-md-6">
+                <div class="card">
+                    <div class="body l-parpl text-center">
+
+                        <h3 class="m-b-0 m-t-10 text-white"><span id="txterroredcombin" style="display:none">0</span></h3>
+                        <span class="text-white">Smm Raporları</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-6">
+                <div class="card">
+                    <div class="body l-seagreen text-center">
+
+                        <h3 class="m-b-0 m-t-10 text-white"> </h3>
+                        <span class="text-white">SMM Yarı Mamul Oran (1-99): <input type="number" id="txtrowcount" min="1" max="99" style="color: white; background-color: #0c2c56 !important " value="@Model.Nacenum" class="form-control"></span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <input type="hidden" style="display:none" id="txtmyear" value="@Model.CurrentUser.SelectedYear" />
+        <input type="hidden" style="display:none" id="txtmcomp" value="@Model.CompID" />
+        <input type="hidden" style="display:none" id="txtyearcount" value="@Model.YearCount" />
+        <input type="hidden" style="display:none" id="txtcompcount" value="@Model.CompCount" />
+        <input type="hidden" style="display:none" value="0" id="txtisupdate" />
+        <div class="row clearfix">
+            <div class="col-lg-12 col-md-12">
+
+                <script>
+                    var tyear = $("#txtmyear").val();
+                    var mcompid = $("#txtmcomp").val();
+                    function onCellPrepared(e) {
+
+                        if (e.columnIndex == 2 && e.rowType == "data") {
+                            var chkk = e.data;
+                            console.log(parseInt(chkk.TRowCount));
+                            if (parseInt(chkk.TRowCount) < 1) {
+                                e.cellElement.find(".dx-command-edit").remove();
+
+
+                            }
+                        }
+
+                        if (e.columnIndex == 3 && e.rowType == "data") {
+                            var chkk = e.data;
+
+                            if (parseInt(chkk.TRowCount) < 1) {
+                                e.cellElement.find(".dx-link-edit").remove();
+
+
+                            }
+                        }
+                    }
+                    var misready = "nok";
+                    var chkReadyState = setInterval(function () {
+                        if (document.readyState == "complete") {
+
+                            clearInterval(chkReadyState);
+
+                            misready = "ok";
+                        }
+                    }, 100);
+                    function onRowPrepared(info) {
+                        if (info.rowType != "header" && info.data.TxResult == "Bekleniyor") {
+
+                            info.rowElement.addClass("orangecolor");
+                        } else if (info.rowType != "header") {
+                            info.rowElement.addClass("greencolor");
+                        }
+                    }
+                    var dt1 = "0";
+                    var compid = $("#txtmcomp").val();
+                    var monthid = 0;
+                    var year = $("#txtmyear").val();
+
+
+
+                    function getselectYearInstance() {
+                        return $("#slctYear").dxSelectBox("instance");
+                    }
+                    
+                    function selectYear_Initialized() {
+                        getselectYearInstance().option("value", parseInt($("#txtmyear").val()));
+                        var chkco = parseInt($("#txtyearcount").val());
+
+                        //if (chkco < 2) {
+                        //    getselectYearInstance().option("readOnly", true);
+                        //}
+
+
+                    }
+ 
+                    function selectYear_valueChanged(data) {
+                        var slctval = data.selectedItem.MYear;
+                        var turl = '/admin/dashboard?handler=GraphYear&nyear=' + slctval;
+
+                        if (misready == "ok" && tyear.toString() != slctval.toString()) {
+                            getLoadPanelInstance().show();
+                            $.ajax({
+                                type: "GET",
+                                url: turl,
+                                contentType: "application/json; charset=utf-8",
+                                dataType: "json",
+                                success: function (response) {
+                                    if (response == "ok") {
+                                        location.reload();
+                                    }
+                                },
+                                failure: function (response) {
+                                    alert(response);
+                                }
+                            });
+                        }
+
+                    }
+
+                
+
+                    function funcUpload() {
+                        $('#uploadInput').focus().trigger('click');
+                        $("#griddiv").css("display", "none");
+                    }
+
+
+
+
+
+
+
+
+                    function startit() {
+                        getLoadPanelInstance().show();
+
+                    };
+                    function functionsec(data) {
+
+                        monthid = data;
+                        $("#mainmonth").val(monthid);
+                        var compidz = $("#txtmcomp").val();
+
+                        var yearz = $("#txtmyear").val();
+
+
+                        '/admin/upcheck?nyear=' + yearz + '&nmon=' + compidz + '&nmont=' + monthid,
+                            '_blank' // <- This is what makes it open in a new window.
+
+
+                    }
+                    function functionupdatetax(data) {
+                        startit();
+                        monthid = data;
+                        var tnum = parseInt($("#txtrowcount").val());
+                        if (tnum>99) {
+                            $("#txtrowcount").val(99);
+                        }
+                        var fdatam = new FormData();
+                        fdatam.append('companyid', $("#txtcurcomide").val());
+                        fdatam.append('month', $("#txtrowcount").val() );
+                        fdatam.append('year', data);
+
+                        $.ajax({
+                            url: "/JsonService/Mizan/moodUpdatesmm",
+                            method: "POST",
+                            statusCode: {
+                                500: function () {
+                                    getLoadPanelInstance().hide();
+                                    Swal.fire({
+                                        title: 'Server Erişim Sorunuz. Lütfen Sayfayı Yenileyiniz...',
+                                        confirmButtonText: 'Yenile'
+                                    }).then((result) => {
+                                        /* Read more about isConfirmed, isDenied below */
+                                        if (result.isConfirmed) {
+
+                                            location.reload();
+                                        }
+                                    });
+                                },
+                                404: function () {
+                                    alert("Script 404");
+                                }
+                            },
+                            contentType: false,
+                            data: fdatam,
+                            processData: false,
+                            cache: false,
+                            success: function (data) {
+                                getLoadPanelInstance().hide();
+                                if (data == "nok") {
+
+                                    Swal.fire(
+                                        'Hata!',
+                                        'Hata ile Karşılaşıldı!',
+                                        'error'
+                                    )
+                                }
+                                else {
+                                    var arr = data.split('_');
+
+                                    dt1 = arr[0];
+
+                                    Swal.fire(
+                                        'Başarılı!',
+                                        'Güncelleme Tamamlandı!',
+                                        'success'
+                                    )
+                                    setTimeout(function () {
+                                        location.reload();
+                                    }, 2000);
+
+
+                                }
+
+
+                            }
+                        });
+
+
+                    }
+
+                </script>
+
+
+
+
+
+
+                <div class="card">
+                    <div class="body">
+
+                        <div class="row">
+
+                            <div class="col-md-12 col-lg-6">
+                                <div class="col-md-12 col-lg-12">
+                                    <div class="card" id="griddiv" style="display:none">
+                                        <div class="header">
+
+
+                                        </div>
+                                        <div class="body">
+
+
+
+
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="col-md-12 col-lg-6">
+                                <div class="row clearfix">
+                                    <div class="col-md-12 col-lg-12">
+
+
+                                        <div class="card">
+                                            <div class="body">
+                                                <div class="row">
+                                                    @(Html.DevExtreme().DataGrid<YearlyErrorResult>
+                                                                            ().ColumnHidingEnabled(true).ID("grdContYearDefter").OnCellPrepared("onCellPrepared").OnRowPrepared("onRowPrepared").ShowColumnLines(false).ShowBorders(false).ColumnAutoWidth(true)
+                                                                            .Height(440) .Columns(columns =>
+                                                                            {
+                                                                            columns.AddFor(m => m.MainYear).Caption("Yıl").CssClass("centerdiv") ;
+                                                                            columns.AddFor(m => m.MainMonth).Visible(false).SortOrder(SortOrder.Asc);
+
+                                                                            columns.Add().CssClass("").Caption("Aksiyon").CellTemplate(@<text>
+                                                                                <div onclick="functionupdatetax('[%= data.MainYear %]')" class="dxmain dx-link-edit dx-button dx-button-normal dx-button-mode-contained dx-widget dx-button-has-text" aria-label="Yükle" tabindex="0" role="button"><div class="dx-button-content"><span class="dx-button-text">Smm Çalıştır</span></div></div>
+
+
+                                                                            </text>);
+
+                                                                            columns.Add().CssClass("").Caption("Rapor").CellTemplate(@<text>
+                                                                                <div onclick="functionupdate('[%= data.MainYear %]')" class="dxmain dx-link-edit dx-button dx-button-normal dx-button-mode-contained dx-widget dx-button-has-text" aria-label="Yükle" tabindex="0" role="button"><div class="dx-button-content"><span class="dx-button-text">Mizan </span></div></div>
+
+
+                                                                            </text>);
+                                                                               
+                                                                            columns.AddFor(m => m.TRowCount).Visible(false);
+
+                                                                            }).DataSource(d => d.RemoteController().LoadUrl(Url.Page(null, "SalerDate"))
+                                                                            ))
+                                                </div>
+
+
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+
+
+                            </div>
+
+                        </div>
+
+
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+
+
+    </div>
+</section>
+@(Html.DevExtreme().LoadPanel()
+                    .ID("loadPanel")
+                    .ShadingColor("rgba(0,0,0,0.4)")
+                    .Position(p => p.Of("#employee"))
+                    .Visible(false)
+                    .ShowIndicator(true).Message("E-defter İşleniyor.. Lütfen Bekleyiniz...")
+                    .ShowPane(true).Height(300).Width(500)
+                    .Shading(true)
+                    .HideOnOutsideClick(false)
+                    .OnShown("loadPanel_shown")
+                    )
+<input type="text" id="mainyear" name="mainyear" value="@Model.CurrentUser.SelectedYear" style="display:none" />
+<input type="text" id="mainmonth" name="mainmonth" style="display:none" />
+
+
+
+
+@section Scripts{
+    <script src="~/js/polyfill.min.js"></script>
+
+    <script>
+        function getLoadPanelInstance() {
+            return $("#loadPanel").dxLoadPanel("instance");
+        }
+        function loadPanel_shown(e) {
+            setTimeout(function () {
+                e.component.hide();
+            }, 610000);
+        }
+        function functionupdate(data) {
+
+            var monthide = data;
+            $("#mainmonth").val(monthide);
+            var compidz = $("#txtmcomp").val();
+
+            var yearz = $("#txtmyear").val();
+            window.open(
+                '/admin/upbalancemzn?nyear=' + data,
+                '_blank' // <- This is what makes it open in a new window.
+            );
+        }
+        function functionupdateBlnc(data) {
+
+            var monthide = data;
+            $("#mainmonth").val(monthide);
+            var compidz = $("#txtmcomp").val();
+
+            var yearz = $("#txtmyear").val();
+            window.open(
+                '/admin/dashbilancomzn?myear=' + data,
+                '_blank' // <- This is what makes it open in a new window.
+            );
+        }
+        
+        function functionupdateRvn(data) {
+
+            var monthide = data;
+            $("#mainmonth").val(monthide);
+            var compidz = $("#txtmcomp").val();
+
+            var yearz = $("#txtmyear").val();
+            window.open(
+                '/admin/dashbilancorvnmzn?myear=' + data,
+                '_blank' // <- This is what makes it open in a new window.
+            );
+        }
+        var txcompname = $("txtcompname").val();
+
+        function formatMessage(e) {
+
+            return $("#txtcompname").val();
+        }
+
+
+
+    </script>
+
+}
+

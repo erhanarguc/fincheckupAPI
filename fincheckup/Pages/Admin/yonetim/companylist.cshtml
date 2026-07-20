@@ -1,0 +1,236 @@
+﻿@page
+
+@using fincheckup.Models.Hvvn
+@using fincheckup.Models.NKolay
+
+@model IndexModel
+@{
+    ViewData["Title"] = "Giriş Ekranı";
+    Layout = "~/Pages/Shared/_LayoutFirm.cshtml";
+}
+@using DevExtreme.AspNet.Data
+@using fincheckup.Models.NKolay.json
+@using DevExtreme.AspNet.Mvc
+@using fincheckup.Models.NKolay.ENTITY
+@using fincheckup.ENTITY
+@functions {
+    public class IndexModel : PageModel
+    {
+        public long UserID; public int UserTypeID;
+        public HhvnUsers CurrentUser;
+        public IEnumerable<Companies> mreqList; 
+
+        public void OnGet(int year = 2021)
+        {
+            mreqList = new List<Companies>();
+
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+            UserTypeID = CurrentUser.UserTypeID;
+            if (CurrentUser.UserTypeID==1001)
+            {
+                mreqList = Companies.Get_All();
+            }
+            else if (CurrentUser.UserTypeID == 4 || CurrentUser.UserTypeID == 1   || CurrentUser.UserTypeID == 1005)
+            {
+                mreqList = Companies.Getby_User(UserID);
+            }
+            else if (CurrentUser.UserTypeID == 1003)
+            {
+                Response.Redirect("/admin/consult/index");
+            }
+            else
+            {
+                Response.Redirect("/logout?handler=logout");
+            }
+
+        }
+ 
+  
+        public JsonResult OnGetGraphComp(int ncompid)
+        {
+            if (ncompid < 1)
+            {
+                return new JsonResult("nok");
+
+            }
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            int compstat = Companies.Get_Company(ncompid).XmlSourceID;
+
+            if (!HhvnUsers.CheckUser(ncompid, UserID))
+            {
+                return new JsonResult("ok");
+            }
+
+            UserCompany.Update_UserDefault(UserID, ncompid);
+
+            return new JsonResult("ok_" + compstat.ToString());
+        }
+
+    }
+}
+@section Styles {
+    <link rel="stylesheet" href="/assets/plugins/jquery-datatable/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="/assets/plugins/morrisjs/morris.css">
+    <style>
+        .tdnormall {
+            padding-top: 0.1rem !important;
+            padding-left: 0.75rem !important;
+            padding-bottom: 0.1rem !important;
+            padding-right: 0.75rem !important;
+        }
+
+        #chartxt {
+            max-height: 255px !important;
+        }
+    </style>
+}
+<section class="content home">
+    <div class="container-fluid">
+        <div class="block-header">
+            <div class="row clearfix">
+                <div class="col-lg-5 col-md-5 col-sm-12">
+                    <h2>Şirket Listesi</h2>
+                    <ul class="breadcrumb padding-0">
+                        <li class="breadcrumb-item"><a href=""><i class="zmdi zmdi-home"></i></a></li>
+                        <li class="breadcrumb-item active">Şirket Listesi</li>
+                    </ul>
+                </div>
+                <div class="col-lg-7 col-md-7 col-sm-12">
+                    <div class="input-group m-b-0">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row clearfix">
+
+            <div class="col-md-12 col-lg-12">
+                <div class="card">
+                    <div class="body">
+
+                        <div class="row">
+
+                            @(Html.DevExtreme().DataGrid<Companies>().ColumnHidingEnabled(false)
+.ID("gridContainer").Paging(p => p.PageSize(10))
+.Pager(p => p
+.ShowPageSizeSelector(true)
+.AllowedPageSizes(new[] { 10, 25, 50, 100 })
+)
+.ShowBorders(true).FilterRow(f => f.Visible(false)).ShowRowLines(true)
+.RemoteOperations(true).ColumnAutoWidth(true)
+.SearchPanel(s => s
+.Visible(true)
+.HighlightCaseSensitive(true)
+)
+.Editing(e => e.Mode(GridEditMode.Popup).UseIcons(true)
+)
+.Columns(columns => {
+
+columns.AddFor(m => m.ID).Visible(false);
+                                        columns.AddFor(m => m.CompanyName).Caption("Şirket").AllowHeaderFiltering(true) ;
+                                        columns.AddFor(m => m.City).Caption("Şehir").AllowHeaderFiltering(true) ;
+
+                                        columns.Add()
+                                    .CssClass("dx-command-edit dx-command-edit-with-icons centerdiv").Caption("Bilgi")
+.CellTemplate(@<text>
+         <a href="/admin/yonetim/companyedit?id=<%= data.ID %>" class="btn btn-secondary btn-round btn-simple" title="Detail"><span class="dx-icon fa fa-info-circle"></span></a>
+                   </text>);
+                                        columns.Add().Caption("Seç") .CssClass("").CellTemplate(@<text>
+                                <div  onclick="functionrefresh('[%= data.ID %]');return false;" class="btn btn-secondary btn-round btn-simple" aria-label="Yükle" tabindex="0" role="button"> <i class="zmdi zmdi-arrow-right"></i> </div>
+
+
+                            </text>);
+
+})
+        .DataSource(Model.mreqList
+        )
+    )
+                        </div>
+
+
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+
+        </div>
+
+
+
+
+
+    </div>
+</section>
+
+
+@section Scripts{
+
+
+
+    <script>
+
+        var dt1 = "105";
+
+        $("#frm").submit(function () {
+            var vals = $(this).serialize();
+
+
+
+            $.ajax({
+                url: "/admin/PageApi/FormSubmita",
+                method: "POST",
+                data: vals,
+                success: function (data) {
+                    toastr.success('Success');
+                    location.href = "/admin/pagemain";
+                }
+            });
+
+            return false; // prevent from submit
+        });
+        function functionrefresh(data) {
+
+            var turl = '/admin/yonetim/companylist?handler=GraphComp&ncompid=' + data;
+
+            $.ajax({
+                type: "GET",
+                url: turl,
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (response) {
+                    var chk = response.split('_');
+                    console.log(response);
+                    if (chk[0] == "ok") {
+                        if (chk[1] == "1") {
+                            if (@Model.UserTypeID== "1005" || @Model.UserTypeID== 1005) { location.href = "/admin/finance/financeshrtview"; }
+                            else { location.href = "/admin/upload"; }
+
+                        }
+                        else if (chk[1] == "3") {
+                            location.href = "/admin/mizan/uploadmizan";
+                        }
+                        else {
+
+                            location.href = "/admin/mizan/uploadmizan";
+                        //    location.href = "/admin/beyanname/uploadbyn";
+
+
+                        }
+                    }
+
+                },
+                failure: function (response) {
+                    alert(response);
+                }
+            });
+
+
+        }
+    </script>
+} 

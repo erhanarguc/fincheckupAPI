@@ -1,0 +1,38 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <meta http-equiv="Content-Security-Policy" content="default-src *;
+   img-src * 'self' data: https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' *;
+   style-src  'self' 'unsafe-inline' *">
+    <title>Report</title> 
+ 
+        <environment include="Development">
+            <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
+            <link rel="stylesheet" href="~/css/site.css" />
+        </environment>
+        <environment exclude="Development">
+            <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
+            <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true" />
+        </environment>
+        <link rel="stylesheet" href="~/css/thirdparty.bundle.css" />
+        <link rel="stylesheet" href="~/css/site.css" /> 
+       
+    <script src="/js/devextreme/jquery.js"></script>
+    <script src="/js/site.min.js"  ></script> 
+    <script src="/lib/bootstrap/dist/js/bootstrap.js"></script> 
+    <script src="/js/thirdparty.bundle.js"></script>  
+    <script src="/js/devextreme/dx.all.js"></script>
+    @await RenderSectionAsync("Styles", required: false)
+    </head>
+    <body>
+        <div>
+            @RenderBody()
+        </div>
+
+
+     @await RenderSectionAsync("Scripts", required: false) 
+          
+      </body>  
+    </html>

@@ -1,0 +1,117 @@
+﻿@page
+
+@using fincheckup.Models.Hvvn
+@using fincheckup.Models.NKolay
+@using fincheckup.Models.NKolay.ViewM
+@using fincheckup.Models.NKolay.ENTITY.Mizan
+@model IndexModel
+@{
+    ViewData["Title"] = "Report";
+    Layout = "~/Pages/Shared/_LayoutReport.cshtml";
+}
+@using fincheckup.Models.NKolay.json
+@using fincheckup.ENTITY
+@using fincheckup.Models.ViewM
+@using fincheckup.Report
+@using DevExpress.AspNetCore
+@using DevExpress.DataAccess.ObjectBinding;
+@using DevExpress.XtraReports.UI
+
+
+
+@functions {
+    public class IndexModel : PageModel
+    {
+
+        public long UserID;
+        public long CompID;
+        public string header; 
+        public Companies CCompanies; 
+        public HhvnUsers CurrentUser;
+        public IEnumerable<Companies> mreqListCompany;
+        public List<ReportSet> ncheck; 
+        public void OnGet(int nyear = 2021)
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            mreqListCompany = Companies.Getby_User(UserID);
+            CCompanies = mreqListCompany.Where(x => x.IsDefault == 1).FirstOrDefault();
+
+            CompID = CCompanies.ID;
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+            ncheck = ReportSetMain.Get_ReportSetBilancoMzn(nyear, CompID);
+        //    mainreporttext = ReportMizanCheck.GetComapanyCumulative(nyear, CompID);
+            header = CCompanies.CompanyName + " " + nyear.ToString() + " Yılı Smm Karşılaştırmalı Mizan Raporu";
+  
+    
+          
+            if (CompID == 14)
+            {
+                
+            }
+
+        }
+
+
+    }
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/viewer.part.bundle.css" />
+
+    <script src="~/js/viewer.part.bundle.js"></script>
+    <style>
+        .dxrd-toolbar-item-3 {
+            display: none !important;
+        }
+
+        .dxrd-toolbar-item-4 {
+            display: none !important;
+        }
+
+        .dxrd-preview.dxrd-designer-wrapper .dxrd-toolbar-wrapper .dxrd-preview-pager.dxrd-toolbar-item {
+            display: none !important;
+        }
+
+        dxrd-toolbar-item-0 {
+            display: none !important;
+        }
+
+        .dx-shadow-right {
+            display: none;
+        }
+    </style>
+
+}
+
+@{
+    BalanceReportSmm report = new BalanceReportSmm();
+
+    ObjectDataSource objectDataSource = new ObjectDataSource();
+    objectDataSource.Name = "DataViewer";
+    objectDataSource.DataSource = Model.ncheck;
+
+
+    report.xrLabelheader.Text = Model.header;
+    objectDataSource.Fill();
+    DetailReportBand detailReport1 = report.Bands["DetailReport"] as DetailReportBand;
+
+
+
+    //if (Model.mainreporttext.TrialBalance == 0)
+    //{
+    //    report.FindControl("xrShape2", true).Visible = false;
+    //}
+    //else
+    //{
+    //    report.FindControl("xrShape1", true).Visible = false;
+    //}
+
+    detailReport1.DataSource = objectDataSource;
+    // report.DataSource = objectDataSource;
+    report.PrintingSystem.Document.Name = "Balance_raporlar";
+    @Html.DevExpress().WebDocumentViewer("DocumentViewer").Height("1000px").Bind(report)
+}
+
+@section Scripts{
+
+} 

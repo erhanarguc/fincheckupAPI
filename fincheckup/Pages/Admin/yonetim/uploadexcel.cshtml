@@ -1,0 +1,194 @@
+﻿@page
+
+@using fincheckup.Models.Hvvn
+@using fincheckup.Models.NKolay
+
+@model IndexModel
+@{
+    ViewData["Title"] = "Giriş Ekranı";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+@using DevExtreme.AspNet.Data
+@using fincheckup.Models.NKolay.json
+@using DevExtreme.AspNet.Mvc
+@using fincheckup.Models.NKolay.ENTITY
+@using fincheckup.ENTITY
+@functions {
+    public class IndexModel : PageModel
+    {
+        public long UserID;
+        public HhvnUsers CurrentUser;
+        public IEnumerable<HhvnUsers> mreqList;
+
+        public void OnGet(int year = 2021)
+        {
+            mreqList = new List<HhvnUsers>();
+
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+
+            if (CurrentUser.UserTypeID == 1001)
+            {
+                mreqList = HhvnUsers.Get_All();
+            }
+            else if (CurrentUser.UserTypeID == 4)
+            {
+                mreqList = HhvnUsers.GetByAdminUser(UserID);
+            }
+            else
+            {
+                Response.Redirect("/logout?handler=logout");
+            }
+
+        }
+ 
+
+     
+
+    }
+}
+@section Styles {
+   
+    <style>
+     
+    </style>
+}
+<section class="content home">
+    <div class="container-fluid">
+        <div class="block-header">
+            <div class="row clearfix">
+                <div class="col-lg-5 col-md-5 col-sm-12">
+                    <h2>Kullanıcı Listesi</h2>
+                    <ul class="breadcrumb padding-0">
+                        <li class="breadcrumb-item"><a href=""><i class="zmdi zmdi-home"></i></a></li>
+                        <li class="breadcrumb-item active">Kullanıcı Listesi</li>
+                    </ul>
+                </div>
+                <div class="col-lg-7 col-md-7 col-sm-12">
+                    <div class="input-group m-b-0">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row clearfix">
+
+            <div class="col-md-12 col-lg-12">
+                <div class="card">
+                    <div class="body">
+
+                        <input type="file" id="uploadInput" multiple name="myFile" onchange="readURL(this);" style="display:none" accept=".xlsx .xls" />
+                        @(Html.DevExtreme().Button()
+                        .Text("Excel Data  Ekle")
+                        .Type(ButtonType.Default).Height(45)
+                        .Width(175)
+                        .OnClick("onItemClick")
+                    )
+
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+
+        </div>
+
+
+
+
+
+    </div>
+</section>
+
+
+@section Scripts{
+
+
+
+    <script>
+        function onItemClick(data) {
+
+ 
+
+            $('#uploadInput').focus().trigger('click');
+
+
+        }
+        function readURL(input) {
+
+            var reader = new FileReader(); 
+            if (input.files && input.files[0]) {
+
+                var fdatam = new FormData(); 
+                for (var i = 0; i < input.files.length; i++) {
+                    fdatam.append('file', input.files[i]);
+                }
+
+                reader.onload = function (e) {
+
+                    var imgur = e.target.result;
+                };
+                reader.readAsDataURL(input.files[0]);
+                fdatam.append('id', 0);
+                fdatam.append('Caption', "0");
+                fdatam.append('ide',  "0");
+                fdatam.append('idexml', "0");
+           
+          
+ 
+                    $.ajax({
+                        url: "/JsonService/Main/moodExcel",
+                        method: "POST",
+                        statusCode: {
+                            500: function () { 
+                                Swal.fire({
+                                    title: 'Server Erişim Sorunuz. Lütfen Sayfayı Yenileyiniz...',
+                                    confirmButtonText: 'Yenile'
+                                }).then((result) => {
+                                    /* Read more about isConfirmed, isDenied below */
+                                    if (result.isConfirmed) {
+
+                                        location.reload();
+                                    }
+                                });
+                            },
+                            404: function () {
+                                alert("Script 404");
+                            }
+                        },
+                        contentType: false,
+                        data: fdatam,
+                        processData: false,
+                        cache: false,
+                        success: function (data) {
+                            if (data == "nok") {
+                            
+                                Swal.fire(
+                                    'Hata!',
+                                    'E-defter Yüklenemedi Lütfen Seçili Tarih ile E-Defter tarihini / E-Defter Entegratör Tipini KOntrol Ediniz!',
+                                    'error'
+                                )
+                            }
+                            else {
+                                alert("ojk");
+                                Swal.fire(
+                                    'Başarılı!',
+                                    'E-defter Yüklendi!',
+                                    'success'
+                                )
+                            }
+
+
+                        }
+                    });
+      
+
+            }
+        }
+   
+    </script>
+} 

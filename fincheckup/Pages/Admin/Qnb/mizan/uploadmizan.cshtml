@@ -1,0 +1,3431 @@
+﻿@page
+
+@using fincheckup.Models.Hvvn
+@using fincheckup.Models.NKolay.UploadArea
+@using fincheckup.Models.ViewM
+@using fincheckup.Models.Qnb
+@using fincheckup.Models.Mizan
+
+@model IndexModel
+@{
+    ViewData["Title"] = "Giriş Ekranı";
+    Layout = "~/Pages/Shared/_LayoutQnbMizan.cshtml";
+}
+
+@using fincheckup.ENTITY
+@functions {
+    public class IndexModel : PageModel
+    {
+        public IEnumerable<YearResult> myearResult;
+        public long UserID;
+        public long CompID;
+        public int CompCount;
+        public int YearCount;
+        public long curcomID;
+        public int curcomCount;
+
+        public HhvnUsers CurrentUser;
+        public YearlyUploadResult currentMonth;
+        IEnumerable<TBLXMLSCheckpdfMizan> ncomparelist;
+        public IEnumerable<YearlyUploadResult> currentUploadM;
+        public IEnumerable<YearlyUploadResult> currentUploadMOK;
+        public IEnumerable<YearlyUploadResult> currentUploadMNoOK;
+        public List<YearlyUploadResult> currentUploadMMonth;
+        public List<byte> monthlist;
+        public DataViewerMain mrequestDataViewer;
+        public string mnthcomparelist;
+        public IEnumerable<Companies> mreqListCompany;
+        public Companies currenCompanie;
+        public string CompName; 
+
+
+        public string currentcompname { get; set; }
+
+        public void OnGet()
+        {
+            myearResult = YearResult.getValue();
+
+
+            List <int> chkInt= new List<int>(){ 3,6,9,12};
+
+
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+            mreqListCompany = Companies.Getby_User(UserID);
+            currenCompanie = mreqListCompany.Where(x => x.IsDefault == 1).FirstOrDefault();
+            currentcompname = currenCompanie.CompanyName;
+            curcomID = currenCompanie.ID;
+            CompName = currenCompanie.CompanyName;
+            curcomCount = mreqListCompany.Count();
+            //currentUpload = UploadMain.Get_Data(DateTime.Now.Year, curcomID);
+            ncomparelist = TBLXMLSCheckpdfMizan.GetMizanBeyanSame(curcomID);
+            if (ncomparelist.Count()>0)
+            {
+                monthlist = ncomparelist.Where(x => x.Year == CurrentUser.SelectedYear).Select(y => y.MainMonth).ToList();
+                mnthcomparelist = String.Join(",", monthlist.Select(i => i.ToString()).ToArray());
+            }
+
+            CompID = mreqListCompany.Where(x => x.IsDefault == 1).FirstOrDefault().ID;
+            YearCount = TBLXml.GetYearByComapnyID(CompID);
+            CompCount = mreqListCompany.Count();
+
+
+            curcomID = Companies.Getby_User(UserID).Where(x => x.IsDefault == 1).FirstOrDefault().ID;
+            List<int> chkErrormonthIDChk = MainDash.Get_DatabyMOnthMizan(CurrentUser.SelectedYear, curcomID) ;
+            // List<int> chkErrormonthID = MainDash.Get_DatabyError(CurrentUser.SelectedYear, curcomID).Where(x => x.TRowCount == 0).Select(x => x.MainMonth).ToList();
+            currentUploadM = UploadMain.Get_Data(CurrentUser.SelectedYear, curcomID).Where(x=> chkInt.Contains(x.MainMonth)).OrderBy(x => x.MainMonth);
+            if (chkErrormonthIDChk.Count() < 1)
+            {
+                currentUploadM.Select(c => { c.ErrorCount = -1; return c; }).OrderBy(x => x.MainMonth).ToList();
+            }
+            else
+            {
+                currentUploadM.Select(c => { c.ErrorCount = -1; return c; }).OrderBy(x => x.MainMonth).ToList();
+                currentUploadM.Where(x => chkErrormonthIDChk.Contains(x.MainMonth)).Select(c => { c.ErrorCount =  1; return c; }).OrderBy(x => x.MainMonth).ToList();
+            }
+
+            currentUploadMOK = currentUploadM.Where(x => x.ErrorCount > -1);
+            currentUploadMNoOK = currentUploadM.Where(x => x.ErrorCount < 0);
+           
+        }
+
+
+        public JsonResult OnGetSalerMainChk(DataSourceLoadOptions options, int monthid)
+        {
+            mrequestDataViewer = new DataViewerMain();
+            if (monthid < 1)
+            {
+                return new JsonResult(DataSourceLoader.Load(mrequestDataViewer.EntryData, options));
+            }
+
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+
+            curcomID = Companies.Getby_User(UserID).Where(x => x.IsDefault == 1).FirstOrDefault().ID;
+
+            mrequestDataViewer.SetDataViewer(MainDash.DataViewerMainMonth(CurrentUser.SelectedYear, curcomID, monthid));
+
+            return new JsonResult(DataSourceLoader.Load(mrequestDataViewer.EntryData, options));
+
+        }
+        public JsonResult OnGetSalerMainZeta(DataSourceLoadOptions options, int monthid)
+        {
+            mrequestDataViewer = new DataViewerMain();
+            if (monthid < 1)
+            {
+                return new JsonResult(DataSourceLoader.Load(mrequestDataViewer.EntryData, options));
+            }
+
+
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+
+            curcomID = Companies.Getby_User(UserID).Where(x => x.IsDefault == 1).FirstOrDefault().ID;
+
+
+            mrequestDataViewer.SetDataViewer(MainDash.DataViewerMainMonth(CurrentUser.SelectedYear, curcomID, monthid));
+
+            return new JsonResult(DataSourceLoader.Load(mrequestDataViewer.EntryData, options));
+
+        }
+        public JsonResult OnGetSalerDate(DataSourceLoadOptions options)
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+
+            curcomID = Companies.Getby_User(UserID).Where(x => x.IsDefault == 1).FirstOrDefault().ID;
+            List<int> chkErrormonthID = MainDash.Get_DatabyError(CurrentUser.SelectedYear, curcomID).Where(x => x.TErrorRowCount == 0).Select(x => x.MainMonth).ToList();
+            var currentUploadM = UploadMain.Get_Data(CurrentUser.SelectedYear, curcomID);
+
+            currentUploadM.Where(x => chkErrormonthID.Contains(x.MainMonth)).Select(c => { c.ErrorCount = -1; return c; }).OrderBy(x => x.MainMonth).ToList();
+            return new JsonResult(DataSourceLoader.Load(currentUploadM, options));
+
+        }
+        public JsonResult OnGetSalerYear(DataSourceLoadOptions options)
+        {
+
+
+            var YearSetm = YearResult.getValue().OrderByDescending(x => x.MYear);
+            return new JsonResult(DataSourceLoader.Load(YearSetm, options));
+
+        }
+        public JsonResult OnGetSalerComp(DataSourceLoadOptions options)
+        {
+
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            mreqListCompany = Companies.Getby_User(UserID);
+            return new JsonResult(DataSourceLoader.Load(mreqListCompany, options));
+
+        }
+
+      
+        public JsonResult OnGetGraphYear(int nyear)
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            HhvnUsers.SetYear(nyear, UserID);
+            return new JsonResult("ok");
+        }
+
+    }
+}
+@section Styles {
+    <script src="~/assets/progress.js"></script>
+
+    <style>
+
+
+        @@import url("https://fonts.googleapis.com/css?family=Mulish:400,700,600,800");
+        /* The following line is used to measure usage of this code in production. For more info see our usage billing page */
+
+
+        @@font-face {
+            font-family: "Cordale-Bold";
+            font-style: normal;
+            font-weight: 700;
+            src: url("/fonts/Cordale_Bd.ttf") format("truetype");
+        }
+
+        .container-center-horizontal {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            pointer-events: none;
+            width: 100%;
+        }
+
+            .container-center-horizontal > * {
+                flex-shrink: 0;
+                pointer-events: auto;
+            }
+
+        .valign-text-middle {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .orangecolor {
+            background-color: #874651;
+        }
+
+        .greencolor {
+            background-color: #004aad;
+        }
+
+        /*   .dx-scrollview-content {
+                    position: absolute;
+                }*/
+
+        #grdContYearDefter .centerdiv {
+            vertical-align: middle !important;
+            font-weight: bold;
+            font-size: 13px;
+            color: whitesmoke;
+        }
+
+        #grdContYearDefter .dx-header-row .centerdiv {
+            vertical-align: middle !important;
+            font-weight: bold;
+            font-size: 13px;
+            color: black;
+        }
+
+
+        /* screen - bilgisayarimdan-veri-yukleme */
+        :root {
+            --alabaster: #f9fafb;
+            --black: #000000;
+            --blueberry: #3585f80d;
+            --cardinal-pink: #870052;
+            --ebony-clay: #222943;
+            --mystic: #dee3ed;
+            --storm-gray: #666f85;
+            --text: #ffffff;
+            --font-size-l: 14px;
+            --font-size-m: 12px;
+            --font-size-xl: 16px;
+            --font-family-cordale-bold: "Cordale-Bold", Helvetica;
+            --font-family-mulish: "Mulish", Helvetica;
+        }
+
+        .mulish-semi-bold-ebony-clay-14px {
+            color: var(--ebony-clay);
+            font-family: var(--font-family-mulish);
+            font-size: var(--font-size-l);
+            font-style: normal;
+            font-weight: 600;
+        }
+
+        .mulish-normal-ebony-clay-12px {
+            color: var(--ebony-clay);
+            font-family: var(--font-family-mulish);
+            font-size: var(--font-size-m);
+            font-style: normal;
+            font-weight: 400;
+        }
+
+        .mulish-normal-ebony-clay-14px {
+            color: var(--ebony-clay);
+            font-family: var(--font-family-mulish);
+            font-size: var(--font-size-l);
+            font-style: normal;
+            font-weight: 400;
+        }
+
+        .mulish-semi-bold-storm-gray-12px {
+            color: var(--storm-gray);
+            font-family: var(--font-family-mulish);
+            font-size: var(--font-size-m);
+            font-style: normal;
+            font-weight: 600;
+        }
+
+        .mulish-bold-ebony-clay-14px {
+            color: var(--ebony-clay);
+            font-family: var(--font-family-mulish);
+            font-size: var(--font-size-l);
+            font-style: normal;
+            font-weight: 700;
+        }
+
+        .mulish-bold-white-14px {
+            color: var(--text);
+            font-family: var(--font-family-mulish);
+            font-size: var(--font-size-l);
+            font-style: normal;
+            font-weight: 700;
+        }
+
+        .bilgisayarimdan-veri-yukleme {
+            align-items: flex-start;
+            background-color: var(--text);
+            border: 1px none;
+            display: flex;
+            gap: 24px;
+            height: 1095px;
+            width: 90%;
+        }
+
+            .bilgisayarimdan-veri-yukleme .dashboard-karllk-trend {
+                height: 1025px;
+                width: 65px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .flex-col {
+                flex-direction: column;
+                margin-top: 15px;
+                min-height: 1019px;
+                width: 95%;
+            }
+
+            .bilgisayarimdan-veri-yukleme .yeniliki-ve-kolay {
+                color: #696a69;
+                font-family: var(--font-family-mulish);
+                font-size: var(--font-size-xl);
+                font-weight: 700;
+                letter-spacing: 0;
+                line-height: 23px;
+                white-space: nowrap;
+            }
+
+            .bilgisayarimdan-veri-yukleme .yeniliki-ve-kolay-1 {
+                color: #696a69;
+                font-family: var(--font-family-mulish);
+                margin-top: 8px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .yeniliki-ve-kolay-2 {
+                color: var(--ebony-clay);
+                font-family: var(--font-family-cordale-bold);
+                margin-top: 24px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .e-defterlerinizi-yk {
+                letter-spacing: 0;
+                line-height: normal;
+                margin-top: 16px;
+                min-height: 18px;
+                width: 433px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .flex-row {
+                gap: 16px;
+                margin-top: 18px;
+                min-width: 90%;
+            }
+
+            .bilgisayarimdan-veri-yukleme .frame-914 {
+                align-items: center;
+                border: 1px solid;
+                border-color: var(--mystic);
+                border-radius: 10px;
+                display: flex;
+                flex-direction: column;
+                gap: 32px;
+                min-height: 64px;
+                width: 402px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .frame-911 {
+                align-items: flex-start;
+                display: flex;
+                gap: 14px;
+                margin-top: 16px;
+                min-width: 370px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .group-86 {
+                align-items: center;
+                display: flex;
+                gap: 10px;
+                min-width: 263px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .talimat-arama {
+                letter-spacing: 0;
+                line-height: normal;
+                min-height: 18px;
+                min-width: 51px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .input {
+                align-items: center;
+                background-color: var(--text);
+                border: 1px solid;
+                border-color: var(--mystic);
+                border-radius: 4px;
+                display: flex;
+                gap: 8px;
+                height: 32px;
+                padding: 16px 8px;
+                position: relative;
+                width: 200px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .e-posta-adresiniz {
+                flex: 1;
+                letter-spacing: 0;
+                line-height: normal;
+                margin-bottom: -8.00px;
+                margin-top: -10.00px;
+                position: relative;
+            }
+
+            .bilgisayarimdan-veri-yukleme .icons {
+                height: 22px;
+                margin-bottom: -11.00px;
+                margin-top: -11.00px;
+                min-width: 22px;
+                position: relative;
+            }
+
+            .bilgisayarimdan-veri-yukleme .buttons {
+                align-items: center;
+                background-color: var(--cardinal-pink);
+                border-radius: 4px;
+                display: flex;
+                gap: 8px;
+                justify-content: center;
+                padding: 7px 8px;
+                position: relative;
+                width: fit-content;
+            }
+
+            .bilgisayarimdan-veri-yukleme .lemler {
+                letter-spacing: 0;
+                line-height: normal;
+                margin-top: -1.00px;
+                position: relative;
+                width: fit-content;
+            }
+
+            .bilgisayarimdan-veri-yukleme .lemlerz {
+                letter-spacing: 0;
+                line-height: normal;
+                position: relative;
+                width: fit-content;
+            }
+
+            .bilgisayarimdan-veri-yukleme .group-86-1 {
+                align-items: center;
+                display: flex;
+                gap: 8px;
+                margin-left: 2.0px;
+                min-width: 404px;
+                padding-bottom: 15px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .talimat-arama-1 {
+                letter-spacing: 0;
+                line-height: normal;
+                min-height: 18px;
+                min-width: 16px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .input-1 {
+                align-items: center;
+                background-color: var(--text);
+                border: 1px solid;
+                border-color: var(--mystic);
+                border-radius: 4px;
+                display: flex;
+                gap: 8px;
+                height: 32px;
+                padding: 16px 8px;
+                left: 15%;
+                position: relative;
+                width: 234px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .product-purchasedw-ribbon {
+                align-items: flex-start;
+                background-color: var(--text);
+                border-radius: 10px;
+                /* box-shadow: 0px 3px 10px #2229431a;*/
+                display: flex;
+                gap: 14px;
+                height: 112px;
+                overflow: hidden;
+                padding: 11px 0;
+                width: 100%;
+            }
+
+            .bilgisayarimdan-veri-yukleme .qnb-finansbank-container {
+                align-items: flex-start;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                margin-left: 12px;
+                min-height: 84px;
+                width: 100%;
+            }
+
+            .bilgisayarimdan-veri-yukleme .neden-qnb-finansbank {
+                color: var(--ebony-clay);
+                font-family: var(--font-family-mulish);
+                font-size: var(--font-size-xl);
+                font-weight: 400;
+                letter-spacing: 0;
+                line-height: normal;
+                min-height: 20px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .span0 {
+                font-weight: 700;
+            }
+
+            .bilgisayarimdan-veri-yukleme .qnb-finansbank-ile-v {
+                color: var(--storm-gray);
+                font-family: var(--font-family-mulish);
+                font-size: var(--font-size-l);
+                font-weight: 400;
+                letter-spacing: 0;
+                line-height: normal;
+                min-height: 54px;
+                width: 100%;
+            }
+
+            .bilgisayarimdan-veri-yukleme .flex-col-1 {
+                align-items: flex-start;
+                align-self: center;
+                display: flex;
+                flex-direction: column;
+                gap: 25px;
+                min-height: 80px;
+                width: 113px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .overlap-group {
+                align-items: flex-start;
+                background-color: #ffffff3d;
+                border-radius: 4px 0px 0px 4px;
+                box-shadow: 4px 1px 14px #de269545;
+                display: flex;
+                height: 23px;
+                justify-content: flex-end;
+                min-width: 113px;
+                padding: 4.0px 8.0px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .qnb-finansbank {
+                color: var(--cardinal-pink);
+                font-family: var(--font-family-mulish);
+                font-size: var(--font-size-m);
+                font-weight: 700;
+                letter-spacing: 0;
+                line-height: normal;
+                min-height: 15px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .buttons-1 {
+                width: 97px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .overlap-group12 {
+                height: 730px;
+                margin-top: 24px;
+                position: relative;
+                width: 100%;
+            }
+
+            .bilgisayarimdan-veri-yukleme .frame-901 {
+                align-items: flex-start;
+                background-color: #efeff4;
+                border: 1px solid;
+                border-color: var(--mystic);
+                display: flex;
+                gap: 98px;
+                height: 58px;
+                left: 0;
+                min-width: 100%;
+                padding: 18px 23px;
+                position: absolute;
+                top: 0;
+            }
+
+            .bilgisayarimdan-veri-yukleme .k-hesap-3 {
+                color: #556589;
+                font-family: var(--font-family-mulish);
+                font-size: var(--font-size-l);
+                font-weight: 800;
+                letter-spacing: 0;
+                line-height: normal;
+                min-height: 18px;
+                min-width: 19px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .k-hesap-4 {
+                color: #556589;
+                font-family: var(--font-family-mulish);
+                font-size: var(--font-size-l);
+                font-weight: 800;
+                letter-spacing: 0;
+                line-height: normal;
+                min-height: 18px;
+                margin-left: 10%;
+                min-width: 10%;
+            }
+
+            .bilgisayarimdan-veri-yukleme .overlap-group-1 {
+                align-items: flex-start;
+                background-color: var(--blueberry);
+                border-color: var(--mystic);
+                border-left-style: solid;
+                border-left-width: 1px;
+                border-right-style: solid;
+                border-right-width: 1px;
+                box-shadow: inset 0px -1px 0px #dee3ed;
+                display: flex;
+                height: 56px;
+                left: 0;
+                min-width: 95%;
+                padding: 7px 23px;
+                top: 58px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .k-hesap-5 {
+                align-self: center;
+                letter-spacing: 0;
+                line-height: normal;
+                margin-bottom: 2.0px;
+                min-height: 18px;
+                min-width: 10%;
+            }
+
+            .bilgisayarimdan-veri-yukleme .group-619 {
+                align-items: flex-start;
+                display: flex;
+                gap: 8px;
+                height: 40px;
+                margin-left: 10%;
+            min-width: 10%;
+            width: 100%; 
+            }
+
+            .bilgisayarimdan-veri-yukleme .icons-1 {
+                align-items: flex-end;
+                display: flex;
+                height: 20px;
+                justify-content: flex-end;
+                min-width: 20px;
+                padding: 0.8px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .check-circle {
+                height: 18px;
+                width: 18px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .k-hesap-container {
+                align-items: flex-start;
+                align-self: flex-end;
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+                width: 100%;
+            }
+
+            .bilgisayarimdan-veri-yukleme .k-hesap {
+                letter-spacing: 0;
+                line-height: normal;
+                min-height: 18px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .k-hesap-6 {
+                color: #516795;
+                font-family: var(--font-family-mulish);
+                font-size: var(--font-size-m);
+                font-weight: 600;
+                letter-spacing: 0;
+                line-height: normal;
+                min-height: 15px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .group-628 {
+                align-items: flex-start;
+                background-color: var(--alabaster);
+                border: 1px solid;
+                border-color: var(--mystic);
+                border-radius: 4px;
+                display: flex;
+                height: 40px;
+                margin-left: 65%;
+                min-width: 48px;
+                padding: 8px 12px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .icon-refresh {
+                height: 22px;
+                width: 22px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .overlap-group1 {
+                align-items: flex-start;
+                background-color: var(--text);
+                border-color: var(--mystic);
+                border-left-style: solid;
+                border-left-width: 1px;
+                border-right-style: solid;
+                border-right-width: 1px;
+                box-shadow: inset 0px -1px 0px #dee3ed;
+                display: flex;
+                height: 56px;
+                left: 0;
+                min-width: 1138px;
+                padding: 7px 23px;
+                position: absolute;
+                top: 114px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .k-hesap-7 {
+                align-self: center;
+                letter-spacing: 0;
+                line-height: normal;
+                margin-bottom: 2.0px;
+                min-height: 18px;
+                width: 40px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .group-619-1 {
+                margin-left: 77px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .k-hesap-1 {
+                letter-spacing: 0;
+                line-height: normal;
+                min-height: 15px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .overlap-group2 {
+                align-items: flex-start;
+                background-color: var(--blueberry);
+                border: 1px solid;
+                border-color: var(--mystic);
+                box-shadow: inset 0px -1px 0px #dee3ed;
+                display: flex;
+                height: 56px;
+                left: 0;
+                min-width: 1138px;
+                padding: 7px 23px;
+                position: absolute;
+                top: 170px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .k-hesap-8 {
+                align-self: center;
+                letter-spacing: 0;
+                line-height: normal;
+                margin-bottom: 2.0px;
+                min-height: 18px;
+                min-width: 32px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .group-619-2 {
+                margin-left: 85px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .overlap-group3 {
+                align-items: flex-start;
+                background-color: var(--text);
+                border-color: var(--mystic);
+                border-left-style: solid;
+                border-left-width: 1px;
+                border-right-style: solid;
+                border-right-width: 1px;
+                box-shadow: inset 0px -1px 0px #dee3ed;
+                display: flex;
+                height: 56px;
+                left: 0;
+                min-width: 1138px;
+                padding: 7px 23px;
+                position: absolute;
+                top: 226px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .k-hesap-9 {
+                align-self: center;
+                letter-spacing: 0;
+                line-height: normal;
+                margin-bottom: 2.0px;
+                min-height: 18px;
+                min-width: 38px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .group-619-3 {
+                margin-left: 79px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .overlap-group4 {
+                align-items: flex-start;
+                background-color: var(--blueberry);
+                border: 1px solid;
+                border-color: var(--mystic);
+                box-shadow: inset 0px -1px 0px #dee3ed;
+                display: flex;
+                height: 56px;
+                left: 0;
+                min-width: 1138px;
+                padding: 7px 23px;
+                position: absolute;
+                top: 282px;
+            }
+
+        #slctBtn :focus {
+            cursor: pointer;
+        }
+
+
+        #btnupppload :focus {
+            cursor: pointer;
+        }
+
+        #btnupppload :hover {
+            cursor: pointer;
+        }
+
+        .btnuppploadzone :hover {
+            cursor: pointer;
+        }
+
+        .btnuppploadzone :focus {
+            cursor: pointer;
+        }
+
+        .btnuppploadzone:hover {
+            cursor: pointer;
+            box-shadow: 10px 55px 55px 10px rgba(0,0,0,.1);
+            border-color: midnightblue;
+        }
+
+            .btnuppploadzone:hover::before, .btnuppploadzone:hover::after {
+                display: block;
+                content: '';
+                position: absolute;
+                border-color: #FDA8CF;
+                border-radius: 5px;
+                z-index: -1;
+            }
+
+        .btnuppploadzone:after {
+            border-color: #F3CE5E;
+        }
+
+
+        .btnuppploadzone:focus {
+            cursor: pointer;
+            outline-color: transparent;
+            outline-style: solid;
+            box-shadow: 0 0 0 4px #5a01a7;
+        }
+
+        .btnuppploadzone:active {
+            border-color: #ffbf00;
+        }
+
+        .btnuppploadzone:hover {
+            cursor: pointer;
+            border-color: #002ead;
+            transition: 0.7s;
+        }
+
+        #btnupppload:hover {
+            cursor: pointer;
+            box-shadow: 10px 55px 55px 10px rgba(0,0,0,.1);
+            border-color: midnightblue;
+        }
+
+            #btnupppload:hover::before, #btnupppload:hover::after {
+                display: block;
+                content: '';
+                position: absolute;
+                border-color: #FDA8CF;
+                border-radius: 5px;
+                z-index: -1;
+            }
+
+        #btnupppload:after {
+            border-color: #F3CE5E;
+        }
+
+
+        #btnupppload:focus {
+            cursor: pointer;
+            outline-color: transparent;
+            outline-style: solid;
+            box-shadow: 0 0 0 4px #5a01a7;
+        }
+
+        #btnupppload:active {
+            border-color: #ffbf00;
+        }
+
+        #btnupppload:hover {
+            cursor: pointer;
+            border-color: #002ead;
+            transition: 0.7s;
+        }
+
+        .bilgisayarimdan-veri-yukleme .k-hesap-10 {
+            align-self: center;
+            letter-spacing: 0;
+            line-height: normal;
+            margin-bottom: 2.0px;
+            min-height: 18px;
+            min-width: 39px;
+        }
+
+        .bilgisayarimdan-veri-yukleme .group-619-4 {
+            margin-left: 78px;
+        }
+
+        .bilgisayarimdan-veri-yukleme .overlap-group5 {
+            align-items: flex-start;
+            background-color: var(--text);
+            border-color: var(--mystic);
+            border-left-style: solid;
+            border-left-width: 1px;
+            border-right-style: solid;
+            border-right-width: 1px;
+            box-shadow: inset 0px -1px 0px #dee3ed;
+            display: flex;
+            gap: 64px;
+            height: 56px;
+            left: 0;
+            min-width: 1138px;
+            padding: 10px 23px;
+            position: absolute;
+            top: 338px;
+        }
+
+        .bilgisayarimdan-veri-yukleme .k-hesap-11 {
+            align-self: center;
+            letter-spacing: 0;
+            line-height: normal;
+            margin-bottom: 2.0px;
+            min-height: 18px;
+            min-width: 53px;
+        }
+
+        .bilgisayarimdan-veri-yukleme .buttons-2 {
+            width: 120px;
+        }
+
+        .bilgisayarimdan-veri-yukleme .overlap-group6 {
+            align-items: flex-start;
+            background-color: var(--blueberry);
+            border: 1px solid;
+            border-color: var(--mystic);
+            box-shadow: inset 0px -1px 0px #dee3ed;
+            display: flex;
+            gap: 60px;
+            height: 56px;
+            left: 0;
+            min-width: 1138px;
+            padding: 17px 23px;
+            position: absolute;
+            top: 394px;
+        }
+
+        .bilgisayarimdan-veri-yukleme .k-hesap-12 {
+            letter-spacing: 0;
+            line-height: normal;
+            margin-top: 1px;
+            min-height: 18px;
+            min-width: 56px;
+        }
+
+        .bilgisayarimdan-veri-yukleme .group-618 {
+            align-items: center;
+            display: flex;
+            gap: 12px;
+            min-width: 834px;
+        }
+
+        .bilgisayarimdan-veri-yukleme .alert {
+            height: 18px;
+            width: 18px;
+        }
+
+        .bilgisayarimdan-veri-yukleme .k-hesap-2 {
+            letter-spacing: 0;
+            line-height: normal;
+            margin-top: 1.0px;
+            min-height: 15px;
+            min-width: 800px;
+        }
+
+        .bilgisayarimdan-veri-yukleme .overlap-group7 {
+            align-items: flex-start;
+            background-color: var(--text);
+            border-color: var(--mystic);
+            border-left-style: solid;
+            border-left-width: 1px;
+            border-right-style: solid;
+            border-right-width: 1px;
+            box-shadow: inset 0px -1px 0px #dee3ed;
+            display: flex;
+            gap: 61px;
+            height: 56px;
+            left: 0;
+            min-width: 1138px;
+            padding: 17px 23px;
+            position: absolute;
+            top: 450px;
+        }
+
+        .bilgisayarimdan-veri-yukleme .k-hesap-13 {
+            letter-spacing: 0;
+            line-height: normal;
+            margin-top: 1px;
+            min-height: 18px;
+            min-width: 55px;
+        }
+
+        .bilgisayarimdan-veri-yukleme .overlap-group8 {
+            align-items: flex-start;
+            background-color: var(--blueberry);
+            border: 1px solid;
+            border-color: var(--mystic);
+            box-shadow: inset 0px -1px 0px #dee3ed;
+            display: flex;
+            gap: 85px;
+            height: 56px;
+            left: 0;
+            min-width: 1138px;
+            padding: 17px 23px;
+            position: absolute;
+            top: 506px;
+        }
+
+        .bilgisayarimdan-veri-yukleme .k-hesap-14 {
+            letter-spacing: 0;
+            line-height: normal;
+            min-height: 18px;
+            min-width: 31px;
+        }
+
+        .bilgisayarimdan-veri-yukleme .overlap-group9 {
+            align-items: flex-start;
+            background-color: var(--text);
+            border-color: var(--mystic);
+            border-left-style: solid;
+            border-left-width: 1px;
+            border-right-style: solid;
+            border-right-width: 1px;
+            box-shadow: inset 0px -1px 0px #dee3ed;
+            display: flex;
+            gap: 84px;
+            height: 56px;
+            left: 0;
+            min-width: 1138px;
+            padding: 17px 23px;
+            position: absolute;
+            top: 562px;
+        }
+
+        .bilgisayarimdan-veri-yukleme .k-hesap-15 {
+            letter-spacing: 0;
+            line-height: normal;
+            min-height: 18px;
+            min-width: 32px;
+        }
+
+        .bilgisayarimdan-veri-yukleme .overlap-group10 {
+            align-items: flex-start;
+            background-color: var(--blueberry);
+            border: 1px solid;
+            border-color: var(--mystic);
+            box-shadow: inset 0px -1px 0px #dee3ed;
+            display: flex;
+            gap: 75px;
+            height: 56px;
+            left: 0;
+            min-width: 1138px;
+            padding: 17px 23px;
+            position: absolute;
+            top: 618px;
+        }
+
+        .bilgisayarimdan-veri-yukleme .k-hesap-16 {
+            letter-spacing: 0;
+            line-height: normal;
+            min-height: 18px;
+            min-width: 41px;
+        }
+
+        .bilgisayarimdan-veri-yukleme .overlap-group11 {
+            align-items: flex-start;
+            background-color: var(--text);
+            border-color: var(--mystic);
+            border-left-style: solid;
+            border-left-width: 1px;
+            border-right-style: solid;
+            border-right-width: 1px;
+            box-shadow: inset 0px -1px 0px #dee3ed;
+            display: flex;
+            gap: 77px;
+            height: 56px;
+            left: 0;
+            min-width: 1138px;
+            padding: 17px 23px;
+            position: absolute;
+            top: 674px;
+        }
+
+        .bilgisayarimdan-veri-yukleme .k-hesap-17 {
+            letter-spacing: 0;
+            line-height: normal;
+            min-height: 18px;
+            min-width: 39px;
+        }
+
+        .bilgisayarimdan-veri-yukleme .line-16 {
+            height: 730px;
+            left: 117px;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            width: 1px;
+        }
+
+        .bilgisayarimdan-veri-yukleme .alert-6 {
+            height: 18px;
+            width: 18px;
+        }
+
+        .bilgisayarimdan-veri-yukleme .buttons-3 {
+            align-items: center;
+            background-color: var(--cardinal-pink);
+            border-radius: 4px;
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            padding: 7px 8px;
+            position: relative;
+        }
+
+        .bilgisayarimdan-veri-yukleme .check-circle-5 {
+            height: 18px;
+            width: 18px;
+        }
+
+        .bilgisayarimdan-veri-yukleme .flex {
+            align-items: flex-start;
+            display: flex;
+        }
+
+        .bilgisayarimdan-veri-yukleme .group-619-5 {
+            align-items: flex-start;
+            display: flex;
+            gap: 8px;
+            height: 40px;
+            min-width: 124px;
+        }
+
+        .bilgisayarimdan-veri-yukleme .yeniliki-ve-kolay-3 {
+            font-size: var(--font-size-xl);
+            font-weight: 700;
+            letter-spacing: 0;
+            line-height: 23px;
+            white-space: nowrap;
+        }
+
+        .flexz {
+            align-items: flex-start;
+            display: flex;
+        }
+
+        .center1 {
+            width: 100%;
+            height: 23px;
+            /* BodyLarge/Bold */
+
+            font-family: 'Mulish';
+            font-style: normal;
+            font-weight: 700;
+            font-size: 18px;
+            line-height: 23px;
+            /* identical to box height */
+            /* Mass/LightMode/TextColors/T1000 */
+
+            color: #222943;
+            /* Inside auto layout */
+
+            flex: none;
+            order: 1;
+            flex-grow: 0;
+        }
+
+        .center3 {
+            width: 636px;
+            height: 54px;
+            /* BodySmall/Regular */
+
+            font-family: 'Mulish';
+            font-style: normal;
+            font-weight: 400;
+            font-size: 14px;
+            line-height: 18px;
+            /* Mass/LightMode/TextColors/T1000 */
+
+            color: #222943;
+            /* Inside auto layout */
+
+            flex: none;
+            order: 1;
+            flex-grow: 0;
+        }
+
+        .center5 {
+            width: 90px;
+            height: 18px;
+            font-family: 'Mulish';
+            font-style: normal;
+            font-weight: 700;
+            font-size: 14px;
+            line-height: 18px;
+            /* identical to box height */
+            /* Mass/LightMode/TextColors/T1000 */
+
+            color: #222943;
+            /* Inside auto layout */
+
+            flex: none;
+            order: 2;
+            flex-grow: 0;
+        }
+
+        #center7t {
+            width: 101px;
+            height: 18px;
+            /* BodySmall/Left/Black/Regular */
+
+            font-family: 'Mulish';
+            font-style: normal;
+            font-weight: 400;
+            font-size: 12px;
+            line-height: 18px;
+            /* identical to box height */
+            /* Mass/LightMode/TextColors/T1000 */
+
+            color: #222943;
+            /* Inside auto layout */
+
+            flex: none;
+            order: 1;
+            flex-grow: 0;
+        }
+
+        #center11t {
+            width: 103px;
+            height: 18px;
+            /* BodySmall/Left/Black/Regular */
+
+            font-family: 'Mulish';
+            font-style: normal;
+            font-weight: 400;
+            font-size: 12px;
+            line-height: 18px;
+            /* identical to box height */
+            /* Mass/LightMode/DecorativeColors/Blue20 */
+
+            color: #257DFB;
+            /* Inside auto layout */
+
+            flex: none;
+            order: 1;
+            flex-grow: 0;
+        }
+
+        .center7 {
+            box-sizing: border-box;
+            /* Auto layout */
+
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 152px;
+            width: 100%;
+            height: 38px;
+            /* Mass/LightMode/OnBrand/OB100 */
+
+            background: #FFFFFF;
+            /* Mass/LightMode/NeutralColors/N400
+
+        neutral color
+        */
+            border: 1px solid #DEE3ED;
+            /* PathStyle */
+
+            box-shadow: 0px 1px 0px rgba(222, 227, 237, 0.25);
+            border-radius: 4px;
+            /* Inside auto layout */
+
+            flex: none;
+            order: 3;
+            flex-grow: 0;
+        }
+
+        .center9 {
+            width: 69px;
+            height: 18px;
+            font-family: 'Mulish';
+            font-style: normal;
+            font-weight: 700;
+            font-size: 14px;
+            line-height: 18px;
+            /* identical to box height */
+            /* Mass/LightMode/TextColors/T1000 */
+
+            color: #222943;
+            /* Inside auto layout */
+
+            flex: none;
+            order: 4;
+            flex-grow: 0;
+        }
+
+        .center11 {
+            box-sizing: border-box;
+            width: 100%;
+            height: 38px;
+            /* Mass/LightMode/OnBrand/OB100 */
+
+            background: #FFFFFF;
+            /* Mass/LightMode/NeutralColors/N400
+
+        neutral color
+        */
+            border: 1px solid #DEE3ED;
+            /* PathStyle */
+
+            box-shadow: 0px 1px 0px rgba(222, 227, 237, 0.25);
+            border-radius: 4px;
+            /* Inside auto layout */
+
+            flex: none;
+            order: 5;
+            flex-grow: 0;
+        }
+
+        .center13 {
+            width: 100%;
+            height: 38px;
+            /* Mass/LightMode/OnBrand/OB100 */
+            /* Inside auto layout */
+            text-align: right;
+            flex: auto;
+            order: 5;
+            flex-grow: 0;
+        }
+
+
+        .sendt {
+            border: none;
+        }
+
+            .sendt .dx-button-content {
+                padding: 0 !important;
+                padding-bottom: 27px !important;
+                padding-right: 3px !important;
+            }
+
+                .sendt .dx-button-content .dx-button-text {
+                    color: #222943;
+                    font-family: 'Mulish';
+                    font-style: normal;
+                    font-weight: 700;
+                    font-size: 18px;
+                    line-height: 23px;
+                }
+
+
+        .sendd .dx-button-content .dx-button-text {
+            color: white;
+            font-family: 'Mulish';
+            font-style: normal;
+            font-weight: 400;
+            font-size: 12px;
+            line-height: 18px;
+        }
+
+        .sendd .dx-button-content {
+            background-color: #870052;
+            color: white;
+        }
+
+        .sendd {
+        }
+
+
+        .senda .dx-button-content .dx-icon {
+            color: #222943;
+            font-size: 12px;
+        }
+
+        .senda .dx-button-content .dx-button-text {
+            color: #222943;
+            font-family: 'Mulish';
+            font-style: normal;
+            font-weight: 400;
+            font-size: 12px;
+            line-height: 18px;
+        }
+
+        .senda .dx-button-content {
+            color: #222943;
+        }
+
+        .senda {
+            border: none;
+        }
+
+        .send .dx-button-content .dx-icon {
+            color: #257DFB;
+            font-size: 12px;
+        }
+
+        .send .dx-button-content .dx-button-text {
+            color: #257DFB;
+            font-family: 'Mulish';
+            font-style: normal;
+            font-weight: 400;
+            font-size: 12px;
+            line-height: 18px;
+        }
+
+        .send .dx-button-content {
+            color: #257DFB;
+        }
+
+        .send {
+            border: none;
+        }
+
+        .dx-loadindicator {
+            width: 151px;
+            height: 151px;
+            display: inline-block;
+            overflow: hidden;
+            border: none;
+            background-color: transparent;
+        }
+    </style>
+
+}
+<input type="hidden" style="display:none" id="txtcompname" value="@Model.currentcompname" />
+<input type="hidden" style="display:none" id="txtcurcomCount" value="@Model.curcomCount" />
+<input type="hidden" style="display:none" id="txtcurcomide" value="@Model.curcomID" />
+<section class="content home">
+    <div class="container-fluid">
+        <div class="block-header">
+            <div class="row clearfix">
+                <div class="col-lg-5 col-md-5 col-sm-12">
+                    <h2>Dashboard</h2>
+                    <ul class="breadcrumb padding-0">
+                        <li class="breadcrumb-item"><a href=""><i class="zmdi zmdi-home"></i></a></li>
+                        <li class="breadcrumb-item active">e-Defter Yükleme </li>
+                    </ul>
+                </div>
+                <div class="col-lg-7 col-md-7 col-sm-12">
+                    <div class="input-group m-b-0">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="body">
+                                    <div class="row">
+                                        <div class="col-6" style="text-align:left">
+                                     
+
+                                        </div>
+                                        <div class="col-6" style="text-align:right">
+                                            @(Html.DevExtreme().TextBox()
+                                .Value(Model.CompName)  .ReadOnly(true)
+                            )
+
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <input type="hidden" style="display:none" id="txtmyear" value="@Model.CurrentUser.SelectedYear" />
+        <input type="hidden" style="display:none" id="txtmcomp" value="@Model.CompID" />
+        <input type="hidden" style="display:none" id="txtyearcount" value="@Model.YearCount" />
+        <input type="hidden" style="display:none" id="txtcompcount" value="@Model.CompCount" />
+        <input type="hidden" style="display:none" id="txtmonname" value="" />
+        <input type="hidden" style="display:none" id="txttax" value="@Model.currenCompanie.TaxID" />
+        <input type="hidden" style="display:none" id="txtoccname" value="" />
+        <input type="hidden" style="display:none" value="0" id="txtisupdate" />
+        <div class="row clearfix">
+            <div class="col-lg-12 col-md-12">
+
+                <script>
+                    function selectYear_Initialized() {
+                        getselectYearInstance().option("value", parseInt($("#txtmyear").val()));
+                        var chkco = parseInt($("#txtyearcount").val());
+
+
+
+                    }
+                    function funccheckbeyannamemzvn(data) {
+                        console.log(data); 
+                        $("#mainmonth").val(data);
+                        var chkzcmprstr = "@Model.mnthcomparelist";
+
+                        const myArray = chkzcmprstr.split(",");
+                        if (myArray.length == 0) { myArray.push(chkzcmprstr) }
+                        console.log(myArray);
+                        if (myArray.includes(data.toString())) { location.href = "/admin/mizan/aktarma/dashcompare?mmonth=" + data+"&nyear=@Model.CurrentUser.SelectedYear" }
+                        else {
+                            Swal.fire('Belirtilen Aylarda Karşılaştırma Yapılacak Mizan ve Beyanname Bulunmamaktadır', '', 'info');
+                        }
+                    }
+                    function funccheckmizan(data) {
+                        console.log(data);
+
+                        $("#mainmonth").val(data);
+                        $('#uploadInput').focus().trigger('click');
+                    }
+                    function funccheckmizanrev(data) {
+                        console.log(data);
+                        Swal.fire({
+                            title: 'Daha Önce Yüklenen Veriyi değiştirmek istiyor musunuz?',
+                            showDenyButton: true,
+                            confirmButtonText: 'Evet',
+                            denyButtonText: 'Hayır',
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                $("#txtisupdate").val("1");
+                                $("#mainmonth").val(data);
+                                $('#uploadInput').focus().trigger('click');
+                            } else if (result.isDenied) {
+                                Swal.fire('Değiştirme İşlemi İptal Edildi', '', 'info')
+                            }
+                        })
+
+                        return false;
+
+
+
+                       
+                    }
+                    function funccheckbeyannamemain(data) {
+                        console.log(data);
+
+                        $("#mainmonth").val(data);
+                        $('#uploadInputbynmain').focus().trigger('click');
+                    }
+                    function funccheckbeyannamemainrev(data) {
+                        console.log(data);
+                        Swal.fire({
+                            title: 'Daha Önce Yüklenen Veriyi değiştirmek istiyor musunuz?',
+                            showDenyButton: true,
+                            confirmButtonText: 'Evet',
+                            denyButtonText: 'Hayır',
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                $("#txtisupdate").val("1");
+                                $("#mainmonth").val(data);
+                                $('#uploadInputbynmain').focus().trigger('click');
+                            } else if (result.isDenied) {
+                                Swal.fire('Değiştirme İşlemi İptal Edildi', '', 'info')
+                            }
+                        })
+
+                        return false; 
+                    }
+                    function funccheckbeyanname(data) {
+                        console.log(data);
+
+                        $("#mainmonth").val(data);
+                        $('#uploadInputbyn').focus().trigger('click');
+                    }
+
+                  
+
+                    var tyear = $("#txtmyear").val();
+                    var mcompid = $("#txtmcomp").val();
+
+                    var misready = "nok";
+                    var chkReadyState = setInterval(function () {
+                        if (document.readyState == "complete") {
+
+                            clearInterval(chkReadyState);
+
+                            misready = "ok";
+                        }
+                    }, 100);
+
+                    var dt1 = "0";
+                    var compid = $("#txtmcomp").val();
+                    var monthid = 0;
+                    var year = $("#txtmyear").val();
+
+                    function funcgetnamet() {
+                        var statusa = $("#txtmonname").val();
+
+                        return statusa;
+                    }
+                    function funcgetname() {
+                        var statusa = $("#mainyear").val();
+                        var status = $("#mainmonth").val();
+                        return statusa + "-" + status + ".xml";
+                    }
+                    function funcupdata() {
+                        document.getElementById('uploadInput').value = null;
+                        $("#mainyear").val();
+                        var status = $("#mainmonth").val();
+                        monthid = status;
+                        $("#txtisupdate").val("1");
+                        $('#uploadInput').focus().trigger('click');
+                        return;
+                    }
+
+                    function getmonthtext(data) {
+
+                        if (data.length == 1) {
+                            return "0" + data;
+                        }
+                        else {
+                            return data;
+                        }
+                    }
+
+                    $(document).ready(function () {
+       
+
+
+
+                        $('#slctBtn').click(function (event) {
+
+                            $('#btnupppload').trigger('click');
+                             
+                        });
+
+                        $('#btnupppload').click(function (event) {
+                             
+                            var status = $(this).attr('data-id');
+                            var statusa = $(this).attr('data-year');
+
+                            $("#mainyear").val(statusa);
+                            $("#mainmonth").val(status);
+                            $('#uploadInput').focus().trigger('click');
+                             
+                        });
+
+
+
+                    });
+
+
+
+                    function getselectYearInstance() {
+                        return $("#slctYear").dxSelectBox("instance");
+                    }
+
+                 
+
+
+
+
+                    function selectYear_valueChanged(data) {
+                        var slctval = data.selectedItem.MYear;
+                        var turl = '/admin/upload?handler=GraphYear&nyear=' + slctval;
+
+                        if (misready == "ok" && tyear.toString() != slctval.toString()) {
+                            getloadPanelpageInstance().show();
+                            $.ajax({
+                                type: "GET",
+                                url: turl,
+                                contentType: "application/json; charset=utf-8",
+                                dataType: "json",
+                                success: function (response) {
+                                    if (response == "ok") {
+                                        location.reload();
+                                    }
+                                },
+                                failure: function (response) {
+                                    alert(response);
+                                }
+                            });
+                        }
+
+                    }
+
+ 
+
+
+                    
+
+                    function funcErrorOpen() {
+                        document.getElementById('uploadInput').value = null;
+                        const popuprz = $("#popuperror").dxPopup("instance");
+
+                        popuprz.show();
+                    }
+                    function funcErrorClose() {
+                        const popuprz = $("#popuperror").dxPopup("instance");
+
+                        popuprz.hide();
+                    }
+                   
+
+                    function readURLbynmain(input) {
+
+                        var reader = new FileReader();
+
+                        compid = $("#txtcurcomide").val();
+
+                        if (input.files && input.files[0]) {
+
+                            var fdatam = new FormData();
+                            var tttdate = $("#mainmonth").val() + "_" + $("#mainyear").val();
+                            for (var i = 0; i < input.files.length; i++) {
+                                fdatam.append('file', input.files[i]);
+                            }
+
+                            reader.onload = function (e) {
+
+                                var imgur = e.target.result;
+                            };
+                            reader.readAsDataURL(input.files[0]);
+                            fdatam.append('id', $("#mainyear").val());
+                            fdatam.append('Caption', tttdate);
+                            fdatam.append('ide', $("#txtcurcomide").val());
+                            fdatam.append('idexml', "0");
+                            startit();
+
+
+
+                            if ($("#txtisupdate").val() == "0" || $("#txtisupdate").val() == 0) {
+                                $.ajax({
+                                    url: "/JsonService/Beyanname/moodUploadBeyannameChk",
+                                    method: "POST",
+                                    statusCode: {
+                                        500: function () {
+                                            getLoadPanelInstance().hide();
+                                            Swal.fire({
+                                                title: 'Server Erişim Sorunuz. Lütfen Sayfayı Yenileyiniz...',
+                                                confirmButtonText: 'Yenile'
+                                            }).then((result) => {
+                                                /* Read more about isConfirmed, isDenied below */
+                                                if (result.isConfirmed) {
+
+                                                    location.reload();
+                                                }
+                                            });
+                                        },
+                                        404: function () {
+                                            alert("Script 404");
+                                        }
+                                    },
+                                    contentType: false,
+                                    data: fdatam,
+                                    processData: false,
+                                    cache: false,
+                                    success: function (data) {
+
+                                        if (data == "lock") {
+                                            getLoadPanelInstance().hide();
+                                            Swal.fire(
+                                                'Hata!',
+                                                'Beyanname Yüklenemedi',
+                                                'error'
+                                            )
+                                        }
+                                        else if (data == "nok") {
+                                            //swal.close();
+                                            getLoadPanelInstance().hide();
+
+
+
+
+                                            swal.fire({
+                                                title: "Uyarı",
+                                                text: "Beyanname Kesin Beyanname olması sebebiyle Gelir Tablosuna bağlı raporlar çalışmayacaktır. Devam etmek istiyor musunuz!?",
+                                                showCancelButton: true,
+                                                icon: 'error',
+                                                cancelButtonColor: '#d33',
+                                            })
+                                                .then((res) => {
+                                                    if (res.value) {
+                                                        startit();
+                                                        $.ajax({
+                                                            url: "/JsonService/Beyanname/moodUploadBeyanname",
+                                                            method: "POST",
+                                                            statusCode: {
+                                                                500: function () {
+                                                                    getLoadPanelInstance().hide();
+                                                                    document.getElementById('uploadInputbynmain').value = null;
+                                                                    Swal.fire({
+                                                                        title: 'Server Erişim Sorunuz. Lütfen Sayfayı Yenileyiniz...',
+                                                                        confirmButtonText: 'Yenile'
+                                                                    }).then((result) => {
+                                                                        /* Read more about isConfirmed, isDenied below */
+                                                                        if (result.isConfirmed) {
+
+                                                                            location.reload();
+                                                                        }
+                                                                    });
+                                                                },
+                                                                404: function () {
+                                                                    alert("Script 404");
+                                                                }
+                                                            },
+                                                            contentType: false,
+                                                            data: fdatam,
+                                                            processData: false,
+                                                            cache: false,
+                                                            success: function (data) {
+                                                                if (data == "ok") {
+                                                                    //swal.close();
+
+
+
+                                                                    setTimeout(function () {
+                                                                        location.reload();
+                                                                    }, 2000);
+
+                                                                    monthid = $("#mainmonth").val();
+
+
+
+
+                                                                    //swal.close();
+                                                                    getLoadPanelInstance().hide(); 
+                                                                    document.getElementById('uploadInputbynmain').value = null;
+                                                                    Swal.fire(
+                                                                        'Başarılı!',
+                                                                        'Beyanname Yüklendi!',
+                                                                        'success'
+                                                                    )
+
+
+                                                                }
+                                                                else {
+                                                                    getLoadPanelInstance().hide();
+                                                                    document.getElementById('uploadInputbynmain').value = null;
+                                                                    Swal.fire(
+                                                                        'Hata!',
+                                                                        'Beyanname Yüklenemedi Lütfen  Kontrol Edip Tekrar Deneyiniz',
+                                                                        'error'
+                                                                    )
+                                                                }
+
+
+                                                            }
+                                                        });
+                                                    } else if (res.dismiss == 'cancel') {
+                                                        document.getElementById('uploadInputbynmain').value = null;
+                                                        new swal("İptal edildi", "Geçiçi Beyanname Yüklenmesi Bekleniyor", "error");
+                                                    }
+                                                    else if (res.dismiss == 'esc') {
+                                                        document.getElementById('uploadInputbynmain').value = null;
+                                                        console.log('cancle-esc**strong text**');
+                                                    }
+                                                });
+
+
+
+                                        }
+                                        else {
+                                            console.log("bbbbbbbbbb")
+                                            $.ajax({
+                                                url: "/JsonService/Beyanname/moodUploadBeyanname",
+                                                method: "POST",
+                                                statusCode: {
+                                                    500: function () {
+                                                        getLoadPanelInstance().hide(); document.getElementById('uploadInputbynmain').value = null;
+                                                        Swal.fire({
+                                                            title: 'Server Erişim Sorunuz. Lütfen Sayfayı Yenileyiniz...',
+                                                            confirmButtonText: 'Yenile'
+                                                        }).then((result) => {
+                                                            /* Read more about isConfirmed, isDenied below */
+                                                            if (result.isConfirmed) {
+
+                                                                location.reload();
+                                                            }
+                                                        });
+                                                    },
+                                                    404: function () {
+                                                        alert("Script 404");
+                                                    }
+                                                },
+                                                contentType: false,
+                                                data: fdatam,
+                                                processData: false,
+                                                cache: false,
+                                                success: function (data) {
+                                                    if (data == "ok") {
+                                                        //swal.close();
+
+
+
+
+                                                        setTimeout(function () {
+                                                            location.reload();
+                                                        }, 1000);
+
+                                                        monthid = $("#mainmonth").val();
+
+
+                                                        $("#griddiv").css("display", "block");
+
+                                                        //swal.close();
+                                                        getLoadPanelInstance().hide(); document.getElementById('uploadInputbynmain').value = null;
+                                                        Swal.fire(
+                                                            'Başarılı!',
+                                                            'Beyanname Yüklendi!',
+                                                            'success'
+                                                        )
+
+
+                                                    }
+                                                    else {
+                                                        getLoadPanelInstance().hide();
+                                                        document.getElementById('uploadInputbynmain').value = null;
+                                                        Swal.fire(
+                                                            'Hata!',
+                                                            data,
+                                                            'error'
+                                                        )
+                                                    }
+
+
+                                                }
+                                            });
+
+                                        }
+
+
+                                    }
+                                });
+                            }
+                            else {
+                                $.ajax({
+                                    url: "/JsonService/Beyanname/moodUploadBeyannameChk",
+                                    method: "POST",
+                                    statusCode: {
+                                        500: function () {
+                                            getLoadPanelInstance().hide(); document.getElementById('uploadInputbynmain').value = null;
+                                            Swal.fire({
+                                                title: 'Server Erişim Sorunuz. Lütfen Sayfayı Yenileyiniz...',
+                                                confirmButtonText: 'Yenile'
+                                            }).then((result) => {
+                                                /* Read more about isConfirmed, isDenied below */
+                                                if (result.isConfirmed) {
+
+                                                    location.reload();
+                                                }
+                                            });
+                                        },
+                                        404: function () {
+                                            alert("Script 404");
+                                        }
+                                    },
+                                    contentType: false,
+                                    data: fdatam,
+                                    processData: false,
+                                    cache: false,
+                                    success: function (data) {
+
+                                        if (data == "lock") {
+                                            getLoadPanelInstance().hide(); document.getElementById('uploadInputbynmain').value = null;
+                                            Swal.fire(
+                                                'Hata!',
+                                                'Beyanname Yüklenemedi',
+                                                'error'
+                                            )
+                                        }
+                                        else if (data == "nok") {
+                                            //swal.close();
+                                            getLoadPanelInstance().hide(); document.getElementById('uploadInputbynmain').value = null;
+
+
+
+
+                                            swal.fire({
+                                                title: "Uyarı",
+                                                text: "Beyanname Kesin Beyanname olması sebebiyle Gelir Tablosuna bağlı raporlar çalışmayacaktır. Devam etmek istiyor musunuz!?",
+                                                showCancelButton: true,
+                                                icon: 'error',
+                                                cancelButtonColor: '#d33',
+                                            })
+                                                .then((res) => {
+                                                    if (res.value) {
+                                                        startit();
+                                                        $.ajax({
+                                                            url: "/JsonService/Beyanname/moodUploadBeyannameUpdate",
+                                                            method: "POST",
+                                                            statusCode: {
+                                                                500: function () {
+                                                                    getLoadPanelInstance().hide(); document.getElementById('uploadInputbynmain').value = null;
+                                                                    Swal.fire({
+                                                                        title: 'Server Erişim Sorunuz. Lütfen Sayfayı Yenileyiniz...',
+                                                                        confirmButtonText: 'Yenile'
+                                                                    }).then((result) => {
+                                                                        /* Read more about isConfirmed, isDenied below */
+                                                                        if (result.isConfirmed) {
+
+                                                                            location.reload();
+                                                                        }
+                                                                    });
+                                                                },
+                                                                404: function () {
+                                                                    alert("Script 404");
+                                                                }
+                                                            },
+                                                            contentType: false,
+                                                            data: fdatam,
+                                                            processData: false,
+                                                            cache: false,
+                                                            success: function (data) {
+                                                                if (data == "ok") {
+                                                                    //swal.close();
+
+
+
+
+                                                                    setTimeout(function () {
+                                                                        location.reload();
+                                                                    }, 1000);
+
+                                                                    monthid = $("#mainmonth").val();
+
+
+                                                                    //$("#griddiv").css("display", "block");
+
+                                                                    //swal.close();
+                                                                    getLoadPanelInstance().hide(); document.getElementById('uploadInputbynmain').value = null;
+                                                                    Swal.fire(
+                                                                        'Başarılı!',
+                                                                        'Beyanname Yüklendi!',
+                                                                        'success'
+                                                                    )
+
+
+                                                                }
+                                                                else {
+
+                                                                    getLoadPanelInstance().hide();
+                                                                    document.getElementById('uploadInputbynmain').value = null;
+                                                                    Swal.fire(
+                                                                        'Hata!',
+                                                                        data,
+                                                                        'error'
+                                                                    )
+                                                                }
+
+
+                                                            }
+                                                        });
+                                                    } else if (res.dismiss == 'cancel') {
+                                                        document.getElementById('uploadInputbynmain').value = null;
+                                                        new swal("İptal edildi", "Geçiçi Beyanname Yüklenmesi Bekleniyor", "error");
+                                                    }
+                                                    else if (res.dismiss == 'esc') {
+                                                        document.getElementById('uploadInputbynmain').value = null;
+                                                        console.log('cancle-esc**strong text**');
+                                                    }
+                                                });
+
+
+
+                                        }
+                                        else {
+                                            console.log("bbbbbbbbbb")
+                                            $.ajax({
+                                                url: "/JsonService/Beyanname/moodUploadBeyannameUpdate",
+                                                method: "POST",
+                                                statusCode: {
+                                                    500: function () {
+                                                        getLoadPanelInstance().hide(); document.getElementById('uploadInputbynmain').value = null;
+                                                        Swal.fire({
+                                                            title: 'Server Erişim Sorunuz. Lütfen Sayfayı Yenileyiniz...',
+                                                            confirmButtonText: 'Yenile'
+                                                        }).then((result) => {
+                                                            /* Read more about isConfirmed, isDenied below */
+                                                            if (result.isConfirmed) {
+
+                                                                location.reload();
+                                                            }
+                                                        });
+                                                    },
+                                                    404: function () {
+                                                        alert("Script 404");
+                                                    }
+                                                },
+                                                contentType: false,
+                                                data: fdatam,
+                                                processData: false,
+                                                cache: false,
+                                                success: function (data) {
+                                                    if (data == "ok") {
+                                                        //swal.close();
+                                                        //var arr = data.split('_');
+                                                        //dt1 = arr[0];
+
+
+                                                        setTimeout(function () {
+                                                            location.reload();
+                                                        }, 2000);
+
+                                                        monthid = $("#mainmonth").val();
+
+
+                                                        /*  $("#griddiv").css("display", "block");*/
+
+                                                        //swal.close();
+                                                        getLoadPanelInstance().hide(); document.getElementById('uploadInputbynmain').value = null;
+                                                        Swal.fire(
+                                                            'Başarılı!',
+                                                            'Beyanname Yüklendi!',
+                                                            'success'
+                                                        )
+
+
+
+                                                    }
+                                                    else {
+                                                        getLoadPanelInstance().hide();
+                                                        document.getElementById('uploadInputbynmain').value = null;
+                                                        Swal.fire(
+                                                            'Hata!',
+                                                            data,
+                                                            'error'
+                                                        )
+                                                    }
+
+
+                                                }
+                                            });
+
+                                        }
+
+
+                                    }
+                                });
+                            }
+
+                        }
+                    }
+                    function readURLbyn(input) {
+
+                        var reader = new FileReader();
+
+                        compid = $("#txtcurcomide").val();
+
+
+
+
+                        if (input.files && input.files[0]) {
+
+                            var fdatam = new FormData();
+                            var tttdate = $("#mainmonth").val() + "_" + $("#mainyear").val();
+                            for (var i = 0; i < input.files.length; i++) {
+                                fdatam.append('file', input.files[i]);
+                            }
+
+                            reader.onload = function (e) {
+
+                                var imgur = e.target.result;
+                            };
+                            reader.readAsDataURL(input.files[0]);
+                            fdatam.append('id', $("#mainyear").val());
+                            fdatam.append('Caption', tttdate);
+                            fdatam.append('ide', $("#txtcurcomide").val());
+                            fdatam.append('idexml', "0");
+                            startit();
+
+
+                            startit();
+                            $.ajax({
+                                url: "/JsonService/Beyanname/moodUploadBeyannameChkz",
+                                method: "POST",
+                                statusCode: {
+                                    500: function () {
+                                        getLoadPanelInstance().hide();
+                                        Swal.fire({
+                                            title: 'Server Erişim Sorunuz. Lütfen Sayfayı Yenileyiniz...',
+                                            confirmButtonText: 'Yenile'
+                                        }).then((result) => {
+                                            /* Read more about isConfirmed, isDenied below */
+                                            if (result.isConfirmed) {
+
+                                                location.reload();
+                                            }
+                                        });
+                                    },
+                                    404: function () {
+                                        alert("Script 404");
+                                    }
+                                },
+                                contentType: false,
+                                data: fdatam,
+                                processData: false,
+                                cache: false,
+                                success: function (data) {
+                                    var arr = data.split('_');
+                                    dt1 = arr[0];
+
+                                    if (dt1 == "ok") {
+                                        //swal.close();
+
+
+
+                                        setTimeout(function () {
+                                            location.reload();
+                                        }, 1000);
+
+                                        monthid = $("#mainmonth").val();
+
+
+
+
+                                        //swal.close();
+                                        getLoadPanelInstance().hide(); document.getElementById('uploadInputbyn').value = null;
+                                        Swal.fire(
+                                            'Başarılı!',
+                                            'Beyanname Yüklendi!',
+                                            'success'
+                                        )
+
+
+                                    }
+                                    else if (dt1 == "nok") {
+                                        getLoadPanelInstance().hide();
+                                        document.getElementById('uploadInputbyn').value = null;
+                                        Swal.fire(
+                                            'Hata!',
+                                            arr[1],
+                                            'error'
+                                        )
+                                    }
+                                    else {
+                                        console.log(data);
+                                        getLoadPanelInstance().hide();
+                                        document.getElementById('uploadInputbyn').value = null;
+                                        Swal.fire(
+                                            'Hata!',
+                                            'Beyanname Yüklenemedi Lütfen  Kontrol Edip Tekrar Deneyiniz',
+                                            'error'
+                                        )
+                                    }
+
+
+                                }
+                            });
+
+
+
+                        }
+                    }
+                    function readURL(input) {
+
+                        var reader = new FileReader();
+
+                        compid = $("#txtcurcomide").val();
+
+
+
+
+                        if (input.files && input.files[0]) {
+
+                            var fdatam = new FormData();
+                            var tttdate = $("#mainmonth").val() + "_" + $("#mainyear").val();
+                            for (var i = 0; i < input.files.length; i++) {
+                                fdatam.append('file', input.files[i]);
+                            }
+
+                            reader.onload = function (e) {
+
+                                var imgur = e.target.result;
+                            };
+                            reader.readAsDataURL(input.files[0]);
+                            fdatam.append('id', $("#mainyear").val());
+                            fdatam.append('Caption', tttdate);
+                            fdatam.append('ide', $("#txtcurcomide").val());
+                            fdatam.append('idexml', "0");
+                            startit();
+                            console.log(input.files[0].name.split('.')[1]);
+                            console.log(input.files[0].name.split('.')[input.files[0].name.split('.').length - 1]);
+
+                            if ($("#txtisupdate").val() == "0" || $("#txtisupdate").val() == 0) {
+                                if (input.files[0].name.split('.')[input.files[0].name.split('.').length - 1] == 'pdf') {
+
+
+
+
+
+
+                                    $.ajax({
+                                        url: "/JsonService/Mizan/moodUploadMznCkeckPDF",
+                                        method: "POST",
+                                        statusCode: {
+                                            500: function () {
+                                                getLoadPanelInstance().hide();
+                                                Swal.fire({
+                                                    title: 'Server Erişim Sorunuz. Lütfen Sayfayı Yenileyiniz...',
+                                                    confirmButtonText: 'Yenile'
+                                                }).then((result) => {
+                                                    /* Read more about isConfirmed, isDenied below */
+                                                    if (result.isConfirmed) {
+
+                                                        location.reload();
+                                                    }
+                                                });
+                                            },
+                                            404: function () {
+                                                document.getElementById('uploadInput').value = null;
+                                                getLoadPanelInstance().hide();
+                                                alert("Script 404");
+                                            }
+                                        },
+                                        contentType: false,
+                                        data: fdatam,
+                                        processData: false,
+                                        cache: false,
+                                        success: function (data) {
+
+                                            if (data == "lock") {
+                                                document.getElementById('uploadInput').value = null;
+                                                getLoadPanelInstance().hide();
+                                                Swal.fire(
+                                                    'Hata!',
+                                                    'Mizan Yüklenemedi PDF Düzenine uygun Bulunmadı',
+                                                    'error'
+                                                )
+                                            }
+                                            else if (data == "nok") {
+                                                //swal.close();
+                                                getLoadPanelInstance().hide();
+                                                document.getElementById('uploadInput').value = null;  
+                                                Swal.fire(
+                                                    'Hata!',
+                                                    'Mizan Yüklenemedi PDF Düzenine uygun Bulunmadı',
+                                                    'error'
+                                                ) 
+                                            }
+                                            else {
+                                                console.log("bbbbbbbbbb")
+                                                getLoadPanelInstance().hide(); document.getElementById('uploadInput').value = null;
+                                                Swal.fire(
+                                                    'Başarılı!',
+                                                    'Mizan Yüklendi!',
+                                                    'success'
+                                                )
+                                                location.reload();
+                                               
+                                            } 
+                                        }
+                                    });
+                                }
+                                else {
+                                    $.ajax({
+                                        url: "/JsonService/Mizan/moodUploadMznCkeck",
+                                        method: "POST",
+                                        statusCode: {
+                                            500: function () {
+                                                getLoadPanelInstance().hide();
+                                                Swal.fire({
+                                                    title: 'Server Erişim Sorunuz. Lütfen Sayfayı Yenileyiniz...',
+                                                    confirmButtonText: 'Yenile'
+                                                }).then((result) => {
+                                                    /* Read more about isConfirmed, isDenied below */
+                                                    if (result.isConfirmed) {
+
+                                                        location.reload();
+                                                    }
+                                                });
+                                            },
+                                            404: function () {
+                                                alert("Script 404");
+                                            }
+                                        },
+                                        contentType: false,
+                                        data: fdatam,
+                                        processData: false,
+                                        cache: false,
+                                        success: function (data) {
+
+                                            if (data == "lock") {
+                                                getLoadPanelInstance().hide();
+                                                Swal.fire(
+                                                    'Hata!',
+                                                    'Mizan Yüklenemedi Lütfen  Mizan Şablonunu Kontrol Edip Tekrar Deneyiniz=> MuhasebeKodu-MuhasebeKoduAciklama-Borc-Alacak-BorcBakiye',
+                                                    'error'
+                                                )
+                                            }
+                                            else if (data == "nok") {
+                                                //swal.close();
+                                                getLoadPanelInstance().hide();
+
+
+
+
+                                                swal.fire({
+                                                    title: "Uyarı",
+                                                    text: "Mizan Kesin Mizan olması sebebiyle Gelir Tablosuna bağlı raporlar çalışmayacaktır. Devam etmek istiyor musunuz!?",
+                                                    showCancelButton: true,
+                                                    icon: 'error',
+                                                    cancelButtonColor: '#d33',
+                                                })
+                                                    .then((res) => {
+                                                        if (res.value) {
+                                                            startit();
+                                                            $.ajax({
+                                                                url: "/JsonService/Mizan/moodUploadMzn",
+                                                                method: "POST",
+                                                                statusCode: {
+                                                                    500: function () {
+                                                                        getLoadPanelInstance().hide();
+                                                                        Swal.fire({
+                                                                            title: 'Server Erişim Sorunuz. Lütfen Sayfayı Yenileyiniz...',
+                                                                            confirmButtonText: 'Yenile'
+                                                                        }).then((result) => {
+                                                                            /* Read more about isConfirmed, isDenied below */
+                                                                            if (result.isConfirmed) {
+
+                                                                                location.reload();
+                                                                            }
+                                                                        });
+                                                                    },
+                                                                    404: function () {
+                                                                        alert("Script 404");
+                                                                    }
+                                                                },
+                                                                contentType: false,
+                                                                data: fdatam,
+                                                                processData: false,
+                                                                cache: false,
+                                                                success: function (data) {
+                                                                    var arr = data.split('_');
+                                                                    dt1 = arr[0];
+                                                                    if (data == "nok") {
+                                                                        //swal.close();
+                                                                        getLoadPanelInstance().hide();
+                                                                        document.getElementById('uploadInput').value = null;
+                                                                        Swal.fire(
+                                                                            'Hata!',
+                                                                            'Mizan Yüklenemedi Lütfen  Kontrol Edip Tekrar Deneyiniz',
+                                                                            'error'
+                                                                        )
+                                                                    }
+                                                                    else {
+                                                                        var arr = data.split('_');
+                                                                        dt1 = arr[0];
+
+
+                                                                        setTimeout(function () {
+                                                                            location.reload();
+                                                                        }, 2000);
+
+                                                                        monthid = $("#mainmonth").val();
+
+
+                                                                        $("#griddiv").css("display", "block");
+
+                                                                        //swal.close();
+                                                                        getLoadPanelInstance().hide(); document.getElementById('uploadInput').value = null;
+                                                                        Swal.fire(
+                                                                            'Başarılı!',
+                                                                            'Mizan Yüklendi!',
+                                                                            'success'
+                                                                        )
+                                                                        location.reload();
+                                                                    }
+
+
+                                                                }
+                                                            });
+                                                        } else if (res.dismiss == 'cancel') {
+                                                            document.getElementById('uploadInput').value = null;
+                                                            new swal("İptal edildi", "Geçiçi Mizan Yüklenmesi Bekleniyor", "error");
+                                                        }
+                                                        else if (res.dismiss == 'esc') {
+                                                            document.getElementById('uploadInput').value = null;
+                                                            console.log('cancle-esc**strong text**');
+                                                        }
+                                                    });
+
+
+
+                                            }
+                                            else {
+                                                console.log("bbbbbbbbbb")
+                                                $.ajax({
+                                                    url: "/JsonService/Mizan/moodUploadMzn",
+                                                    method: "POST",
+                                                    statusCode: {
+                                                        500: function () {
+                                                            getLoadPanelInstance().hide();
+                                                            Swal.fire({
+                                                                title: 'Server Erişim Sorunuz. Lütfen Sayfayı Yenileyiniz...',
+                                                                confirmButtonText: 'Yenile'
+                                                            }).then((result) => {
+                                                                /* Read more about isConfirmed, isDenied below */
+                                                                if (result.isConfirmed) {
+
+                                                                    location.reload();
+                                                                }
+                                                            });
+                                                        },
+                                                        404: function () {
+                                                            alert("Script 404");
+                                                        }
+                                                    },
+                                                    contentType: false,
+                                                    data: fdatam,
+                                                    processData: false,
+                                                    cache: false,
+                                                    success: function (data) {
+                                                        if (data == "nok") {
+                                                            //swal.close();
+                                                            getLoadPanelInstance().hide();
+                                                            document.getElementById('uploadInput').value = null;
+                                                            Swal.fire(
+                                                                'Hata!',
+                                                                'Mizan Yüklenemedi Lütfen  Kontrol Edip Tekrar Deneyiniz',
+                                                                'error'
+                                                            )
+                                                        }
+                                                        else {
+                                                            var arr = data.split('_');
+                                                            dt1 = arr[0];
+
+
+                                                            setTimeout(function () {
+                                                                location.reload();
+                                                            }, 2000);
+
+                                                            monthid = $("#mainmonth").val();
+
+
+                                                            $("#griddiv").css("display", "block");
+
+                                                            //swal.close();
+                                                            getLoadPanelInstance().hide(); document.getElementById('uploadInput').value = null;
+                                                            Swal.fire(
+                                                                'Başarılı!',
+                                                                'Mizan Yüklendi!',
+                                                                'success'
+                                                            )
+                                                            location.reload();
+                                                        }
+
+
+                                                    }
+                                                });
+
+                                            }
+
+
+                                        }
+                                    });
+                                }
+
+                            }
+                            else {
+                                if (input.files[0].name.split('.')[input.files[0].name.split('.').length - 1] == 'pdf') {
+                                    $.ajax({
+                                        url: "/JsonService/Mizan/moodUploadMznCkeckPDFUpdate",
+                                        method: "POST",
+                                        statusCode: {
+                                            500: function () {
+                                                getLoadPanelInstance().hide();
+                                                Swal.fire({
+                                                    title: 'Server Erişim Sorunuz. Lütfen Sayfayı Yenileyiniz...',
+                                                    confirmButtonText: 'Yenile'
+                                                }).then((result) => {
+                                                    /* Read more about isConfirmed, isDenied below */
+                                                    if (result.isConfirmed) {
+
+                                                        location.reload();
+                                                    }
+                                                });
+                                            },
+                                            404: function () {
+                                                document.getElementById('uploadInput').value = null;
+                                                getLoadPanelInstance().hide();
+                                                alert("Script 404");
+                                            }
+                                        },
+                                        contentType: false,
+                                        data: fdatam,
+                                        processData: false,
+                                        cache: false,
+                                        success: function (data) {
+
+                                            if (data == "lock") {
+                                                document.getElementById('uploadInput').value = null;
+                                                getLoadPanelInstance().hide();
+                                                Swal.fire(
+                                                    'Hata!',
+                                                    'Mizan Yüklenemedi PDF Düzenine uygun Bulunmadı',
+                                                    'error'
+                                                )
+                                            }
+                                            else if (data == "nok") {
+                                                //swal.close();
+                                                getLoadPanelInstance().hide();
+                                                document.getElementById('uploadInput').value = null;
+                                                Swal.fire(
+                                                    'Hata!',
+                                                    'Mizan Yüklenemedi PDF Düzenine uygun Bulunmadı',
+                                                    'error'
+                                                )
+                                            }
+                                            else {
+                                                console.log("bbbbbbbbbb")
+                                                getLoadPanelInstance().hide(); document.getElementById('uploadInput').value = null;
+                                                Swal.fire(
+                                                    'Başarılı!',
+                                                    'Mizan Yüklendi!',
+                                                    'success'
+                                                )
+                                                location.reload();
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    $.ajax({
+                                        url: "/JsonService/Mizan/moodUploadMznCkeck",
+                                        method: "POST",
+                                        statusCode: {
+                                            500: function () {
+                                                getLoadPanelInstance().hide();
+                                                Swal.fire({
+                                                    title: 'Server Erişim Sorunuz. Lütfen Sayfayı Yenileyiniz...',
+                                                    confirmButtonText: 'Yenile'
+                                                }).then((result) => {
+                                                    /* Read more about isConfirmed, isDenied below */
+                                                    if (result.isConfirmed) {
+
+                                                        location.reload();
+                                                    }
+                                                });
+                                            },
+                                            404: function () {
+                                                alert("Script 404");
+                                            }
+                                        },
+                                        contentType: false,
+                                        data: fdatam,
+                                        processData: false,
+                                        cache: false,
+                                        success: function (data) {
+
+                                            if (data == "lock") {
+                                                getLoadPanelInstance().hide();
+                                                Swal.fire(
+                                                    'Hata!',
+                                                    'Mizan Yüklenemedi Lütfen  Mizan Şablonunu Kontrol Edip Tekrar Deneyiniz=> MuhasebeKodu-MuhasebeKoduAciklama-Borc-Alacak-BorcBakiye',
+                                                    'error'
+                                                )
+                                            }
+                                            else if (data == "nok") {
+                                                //swal.close();
+                                                getLoadPanelInstance().hide();
+
+                                                swal.fire({
+                                                    title: "Uyarı",
+                                                    text: "Mizan Kesin Mizan olması sebebiyle Gelir Tablosuna bağlı raporlar çalışmayacaktır. Devam etmek istiyor musunuz!?",
+                                                    showCancelButton: true,
+                                                    icon: 'error',
+                                                    cancelButtonColor: '#d33',
+                                                })
+                                                    .then((res) => {
+                                                        if (res.value) {
+                                                            startit();
+                                                            $.ajax({
+                                                                url: "/JsonService/Mizan/moodUploadUpdateMzn",
+                                                                method: "POST",
+                                                                statusCode: {
+                                                                    500: function () {
+                                                                        getLoadPanelInstance().hide();
+                                                                        Swal.fire({
+                                                                            title: 'Server Erişim Sorunuz. Lütfen Sayfayı Yenileyiniz...',
+                                                                            confirmButtonText: 'Yenile'
+                                                                        }).then((result) => {
+                                                                            /* Read more about isConfirmed, isDenied below */
+                                                                            if (result.isConfirmed) {
+
+                                                                                location.reload();
+                                                                            }
+                                                                        });
+                                                                    },
+                                                                    404: function () {
+                                                                        alert("Script 404");
+                                                                    }
+                                                                },
+                                                                contentType: false,
+                                                                data: fdatam,
+                                                                processData: false,
+                                                                cache: false,
+                                                                success: function (data) {
+                                                                    if (data == "nok") {
+                                                                        //swal.close();
+                                                                        getLoadPanelInstance().hide();
+                                                                        document.getElementById('uploadInput').value = null;
+                                                                        Swal.fire(
+                                                                            'Hata!',
+                                                                            'Mizan Yüklenemedi Lütfen  Kontrol Edip Tekrar Deneyiniz',
+                                                                            'error'
+                                                                        )
+                                                                    }
+                                                                    else {
+                                                                        var arr = data.split('_');
+                                                                        dt1 = arr[0];
+
+
+                                                                        setTimeout(function () {
+                                                                            location.reload();
+                                                                        }, 2000);
+
+                                                                        monthid = $("#mainmonth").val();
+
+
+                                                                        $("#griddiv").css("display", "block");
+
+                                                                        //swal.close();
+                                                                        getLoadPanelInstance().hide(); document.getElementById('uploadInput').value = null;
+                                                                        Swal.fire(
+                                                                            'Başarılı!',
+                                                                            'Mizan Yüklendi!',
+                                                                            'success'
+                                                                        )
+
+                                                                    }
+
+
+                                                                }
+                                                            });
+                                                        } else if (res.dismiss == 'cancel') {
+                                                            document.getElementById('uploadInput').value = null;
+                                                            new swal("İptal edildi", "Geçiçi Mizan Yüklenmesi Bekleniyor", "error");
+                                                        }
+                                                        else if (res.dismiss == 'esc') {
+                                                            document.getElementById('uploadInput').value = null;
+                                                            console.log('cancle-esc**strong text**');
+                                                        }
+                                                    });
+
+
+
+                                            }
+                                            else {
+                                                console.log("bbbbbbbbbb")
+                                                $.ajax({
+                                                    url: "/JsonService/Mizan/moodUploadUpdateMzn",
+                                                    method: "POST",
+                                                    statusCode: {
+                                                        500: function () {
+                                                            getLoadPanelInstance().hide();
+                                                            Swal.fire({
+                                                                title: 'Server Erişim Sorunuz. Lütfen Sayfayı Yenileyiniz...',
+                                                                confirmButtonText: 'Yenile'
+                                                            }).then((result) => {
+                                                                /* Read more about isConfirmed, isDenied below */
+                                                                if (result.isConfirmed) {
+
+                                                                    location.reload();
+                                                                }
+                                                            });
+                                                        },
+                                                        404: function () {
+                                                            alert("Script 404");
+                                                        }
+                                                    },
+                                                    contentType: false,
+                                                    data: fdatam,
+                                                    processData: false,
+                                                    cache: false,
+                                                    success: function (data) {
+                                                        if (data == "nok") {
+                                                            //swal.close();
+                                                            getLoadPanelInstance().hide();
+                                                            document.getElementById('uploadInput').value = null;
+                                                            Swal.fire(
+                                                                'Hata!',
+                                                                'Mizan Yüklenemedi Lütfen  Kontrol Edip Tekrar Deneyiniz',
+                                                                'error'
+                                                            )
+                                                        }
+                                                        else {
+                                                            var arr = data.split('_');
+                                                            dt1 = arr[0];
+
+
+                                                            setTimeout(function () {
+                                                                location.reload();
+                                                            }, 2000);
+
+                                                            monthid = $("#mainmonth").val();
+
+
+                                                            $("#griddiv").css("display", "block");
+
+                                                            //swal.close();
+                                                            getLoadPanelInstance().hide(); document.getElementById('uploadInput').value = null;
+                                                            Swal.fire(
+                                                                'Başarılı!',
+                                                                'Mizan Yüklendi!',
+                                                                'success'
+                                                            )
+
+                                                        }
+
+
+                                                    }
+                                                });
+
+                                            }
+
+
+                                        }
+                                    });
+                                }
+
+
+
+                            }
+
+                        }
+                    }
+
+                    // function readURL(input) {
+
+                    //     var nmonthz = $("#mainmonth").val();
+                    //     if (nmonthz.length == 1) {
+                    //         nmonthz = "0" + nmonthz;
+                    //     }
+                    //     var chkdatez = $("#mainyear").val() + nmonthz;
+                    //     var chkCount = 0;
+          
+
+                    //     var ckktxttax = $("#txttax").val();
+
+
+                
+
+                    //     if ($("#txtisupdate").val() == "1" || $("#txtisupdate").val() == 1) {
+                    //         var tttdate = $("#mainmonth").val() + "_" + $("#mainyear").val();
+
+                    //         fdatamz = new FormData();
+                    //         console.log(input.files.length);
+                    //         console.log(ckktxttax);
+                    //         console.log(chkdatez);
+                    //         for (var i = 0; i < input.files.length; i++) {
+                    //             chkCount = chkCount + 1;
+
+                    //             if (input.files[i].name.includes('xls') || input.files[i].name.includes('xlsx')) {
+
+                    //             }
+                    //             else {
+                    //                 funcCllose();
+                    //                 funcErrorOpen();
+                    //                 return;
+                    //             }
+                    //             fdatamz.append('file', input.files[i]);
+                               
+
+                    //         }
+
+                    //         fdatamz.append('id', 0);
+                    //         fdatamz.append('Caption', tttdate);
+                    //         fdatamz.append('ide', $("#txtcurcomide").val());
+                    //         fdatamz.append('idexml', "0");
+                    //         startit();
+                    //         var delButton = $("#btndocupload").dxButton("instance");
+
+                    //         if (delButton == undefined || delButton == "undefined") {
+
+                    //         }
+                    //         else {
+                    //             delButton.option("text", input.files[0].name);
+                    //         }
+
+                    //         setTimeout(function () {
+                              
+                    //                 $.ajax({
+                    //                     url: "/JsonService/Main/moodUploadNwUpdateMizan",
+                    //                     method: "POST",
+                    //                     statusCode: {
+                    //                         500: function () {
+                    //                             getLoadPanelInstance().hide(); document.getElementById('uploadInput').value = null;
+                    //                             Swal.fire({
+                    //                                 title: 'Server Erişim Sorunu. Lütfen Sayfayı Yenileyiniz...',
+                    //                                 confirmButtonText: 'Yenile'
+                    //                             }).then((result) => {
+                    //                                 /* Read more about isConfirmed, isDenied below */
+                    //                                 if (result.isConfirmed) {
+
+                    //                                     location.reload();
+                    //                                 }
+                    //                             });
+                    //                         },
+                    //                         404: function () {
+                    //                             alert("Script 404");
+                    //                         }
+                    //                     },
+                    //                     contentType: false,
+                    //                     data: fdatamz,
+                    //                     processData: false,
+                    //                     cache: false,
+                    //                     success: function (data) {
+                    //                         if (data == "nok") {
+                    //                             //swal.close();
+                    //                             getLoadPanelInstance().hide(); document.getElementById('uploadInput').value = null;
+                    //                             Swal.fire(
+                    //                                 'Hata!',
+                    //                                 'e-Defter Yüklenemedi Lütfen Seçili Tarih ile e-Defter tarihini / e-Defter dosya tipini Kontrol Ediniz!',
+                    //                                 'error'
+                    //                             )
+                    //                         }
+                    //                         else {
+                    //                             var arr = data.split('_');
+
+                    //                             dt1 = arr[0];
+                    //                             //$("#txtrowcount").text(arr[1]);
+                    //                             //$("#txterroredcombin").text(arr[2]);
+                    //                             monthid = $("#mainmonth").val();
+
+
+
+
+                    //                             //swal.close();
+                    //                             getLoadPanelInstance().hide(); document.getElementById('uploadInput').value = null;
+                    //                             Swal.fire(
+                    //                                 'Başarılı!',
+                    //                                 'e-Defter Yüklendi!',
+                    //                                 'success'
+                    //                             );
+                    //                             location.reload();
+                    //                         }
+
+
+                    //                     }
+                    //                 });
+                                 
+                    //         }, 1500);
+
+
+
+
+                    //     }
+                    //     else {
+                    //         var tttdate = $("#mainmonth").val() + "_" + $("#mainyear").val();
+                    //         fdatamz = new FormData();
+
+                    //         for (var i = 0; i < input.files.length; i++) {
+
+                    //             chkCount = chkCount + 1;
+                    //             if (input.files[i].name.includes('xls') || input.files[i].name.includes('xlsx')) {
+
+                    //             }
+                    //             else {
+                    //                 funcCllose();
+                    //                 funcErrorOpen();
+                    //                 return;
+                    //             }
+
+                    //             fdatamz.append('file', input.files[i]);
+                              
+
+
+                    //         }
+
+
+                    //         fdatamz.append('id', 0);
+                    //         fdatamz.append('Caption', tttdate);
+                    //         fdatamz.append('ide', $("#txtcurcomide").val());
+                    //         fdatamz.append('idexml', "0");
+                    //         startit();
+
+                    //         setTimeout(function () {
+                           
+                    //                 $.ajax({
+                    //                     url: "/JsonService/Main/moodUploadNwMizan",
+                    //                     method: "POST",
+                    //                     statusCode: {
+                    //                         500: function () {
+                    //                             getLoadPanelInstance().hide(); document.getElementById('uploadInput').value = null;
+                    //                             Swal.fire({
+                    //                                 title: 'Server Erişim Sorunu. Lütfen Sayfayı Yenileyiniz...',
+                    //                                 confirmButtonText: 'Yenile'
+                    //                             }).then((result) => {
+                    //                                 /* Read more about isConfirmed, isDenied below */
+                    //                                 if (result.isConfirmed) {
+
+                    //                                     location.reload();
+                    //                                 }
+                    //                             });
+                    //                         },
+                    //                         404: function () {
+                    //                             alert("Script 404");
+                    //                         }
+                    //                     },
+                    //                     contentType: false,
+                    //                     data: fdatamz,
+                    //                     processData: false,
+                    //                     cache: false,
+                    //                     success: function (data) {
+                    //                         if (data == "nok") {
+                    //                             //swal.close();
+                    //                             getLoadPanelInstance().hide();
+                    //                             document.getElementById('uploadInput').value = null;
+                    //                             Swal.fire(
+                    //                                 'Hata!',
+                    //                                 'e-Defter Yüklenemedi Lütfen Seçili Tarih ile e-Defter tarihini / e-Defter dosya tipini Kontrol Ediniz!',
+                    //                                 'error'
+                    //                             )
+                    //                         }
+                    //                         else {
+                    //                             var arr = data.split('_');
+                    //                             dt1 = arr[0];
+
+                    //                             $("#txtrowcount").text(arr[1]);
+                    //                             $("#txterroredcombin").text(arr[2]);
+
+                    //                             monthid = $("#mainmonth").val();
+
+
+
+                    //                             //swal.close();
+                    //                             getLoadPanelInstance().hide(); document.getElementById('uploadInput').value = null;
+                    //                             Swal.fire(
+                    //                                 'Başarılı!',
+                    //                                 'e-Defter Yüklendi!',
+                    //                                 'success'
+                    //                             );
+                    //                             location.reload();
+                    //                         }
+
+
+                    //                     }
+                    //                 });
+                               
+                    //         }, 1500);
+
+                    //     }
+
+
+
+
+
+
+                    // }
+                    var fdatamz = new FormData();
+
+
+ 
+             
+
+
+                    function startitwithText(dataz) {
+                        getLoadPanelInstance().show();
+                        var tt = dataz.toString() + " - Numaralı e-Defter Verileri İşleniyor";
+                        getLoadPanelInstance().option("message", tt);
+
+
+                    };
+                    function startitwithTextMal() {
+                        getLoadPanelInstance().show();
+                        var tt = "Tüm e-Defterler yüklendi  Mali Veri analizleri Yapılıyor ";
+                        getLoadPanelInstance().option("message", tt);
+
+
+                    };
+
+                    function startit() {
+                        getLoadPanelInstance().show();
+                        
+                    };
+
+
+
+                </script>
+
+
+            </div>
+
+        </div>
+
+
+
+    </div>
+
+    <div class="card">
+        <div class="body">
+
+            <div class="row">
+                <div id="employee"></div>
+                <div class="container-center-horizontal">
+                    <div class="bilgisayarimdan-veri-yukleme screen">
+
+                        <div class="flex-col flex">
+
+                            <div class="yeniliki-ve-kolay-2 yeniliki-ve-kolay-3">Belge Yükle</div>
+                            <p class="e-defterlerinizi-yk mulish-normal-ebony-clay-14px">
+                                Mizan ve Beyannamelerinizi bu panel üzerinden yükleyebilirsiniz
+                            </p>
+                            <div class="flex-row flex">
+
+
+
+                                <div class="row">
+                                    <div class="frame-914">
+                                        <div class="frame-911">
+                                            <div class="group-86">
+                                                <div class="talimat-arama mulish-bold-ebony-clay-14px">Kaynak</div>
+                                                <div class="input">
+                                                    <div class="e-posta-adresiniz mulish-normal-ebony-clay-14px">
+                                                        Bilgisayarımdan
+                                                        <img class="icons" src="/img/icons.svg" style="display:none" alt="Icons" />
+                                                    </div>
+                                                </div>
+
+                                            </div>
+
+
+                                        </div>
+                                    </div>
+                                    <br />   <br />
+                                    <div class="flex-colz flexz" style="vertical-align:central;padding-top:15px;">
+                                        <div class="talimat-arama-1 mulish-bold-ebony-clay-14px " style="padding-right: 25px; padding-top: 10px; padding-left: 20px;">Yıl</div>                    @(Html.DevExtreme().SelectBox().Height(35)
+                    .DataSource(Model.myearResult).ID("slctYear").OnInitialized("selectYear_Initialized")
+                    .DisplayExpr("MText").OnSelectionChanged("selectYear_valueChanged")
+                    .ValueExpr("MYear").Width(215)
+                )
+                                        &nbsp; &nbsp; &nbsp;
+                                        <div class="buttons" style="visibility:collapse">
+                                            <div class="lemler valign-text-middle mulish-bold-white-14px" id="slctBtn" style="padding-right: 11px; padding-left: 5px; padding-top: 5px; margin-left: 5px; ">Belge Yükle</div>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <div class="product-purchasedw-ribbon">
+                                    <div class="qnb-finansbank-container" style="display:none">
+                                        <p class="neden-qnb-finansbank">
+                                            <span class="span0"> </span><span></span>
+                                        </p>
+                                        <p class="qnb-finansbank-ile-v" style="display:none">
+                                            <span class="mulish-normal-ebony-clay-14px">  </span><span class="mulish-bold-ebony-clay-14px">     </span><span class="mulish-normal-ebony-clay-14px">
+                                             
+                                            </span>
+                                        </p>
+                                    </div>
+                                    <div class="flex-col-1" style="display:none">
+                                        <div class="overlap-group"><div class="qnb-finansbank"> </div></div>
+                                        <div class="buttons-1 buttons-3">
+                                            <div class="lemler valign-text-middle mulish-bold-white-14px">Paylaş</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="overlap-group12">
+                                <div class="frame-901">
+                                    <div class="k-hesap-3">AY</div>
+                                    <div class="k-hesap-4">BELGE DURUMU</div>
+                                </div>
+                                <div class="frame-901a" style="padding-bottom:55px;">
+
+                                </div>
+                                @for (var i = 1; i < 10; i++)
+                                {
+                                    @if (Model.currentUploadMOK.Select(x => x.MainMonth).Contains(@i))
+                                    {
+                                        var @item = Model.currentUploadMOK.Where(x => x.MainMonth == @i).FirstOrDefault();
+                                        <div class="overlap-group-1">
+                                            <div class="k-hesap-5 mulish-semi-bold-ebony-clay-14px"> @item.DocumentMonthTr </div>
+                                            <div class="group-619">
+
+                                                <p style="height: 20px;
+    padding: 10px;">
+                                                    <img class="check-circle" src="/img/check-circle.svg" alt="check-circle" />
+
+                                                    <span class="k-hesap mulish-semi-bold-ebony-clay-14px">Belge Yüklü</span>
+                                                </p>
+                                            
+                                             
+                                                 
+                                            </div>
+                                            <p style="height:29px;width: 100%;text-align: end;">
+                                                <button class="btn btn-info" onclick="funccheckmizanrev(@item.MainMonth);return false;" style="background:#337ab7" data-id="@item.MainMonth" data-year="@item.MainYear">Mizan</button>
+                                                <button class="btn btn-warning" style="background:#870052" data-id="@item.MainMonth" onclick="funccheckbeyanname(@item.MainMonth);return false;" data-year="@item.MainYear">Geçici Beyanname</button>
+                                                <button class="btn btn-warning" style="background:rgba(29,74,123,255) !important" data-id="@item.MainMonth" onclick="funccheckbeyannamemzvn(@item.MainMonth);return false;" data-year="@item.MainYear">Karşılaştırma</button>
+                                            </p>
+                                        </div>
+
+                                    }
+                                    else if (Model.currentUploadMNoOK.Select(x => x.MainMonth).Contains(@i))
+                                    {
+                                        var @item = Model.currentUploadMNoOK.Where(x => x.MainMonth == @i).FirstOrDefault();
+                                        <div class="overlap-group-1">
+                                            <div class="k-hesap-5 mulish-semi-bold-ebony-clay-14px"> @item.DocumentMonthTr </div>
+                                            <div class="group-619">
+                                                <div class="icons-1"> </div>
+                                                <div class="k-hesap-container">
+                                                    <div class="buttons-2 buttons-3" style="display:none">
+                                                        <div style="display:none" class="lemlerz valign-text-middle mulish-bold-white-14px" id="btnupppload" data-id="@item.MainMonth" data-year="@item.MainYear"> </div>
+
+                                                    </div>
+                                                    <p style="height:29px;width: 100%;text-align: end;">
+                                                        <button class="btn btn-info" onclick="funccheckmizan(@item.MainMonth);return false;" style="background:#337ab7" data-id="@item.MainMonth" data-year="@item.MainYear">Mizan</button>
+                                                      
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                    
+                                }
+                                @if (Model.currentUploadMOK.Select(x => x.MainMonth).Contains(12))
+                                {
+                                    var @item = Model.currentUploadMOK.Where(x => x.MainMonth == 12).FirstOrDefault();
+                                    <div class="overlap-group-1">
+                                        <div class="k-hesap-5 mulish-semi-bold-ebony-clay-14px"> @item.DocumentMonthTr </div>
+                                        <div class="group-619">
+                                            <div class="icons-1"><img class="check-circle" src="/img/check-circle.svg" alt="check-circle" /></div>
+                                            <div class="k-hesap-container">
+                                                <div class="k-hesap mulish-semi-bold-ebony-clay-14px">Belge Yüklü</div>
+                                                <div class="k-hesap-6">Bilgisayarımdan</div>
+                                            </div>
+                                        </div>
+                                        <p style="height:29px;width: 100%;text-align: end;">
+                                            <button class="btn btn-info" onclick="funccheckmizanrev(@item.MainMonth);return false;" style="background:#337ab7" data-id="@item.MainMonth" data-year="@item.MainYear">Mizan</button>
+                                           
+                                            <button class="btn btn-info" style="background:#350087" data-id="@item.MainMonth" onclick="funccheckbeyannamemainrev(@item.MainMonth);return false;" data-year="@item.MainYear">Kurumlar Beyanname</button>
+                                            <button class="btn btn-warning" style="background:rgba(29,74,123,255) !important" data-id="@item.MainMonth" onclick="funccheckbeyannamemzvn(@item.MainMonth);return false;" data-year="@item.MainYear">Karşılaştırma</button>
+
+                                        </p>
+                                    </div>
+
+                                }
+                                else if (Model.currentUploadMNoOK.Select(x => x.MainMonth).Contains(12))
+                                {
+                                    var @item = Model.currentUploadMNoOK.Where(x => x.MainMonth == 12).FirstOrDefault();
+                                    <div class="overlap-group-1">
+                                        <div class="k-hesap-5 mulish-semi-bold-ebony-clay-14px"> @item.DocumentMonthTr </div>
+                                        <div class="group-619">
+                                            <div class="icons-1"> </div>
+                                            <div class="k-hesap-container">
+                                                <div class="buttons-2 buttons-3" style="display:none">
+                                                    <div style="display:none" class="lemlerz valign-text-middle mulish-bold-white-14px" id="btnupppload" data-id="@item.MainMonth" data-year="@item.MainYear">Mizan</div>
+
+                                                </div>
+                                                <p style="height:29px;width: 100%;text-align: end;">
+                                                    <button class="btn btn-info" onclick="funccheckmizan(@item.MainMonth);return false;" style="background:#337ab7" data-id="@item.MainMonth" data-year="@item.MainYear">Mizan</button>
+                                                   
+                                                    <button class="btn btn-info" style="background:#350087" data-id="@item.MainMonth" onclick="funccheckbeyannamemain(@item.MainMonth);return false;" data-year="@item.MainYear">Kurumlar Beyanname</button>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+
+
+                       
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+</section>
+@(Html.DevExtreme().LoadPanel()
+        .ID("loadPanel")
+        .ShadingColor("rgba(0,0,0,0.4)")
+        .Position(p =>
+    {
+        p.My(HorizontalAlignment.Center, VerticalAlignment.Top);
+        p.At(HorizontalAlignment.Center, VerticalAlignment.Top);
+        p.Of("window");
+        p.Offset(100, 100);
+    })
+        .Visible(false).IndicatorSrc("/ring1.gif").Width(250).Height(250)
+        .ShowIndicator(true).Message("Yükleniyor")
+        .ShowPane(true).Height(205).Width(205)
+        .Shading(true)
+          .HideOnOutsideClick(false)
+        .OnShown("loadPanel_shown")
+    )
+@(Html.DevExtreme().LoadPanel()
+        .ID("loadPanelpage")
+        .ShadingColor("rgba(0,0,0,0.4)")
+      .Position(p =>
+    {
+        p.My(HorizontalAlignment.Center, VerticalAlignment.Top);
+        p.At(HorizontalAlignment.Center, VerticalAlignment.Top);
+        p.Of("window");
+        p.Offset(100, 100);
+    })
+        .Visible(false)
+        .ShowIndicator(true).Message("Sayfa Verileri Yükleniyor.. Lütfen Bekleyiniz...")
+        .ShowPane(true).IndicatorSrc("/ring1.gif").Height(250).Width(205)
+        .Shading(true)
+          .HideOnOutsideClick(false)
+        .OnShown("loadPanel_shown")
+    )
+
+
+<input type="text" id="mainyear" name="mainyear" value="@Model.CurrentUser.SelectedYear" style="display:none" />
+<input type="text" id="mainmonth" name="mainmonth" style="display:none" />
+<input type="text" id="txforUpload" name="txforUpload" value="0" style="display:none" /> 
+<input type="file" id="uploadInput" name="myFile" onchange="readURL(this);" style="display:none" accept=".xls,.xlsx,.pdf" />
+<input type="file" id="uploadInputbyn" name="myFilen" onchange="readURLbyn(this);" style="display:none" accept=".pdf" />
+<input type="file" id="uploadInputbynmain" name="myFilez" onchange="readURLbynmain(this);" style="display:none" accept=".pdf" />
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+@(Html.DevExtreme().Popup()
+    .ID("popuperror")
+    .Width(635)
+    .Height(195).Position(p =>
+    {
+        p.My(HorizontalAlignment.Center, VerticalAlignment.Top);
+        p.At(HorizontalAlignment.Center, VerticalAlignment.Top);
+        p.Of("window");
+        p.Offset(100, 100);
+    })
+    .Visible(false)
+    .ShowTitle(false)
+    .HideOnOutsideClick(false)
+    .ContentTemplate(new TemplateName("popup-templatezz"))
+)
+ 
+@using (Html.DevExtreme().NamedTemplate("popup-templatezz"))
+{
+
+    <div class="center1">
+        <img src="~/ico/Combined-Shape.svg" />  Yüklemeniz gereken dosya formatı .xls/.xlsx dir.
+    </div>
+    <br />
+
+    <div class="center3">
+        Mizanınızın işlenebilmesi için .xls/.xlsx dosya formatı ile yüklenmesi gerekmektedir.
+    </div>
+
+    <div class="center13">
+        <p style="text-align:right">
+            @(Html.DevExtreme().Button().ID("eee1z")
+                        .Text("Vazgeç")
+                        .Type(ButtonType.Normal)
+                        .StylingMode(ButtonStylingMode.Contained)
+                        .Width(120)
+                        .OnClick("funcErrorClose")
+                    ) @(Html.DevExtreme().Button().ID("eee3z")
+                        .Text("Devam Et")
+                        .ElementAttr("class", "sendd")
+                        .Width(120)
+                        .OnClick("funcErrorClose")
+                    )
+        </p>
+    </div>
+
+
+}
+
+@section Scripts{
+    <script src="~/js/polyfill.min.js"></script>
+
+    <script>
+        function getLoadPanelInstance() {
+            return $("#loadPanel").dxLoadPanel("instance");
+        }
+        function getloadPanelpageInstance() {
+            return $("#loadPanelpage").dxLoadPanel("instance");
+        }
+
+        function loadPanel_shown(e) {
+            setTimeout(function () {
+                e.component.hide();
+            }, 7610000);
+        }
+
+
+        var txcompname = $("txtcompname").val();
+
+        function formatMessage(e) {
+
+            return $("#txtcompname").val();
+        }
+
+    
+ 
+
+    </script>
+
+}
+

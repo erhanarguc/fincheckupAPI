@@ -1,0 +1,77 @@
+﻿<link rel="stylesheet" type="text/css" href="~/lib/semantic/semantic.min.css">
+<link rel="stylesheet" type="text/css" href="~/css/card-js-and-cicleloader.min.css">
+
+@{
+    ViewData["Title"] = "Refund";
+}
+
+<style type="text/css">
+    table tbody tr td { border-top: solid 1px #CCCCCC; border-right: solid 1px #CCCCCC; width: 80px; }
+    table { border-collapse: initial; }
+    .expiry-container .expiry-wrapper select { width: 50%; }
+    .ui.segment { border: none; box-shadow: none; padding: .5em 1em; }
+</style>
+
+<form id="payment-form" name="form" class="ui form fluid" style="padding:10px;">
+
+    <input type="hidden" name="Is3D" />
+
+    <h4 class="ui horizontal divider header">
+        <span style="text-decoration: underline; color: black" class="tab">Para İadesi</span>
+    </h4>
+
+    <div class="two fields">
+        <div class="field">
+            <input class="cvc half" name="Amount" placeholder="Miktar" required>
+        </div>
+        <div class="field">
+            <input class="cvc half" name="OrderId" placeholder="Fatura No" required>
+        </div>
+    </div>
+
+    <div class="ui center aligned segment">
+        <button class="ui button" name="paymentButton" id="paymentButton" type="submit" style="background-color: #870052 ; color: #ffffff; width: 60%;
+          margin-left: 0;">
+            İADE ET
+        </button>
+    </div>
+</form>
+
+@section Scripts {
+
+    <script src="~/lib/semantic/semantic.min.js"></script>
+
+    <script>
+        $(document).ready(()=>{
+
+            $('#payment-form').submit(function (e) {
+                e.preventDefault();                         
+
+                var form = $("#payment-form")
+                var datas = JSON.stringify(form.serialize());
+
+                $.ajax({
+                    type: 'POST',
+                    dataType: 'json',
+                    data: datas,
+                    url: '/Transaction/Refund/',
+                    success: function (data) {
+                        const result = jQuery.parseJSON(data);                       
+
+                        $("#modalHeader").text(result.status_description);
+                        $("#modalBody").text(`Status Code : ${result.status_code}`);
+                        $('#btnResultModel').click();
+                      
+                    },
+                    error: function (err) {
+                        console.log(err);
+                    }
+                });
+            });
+
+
+        })
+    </script>
+
+}
+

@@ -1,0 +1,97 @@
+﻿@page
+
+@using System.Threading
+@using fincheckup.Models.Hvvn
+@using fincheckup.Models.NKolay
+
+@model IndexModel
+@{
+    ViewData["Title"] = "Report";
+    Layout = "~/Pages/Shared/_LayoutReport.cshtml";
+}
+@using fincheckup.Models.NKolay.json
+@using fincheckup.ENTITY
+@using fincheckup.Models.ViewM
+@using fincheckup.Report
+@using DevExpress.AspNetCore
+@using DevExpress.DataAccess.ObjectBinding;
+@using fincheckup.Models.NKolay.ViewM;
+
+
+
+@functions {
+    public class IndexModel : PageModel
+    {
+         
+      
+
+        public List<DataViewer> ncheck;
+        public List<DataViewer> ncheckMain; 
+        public void OnGet(int nyear, int nmon, int nmont)
+        {
+
+
+
+            var csvId = TBLXml.GetComapnyIDByMonth(nmon, nmont, nyear);
+
+            List<DataViewer> ncheck = new List<DataViewer>();
+            List<DataViewer> ncheckzone = new List<DataViewer>();
+            var filelist = TBLXmlFile.Get_TBLXmlIDlist(csvId);
+            foreach (var item in filelist)
+            {
+                ncheck = MainDash.DataViewerMainSourceT(nyear, nmon, nmont, item.ID);
+                ncheckzone.AddRange(ncheck);
+                Thread.Sleep(1000);
+            }
+            ncheckMain = ErrorCheckMain.Get_ReportSetAll(nyear, nmon, nmont);
+            ncheckzone.AddRange(ncheckMain);
+            ncheck = ncheckzone.Distinct().OrderBy(c => c.EntryNumber).ThenBy(n => n.Description).ToList();
+
+            //ncheckDist= ncheck.Select(m => new DataViewer { AccountMainDescription=m.AccountMainDescription, AccountMainID=m.AccountMainID,            AccountSubDescription=m.AccountSubDescription, AccountSubID=m.AccountSubID, Amount=m.Amount, ColorDesc=m.ColorDesc, ColorDescInside=m.ColorDescInside, ColorDescTax=m.ColorDescTax, DebitCreditCode=m.DebitCreditCode, Description=m.Description, DescriptionInside=m.DescriptionInside, DetailComment=m.DetailComment, DescriptionTax=m.DescriptionTax, DocumentDate=m.DocumentDate, DocumentTypeDescription=m.DocumentTypeDescription, EndDate=m.EndDate, EnteredBy=m.EnteredBy, EntryNumber=m.EntryNumber }).Distinct();
+
+        }
+
+
+    }
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/viewer.part.bundle.css" />
+
+    <script src="~/js/viewer.part.bundle.js"></script>
+    <style>
+        .dxrd-toolbar-item-3 {
+            display: none !important;
+        }
+        .dxrd-toolbar-item-4 {
+            display: none !important;
+        }
+        .dxrd-preview.dxrd-designer-wrapper .dxrd-toolbar-wrapper .dxrd-preview-pager.dxrd-toolbar-item {
+            display: none !important;
+        }
+        dxrd-toolbar-item-0 {
+            display: none !important;
+        } 
+
+        .dx-shadow-right {
+            display: none;
+        }
+    </style>
+
+}
+
+@{
+    var report = new KontrolRaporu();
+
+    ObjectDataSource objectDataSource = new ObjectDataSource();
+    objectDataSource.Name = "DataViewer";
+    objectDataSource.DataSource = Model.ncheck;
+
+    objectDataSource.Fill();
+    report.DataSource = objectDataSource;
+    report.PrintingSystem.Document.Name = "Uyarı_raporları";
+    @Html.DevExpress().WebDocumentViewer("DocumentViewer").Height("1000px").Bind(report)
+}
+
+@section Scripts{
+
+} 

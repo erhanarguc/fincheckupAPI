@@ -1,0 +1,267 @@
+﻿@page
+
+@using fincheckup.Models.Hvvn
+@using fincheckup.Models.NKolay
+
+@model IndexModel
+@{
+    ViewData["Title"] = "Giriş Ekranı";
+    Layout = "~/Pages/Shared/_LayoutFirm.cshtml";
+}
+@using DevExtreme.AspNet.Data
+@using fincheckup.Models.NKolay.json
+@using DevExtreme.AspNet.Mvc
+@using fincheckup.Models.NKolay.ENTITY
+@using fincheckup.ENTITY
+@functions {
+    public class IndexModel : PageModel
+    {
+         
+        public Companies mrequest;
+        public Companies mrequestmain;
+        public int StartQuestions { get; set; }
+        public int AQuestions { get; set; }
+        public int BQuestions { get; set; }
+        public int CQuestions { get; set; }
+        public void OnGet(int id = 0, int mainid = 0)
+        {
+            mrequest = new Companies();
+            mrequestmain = Companies.Get_Company(mainid);
+            mrequest.MainCompanyID = mainid;
+            if (id != 0)
+            {
+                mrequest = Companies.Get_Company(id);
+
+            }
+
+        }
+
+       
+
+
+        public JsonResult OnGetSalerEnteg(DataSourceLoadOptions options)
+        {
+
+
+            var mreqListCitiy = Companies.GetCompany_Entegrator();
+            return new JsonResult(DataSourceLoader.Load(mreqListCitiy, options));
+
+        }
+        public JsonResult OnGetSalerCity(DataSourceLoadOptions options)
+        {
+
+
+            var mreqListCitiy = Cities.Get_Cities();
+            return new JsonResult(DataSourceLoader.Load(mreqListCitiy, options));
+
+        }
+
+    }
+}
+@section Styles {
+    <link rel="stylesheet" href="/assets/plugins/jquery-datatable/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="/assets/plugins/morrisjs/morris.css">
+    <style>
+        .tdnormall {
+            padding-top: 0.1rem !important;
+            padding-left: 0.75rem !important;
+            padding-bottom: 0.1rem !important;
+            padding-right: 0.75rem !important;
+        }
+
+        #chartxt {
+            max-height: 255px !important;
+        }
+    </style>
+}
+<section class="content home">
+    <div class="container-fluid">
+        <div class="block-header">
+            <div class="row clearfix">
+                <div class="col-lg-5 col-md-5 col-sm-12">
+                    <h2>Bülten İçerik</h2>
+                    <ul class="breadcrumb padding-0">
+                        <li class="breadcrumb-item"><a href=""><i class="zmdi zmdi-home"></i></a></li>
+                        <li class="breadcrumb-item active">Şirketler</li>
+                    </ul>
+                </div>
+                <div class="col-lg-7 col-md-7 col-sm-12">
+                    <div class="input-group m-b-0">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="body">
+                                    <div class="row">
+                                        <div class="col-6" style="text-align:left"> </div>
+                                        <div class="col-6" style="text-align:right">
+                                            Ana Şirket Hesabı      @Model.mrequestmain.CompanyName
+
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="body">
+                        <div class="row">
+                            <div class="col-6"> </div>
+                            <div class="col-6" style="text-align:right">
+                                @(Html.DevExtreme().Button()
+        .ID("buttonz")
+        .Text("Geri Dön").OnClick((@<text>
+        function() {
+           history.back();
+        }
+    </text>))
+        .Type(ButtonType.Default)
+    )
+
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row clearfix">
+
+            <div class="col-md-12 col-lg-12">
+                <div class="card">
+                    <div class="body">
+
+
+
+                        <form id="frm">
+
+                            @(Html.DevExtreme().Form<Companies>
+    ()
+    .ID("form").ShowValidationSummary(false)
+    .Items(items => {
+        items.AddGroup().Caption("Bağlı Şirket Detayı")
+        .ColCount(4)
+        .Items(groupItems => {
+            groupItems.AddGroup().ColSpan(4).Items(secondGroupItems =>
+            {
+                secondGroupItems.AddSimpleFor(m => m.CompanyName).Editor(e => e.TextBox()).Label(l => l.Text("Şirket Adı"));
+            });
+            groupItems.AddGroup().ColSpan(2).Items(secondGroupItems => {
+                secondGroupItems.AddSimpleFor(m => m.ID).Editor(e => e.NumberBox().ReadOnly(true)).Label(l => l.Text("ID"));
+                secondGroupItems.AddSimpleFor(m => m.MainCompanyID).Editor(e => e.NumberBox().ReadOnly(true)).Label(l => l.Text("MainID"));
+                secondGroupItems.AddSimpleFor(m => m.ContactName).Editor(e => e.TextBox()).IsRequired(true).Label(l => l.Text("Yetkili Adı"));
+                secondGroupItems.AddSimpleFor(m => m.ContactMail).Editor(e => e.TextBox()).IsRequired(true).Label(l => l.Text("Yetkili E-mail"));
+                secondGroupItems.AddSimpleFor(m => m.NaceCode).Editor(e => e.TextBox()).IsRequired(true).Label(l => l.Text("Nace Kodu"));
+                secondGroupItems.AddSimpleFor(m => m.CityID).Label(l => l.Text("Şehir")).IsRequired(true).Editor(e => e.SelectBox()
+            .DataSource(d => d.RemoteController().LoadUrl(Url.Page(null, "SalerCity")).Key("ID"))
+            .DisplayExpr("City")
+            .ValueExpr("ID"));
+
+            });
+            groupItems.AddGroup().ColSpan(2).Items(secondGroupItems =>
+            {
+                secondGroupItems.AddSimpleFor(m => m.ContactGSM).IsRequired(true).Label(l => l.Text("Yetkili Telefon"));
+                secondGroupItems.AddSimpleFor(m => m.TaxOffice).IsRequired(true).Label(l => l.Text("Vergi Dairesi"));
+                secondGroupItems.AddSimpleFor(m => m.TaxID).IsRequired(true).Label(l => l.Text("Vergi Numarası"));
+                secondGroupItems.AddSimpleFor(m => m.XmlSourceID).Label(l => l.Text("XML Entegratör")).IsRequired(true).Editor(e => e.SelectBox()
+          .DataSource(d => d.RemoteController().LoadUrl(Url.Page(null, "SalerEnteg")).Key("ID"))
+          .DisplayExpr("XmlSource")
+          .ValueExpr("ID"));
+
+
+
+            });
+            groupItems.AddGroup().ColSpan(4).Items(secondGroupItems =>
+            {
+                secondGroupItems.AddSimpleFor(m => m.Adress).IsRequired(true).Label(l => l.Text("Adres")).Editor(e => e
+                              .TextArea()
+                              .Height(40)
+
+                              );
+                secondGroupItems.AddSimpleFor(m => m.Notes).Label(l => l.Text("Notlar")).Editor(e => e
+                               .TextArea()
+                               .Height(40)
+
+                               );
+            });
+        });
+        items.AddGroup()
+       .ColCount(4)
+       .Items(groupItems =>
+       {
+
+           groupItems.AddGroup().ColSpan(4).Items(secondGroupItems =>
+           {
+
+
+               secondGroupItems.AddButton()
+                   .HorizontalAlignment(HorizontalAlignment.Right)
+                   .ButtonOptions(b => b.Text("Kaydet")
+                       .Type(ButtonType.Success)
+                       .UseSubmitBehavior(true)
+               );
+
+           });
+       });
+
+
+
+
+
+    })
+
+    .FormData(Model.mrequest)
+    )
+                        </form>
+
+
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+
+        </div>
+
+
+
+
+
+    </div>
+</section>
+
+
+@section Scripts{
+
+
+    <script>
+
+        var dt1 = "105";
+
+        $("#frm").submit(function () {
+            var vals = $(this).serialize();
+
+
+
+            $.ajax({
+                url: "/JsonService/MainPost/FormSubmitCompany",
+                method: "POST",
+                data: vals,
+                success: function (data) {
+
+                    location.href = "/admin/yonetim/companylist";
+                }
+            });
+
+            return false; // prevent from submit
+        });
+    </script>
+} 

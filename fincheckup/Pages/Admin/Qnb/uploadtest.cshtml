@@ -1,0 +1,2241 @@
+﻿@page
+
+@using fincheckup.Models.Hvvn
+@using fincheckup.Models.NKolay.UploadArea
+@using fincheckup.Models.ViewM
+@model IndexModel
+@{
+    ViewData["Title"] = "Giriş Ekranı";
+    Layout = "~/Pages/Shared/_LayoutQnbMain.cshtml";
+}
+
+@using fincheckup.ENTITY
+@functions {
+    public class IndexModel : PageModel
+    {
+        public IEnumerable<YearResult> myearResult;
+        public long UserID;
+        public long CompID;
+        public int CompCount;
+        public int YearCount;
+        public long curcomID;
+        public int curcomCount;
+        public DataViewerMain mrequestDataViewer;
+        public HhvnUsers CurrentUser;
+        public  YearlyUploadResult currentMonth; 
+        public IEnumerable<YearlyUploadResult> currentUploadM;
+        public IEnumerable<YearlyUploadResult> currentUploadMOK;
+        public IEnumerable<YearlyUploadResult> currentUploadMNoOK;
+        public List<YearlyUploadResult> currentUploadMMonth;
+        
+        
+        public IEnumerable<Companies> mreqListCompany;
+        public string CompName;
+        
+
+        public string currentcompname { get; set; }
+
+        public void OnGet()
+        {
+            myearResult = YearResult.getValue();
+
+
+
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+            mreqListCompany = Companies.Getby_User(UserID);
+            currentcompname = mreqListCompany.Where(x => x.IsDefault == 1).FirstOrDefault().CompanyName;
+            curcomID = mreqListCompany.Where(x => x.IsDefault == 1).FirstOrDefault().ID;
+            CompName = mreqListCompany.Where(x => x.IsDefault == 1).FirstOrDefault().CompanyName;
+            curcomCount = mreqListCompany.Count();
+            //currentUpload = UploadMain.Get_Data(DateTime.Now.Year, curcomID);
+
+            CompID = mreqListCompany.Where(x => x.IsDefault == 1).FirstOrDefault().ID;
+            YearCount = TBLXml.GetYearByComapnyID(CompID);
+            CompCount = mreqListCompany.Count();
+
+
+            curcomID = Companies.Getby_User(UserID).Where(x => x.IsDefault == 1).FirstOrDefault().ID;
+            int  chkErrormonthIDChk = MainDash.Get_DatabyError(CurrentUser.SelectedYear, curcomID).Count();
+            List<int> chkErrormonthID = MainDash.Get_DatabyError(CurrentUser.SelectedYear, curcomID).Where(x => x.TErrorRowCount == 0).Select(x => x.MainMonth).ToList();
+            currentUploadM = UploadMain.Get_Data(CurrentUser.SelectedYear, curcomID).OrderBy(x => x.MainMonth);
+
+            if (chkErrormonthIDChk < 1)
+            {
+                currentUploadM.Select(c => { c.ErrorCount = -1; return c; }).OrderBy(x => x.MainMonth).ToList();
+            }
+            else
+            {
+                currentUploadM.Where(x => chkErrormonthID.Contains(x.MainMonth)).Select(c => { c.ErrorCount = -1; return c; }).OrderBy(x => x.MainMonth).ToList();
+            }
+
+            currentUploadMOK = currentUploadM.Where(x=>x.ErrorCount>-1);
+            currentUploadMNoOK = currentUploadM.Where(x => x.ErrorCount <0);
+            currentMonth = currentUploadMNoOK.FirstOrDefault();
+            currentUploadMMonth = new List<YearlyUploadResult>();
+            if (currentMonth!=null)
+            {
+                currentUploadMNoOK = currentUploadMNoOK.Except(currentUploadMMonth);
+                currentUploadMMonth.Add(currentMonth);
+            }
+
+
+        }
+
+
+        public JsonResult OnGetSalerMainChk(DataSourceLoadOptions options, int monthid)
+        {
+            mrequestDataViewer = new DataViewerMain();
+            if (monthid < 1)
+            {
+                return new JsonResult(DataSourceLoader.Load(mrequestDataViewer.EntryData, options));
+            }
+
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+
+            curcomID = Companies.Getby_User(UserID).Where(x => x.IsDefault == 1).FirstOrDefault().ID;
+
+            mrequestDataViewer.SetDataViewer(MainDash.DataViewerMainMonth(CurrentUser.SelectedYear, curcomID, monthid));
+
+            return new JsonResult(DataSourceLoader.Load(mrequestDataViewer.EntryData, options));
+
+        }
+        public JsonResult OnGetSalerMainZeta(DataSourceLoadOptions options, int monthid)
+        {
+            mrequestDataViewer = new DataViewerMain();
+            if (monthid < 1)
+            {
+                return new JsonResult(DataSourceLoader.Load(mrequestDataViewer.EntryData, options));
+            }
+
+
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+
+            curcomID = Companies.Getby_User(UserID).Where(x => x.IsDefault == 1).FirstOrDefault().ID;
+
+
+            mrequestDataViewer.SetDataViewer(MainDash.DataViewerMainMonth(CurrentUser.SelectedYear, curcomID, monthid));
+
+            return new JsonResult(DataSourceLoader.Load(mrequestDataViewer.EntryData, options));
+
+        }
+        public JsonResult OnGetSalerDate(DataSourceLoadOptions options)
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+
+            curcomID = Companies.Getby_User(UserID).Where(x => x.IsDefault == 1).FirstOrDefault().ID;
+            List<int> chkErrormonthID = MainDash.Get_DatabyError(CurrentUser.SelectedYear, curcomID).Where(x => x.TErrorRowCount == 0).Select(x => x.MainMonth).ToList();
+            var currentUploadM = UploadMain.Get_Data(CurrentUser.SelectedYear, curcomID);
+
+            currentUploadM.Where(x => chkErrormonthID.Contains(x.MainMonth)).Select(c => { c.ErrorCount = -1; return c; }).OrderBy(x => x.MainMonth).ToList();
+            return new JsonResult(DataSourceLoader.Load(currentUploadM, options));
+
+        }
+        public JsonResult OnGetSalerYear(DataSourceLoadOptions options)
+        {
+
+
+            var YearSetm = YearResult.getValue().OrderByDescending(x => x.MYear);
+            return new JsonResult(DataSourceLoader.Load(YearSetm, options));
+
+        }
+        public JsonResult OnGetSalerComp(DataSourceLoadOptions options)
+        {
+
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            mreqListCompany = Companies.Getby_User(UserID);
+            return new JsonResult(DataSourceLoader.Load(mreqListCompany, options));
+
+        }
+
+       
+        public JsonResult OnGetGraphYear(int nyear)
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            HhvnUsers.SetYear(nyear, UserID);
+            return new JsonResult("ok");
+        }
+
+    }
+}
+@section Styles {
+    <script src="~/assets/progress.js"></script>
+
+    <style>
+        @@import url("https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css");
+
+        @@import url("https://fonts.googleapis.com/css?family=Mulish:400,700,600,800");
+        /* The following line is used to measure usage of this code in production. For more info see our usage billing page */
+     
+
+        @@font-face {
+            font-family: "Cordale-Bold";
+            font-style: normal;
+            font-weight: 700;
+            src: url("/fonts/Cordale_Bd.ttf") format("truetype");
+        }
+
+        .container-center-horizontal {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            pointer-events: none;
+            width: 100%;
+        }
+
+            .container-center-horizontal > * {
+                flex-shrink: 0;
+                pointer-events: auto;
+            }
+
+        .valign-text-middle {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .orangecolor {
+            background-color: #874651;
+        }
+
+        .greencolor {
+            background-color: #004aad; 
+        }
+
+        /*   .dx-scrollview-content {
+            position: absolute;
+        }*/
+
+        #grdContYearDefter .centerdiv {
+            vertical-align: middle !important;
+            font-weight: bold;
+            font-size: 13px;
+            color: whitesmoke;
+        }
+
+        #grdContYearDefter .dx-header-row .centerdiv {
+            vertical-align: middle !important;
+            font-weight: bold;
+            font-size: 13px;
+            color: black;
+        }
+
+
+        /* screen - bilgisayarimdan-veri-yukleme */
+        :root {
+            --alabaster: #f9fafb;
+            --black: #000000;
+            --blueberry: #3585f80d;
+            --cardinal-pink: #870052;
+            --ebony-clay: #222943;
+            --mystic: #dee3ed;
+            --storm-gray: #666f85;
+            --text: #ffffff;
+            --font-size-l: 14px;
+            --font-size-m: 12px;
+            --font-size-xl: 16px;
+            --font-family-cordale-bold: "Cordale-Bold", Helvetica;
+            --font-family-mulish: "Mulish", Helvetica;
+        }
+
+        .mulish-semi-bold-ebony-clay-14px {
+            color: var(--ebony-clay);
+            font-family: var(--font-family-mulish);
+            font-size: var(--font-size-l);
+            font-style: normal;
+            font-weight: 600;
+        }
+
+        .mulish-normal-ebony-clay-12px {
+            color: var(--ebony-clay);
+            font-family: var(--font-family-mulish);
+            font-size: var(--font-size-m);
+            font-style: normal;
+            font-weight: 400;
+        }
+
+        .mulish-normal-ebony-clay-14px {
+            color: var(--ebony-clay);
+            font-family: var(--font-family-mulish);
+            font-size: var(--font-size-l);
+            font-style: normal;
+            font-weight: 400;
+        }
+
+        .mulish-semi-bold-storm-gray-12px {
+            color: var(--storm-gray);
+            font-family: var(--font-family-mulish);
+            font-size: var(--font-size-m);
+            font-style: normal;
+            font-weight: 600;
+        }
+
+        .mulish-bold-ebony-clay-14px {
+            color: var(--ebony-clay);
+            font-family: var(--font-family-mulish);
+            font-size: var(--font-size-l);
+            font-style: normal;
+            font-weight: 700;
+        }
+
+        .mulish-bold-white-14px {
+            color: var(--text);
+            font-family: var(--font-family-mulish);
+            font-size: var(--font-size-l);
+            font-style: normal;
+            font-weight: 700;
+        }
+
+        .bilgisayarimdan-veri-yukleme {
+            align-items: flex-start;
+            background-color: var(--text);
+            border: 1px none;
+            display: flex;
+            gap: 24px;
+            height: 1095px;
+            width: 90%;
+        }
+
+            .bilgisayarimdan-veri-yukleme .dashboard-karllk-trend {
+                height: 1025px;
+                width: 65px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .flex-col {
+                flex-direction: column;
+                margin-top: 15px;
+                min-height: 1019px;
+                width: 95%;
+            }
+
+            .bilgisayarimdan-veri-yukleme .yeniliki-ve-kolay {
+                color: #696a69;
+                font-family: var(--font-family-mulish);
+                font-size: var(--font-size-xl);
+                font-weight: 700;
+                letter-spacing: 0;
+                line-height: 23px;
+                white-space: nowrap;
+            }
+
+            .bilgisayarimdan-veri-yukleme .yeniliki-ve-kolay-1 {
+                color: #696a69;
+                font-family: var(--font-family-mulish);
+                margin-top: 8px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .yeniliki-ve-kolay-2 {
+                color: var(--ebony-clay);
+                font-family: var(--font-family-cordale-bold);
+                margin-top: 24px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .e-defterlerinizi-yk {
+                letter-spacing: 0;
+                line-height: normal;
+                margin-top: 16px;
+                min-height: 18px;
+                width: 433px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .flex-row {
+                gap: 16px;
+                margin-top: 18px;
+                min-width: 90%;
+            }
+
+            .bilgisayarimdan-veri-yukleme .frame-914 {
+                align-items: center;
+                border: 1px solid;
+                border-color: var(--mystic);
+                border-radius: 10px;
+                display: flex;
+                flex-direction: column;
+                gap: 32px;
+                min-height: 64px;
+                width: 402px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .frame-911 {
+                align-items: flex-start;
+                display: flex;
+                gap: 14px;
+                margin-top: 16px;
+                min-width: 370px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .group-86 {
+                align-items: center;
+                display: flex;
+                gap: 10px;
+                min-width: 263px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .talimat-arama {
+                letter-spacing: 0;
+                line-height: normal;
+                min-height: 18px;
+                min-width: 51px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .input {
+                align-items: center;
+                background-color: var(--text);
+                border: 1px solid;
+                border-color: var(--mystic);
+                border-radius: 4px;
+                display: flex;
+                gap: 8px;
+                height: 32px;
+                padding: 16px 8px;
+                position: relative;
+                width: 200px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .e-posta-adresiniz {
+                flex: 1;
+                letter-spacing: 0;
+                line-height: normal;
+                margin-bottom: -8.00px;
+                margin-top: -10.00px;
+                position: relative;
+            }
+
+            .bilgisayarimdan-veri-yukleme .icons {
+                height: 22px;
+                margin-bottom: -11.00px;
+                margin-top: -11.00px;
+                min-width: 22px;
+                position: relative;
+            }
+
+            .bilgisayarimdan-veri-yukleme .buttons {
+                align-items: center;
+                background-color: var(--cardinal-pink);
+                border-radius: 4px;
+                display: flex;
+                gap: 8px;
+                justify-content: center;
+                padding: 7px 8px;
+                position: relative;
+                width: fit-content;
+            }
+
+            .bilgisayarimdan-veri-yukleme .lemler {
+                letter-spacing: 0;
+                line-height: normal;
+                margin-top: -1.00px;
+                position: relative;
+                width: fit-content;
+            }
+
+            .bilgisayarimdan-veri-yukleme .group-86-1 {
+                align-items: center;
+                display: flex;
+                gap: 8px;
+                margin-left: 2.0px;
+                min-width: 404px;
+                padding-bottom:15px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .talimat-arama-1 {
+                letter-spacing: 0;
+                line-height: normal;
+                min-height: 18px;
+                min-width: 16px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .input-1 {
+                align-items: center;
+                background-color: var(--text);
+                border: 1px solid;
+                border-color: var(--mystic);
+                border-radius: 4px;
+                display: flex;
+                gap: 8px;
+                height: 32px;
+                padding: 16px 8px;
+                position: relative;
+                width: 378px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .product-purchasedw-ribbon {
+                align-items: flex-start;
+                background-color: var(--text);
+                border-radius: 10px;
+                box-shadow: 0px 3px 10px #2229431a;
+                display: flex;
+                gap: 14px;
+                height: 112px;
+                overflow: hidden;
+                padding: 11px 0;
+                width: 100%;
+            }
+
+            .bilgisayarimdan-veri-yukleme .qnb-finansbank-container {
+                align-items: flex-start;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                margin-left: 12px;
+                min-height: 84px;
+                width: 100%;
+            }
+
+            .bilgisayarimdan-veri-yukleme .neden-qnb-finansbank {
+                color: var(--ebony-clay);
+                font-family: var(--font-family-mulish);
+                font-size: var(--font-size-xl);
+                font-weight: 400;
+                letter-spacing: 0;
+                line-height: normal;
+                min-height: 20px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .span0 {
+                font-weight: 700;
+            }
+
+            .bilgisayarimdan-veri-yukleme .qnb-finansbank-ile-v {
+                color: var(--storm-gray);
+                font-family: var(--font-family-mulish);
+                font-size: var(--font-size-l);
+                font-weight: 400;
+                letter-spacing: 0;
+                line-height: normal;
+                min-height: 54px;
+                width: 100%;
+            }
+
+            .bilgisayarimdan-veri-yukleme .flex-col-1 {
+                align-items: flex-start;
+                align-self: center;
+                display: flex;
+                flex-direction: column;
+                gap: 25px;
+                min-height: 80px;
+                width: 113px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .overlap-group {
+                align-items: flex-start;
+                background-color: #ffffff3d;
+                border-radius: 4px 0px 0px 4px;
+                box-shadow: 4px 1px 14px #de269545;
+                display: flex;
+                height: 23px;
+                justify-content: flex-end;
+                min-width: 113px;
+                padding: 4.0px 8.0px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .qnb-finansbank {
+                color: var(--cardinal-pink);
+                font-family: var(--font-family-mulish);
+                font-size: var(--font-size-m);
+                font-weight: 700;
+                letter-spacing: 0;
+                line-height: normal;
+                min-height: 15px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .buttons-1 {
+                width: 97px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .overlap-group12 {
+                height: 730px;
+                margin-top: 24px;
+                position: relative;
+                width: 100%;
+            }
+
+            .bilgisayarimdan-veri-yukleme .frame-901 {
+                align-items: flex-start;
+                background-color: #efeff4;
+                border: 1px solid;
+                border-color: var(--mystic);
+                display: flex;
+                gap: 98px;
+                height: 58px;
+                left: 0;
+                min-width: 100%;
+                padding: 18px 23px;
+                position: absolute;
+                top: 0;
+            }
+
+            .bilgisayarimdan-veri-yukleme .k-hesap-3 {
+                color: #556589;
+                font-family: var(--font-family-mulish);
+                font-size: var(--font-size-l);
+                font-weight: 800;
+                letter-spacing: 0;
+                line-height: normal;
+                min-height: 18px;
+                min-width: 19px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .k-hesap-4 {
+                color: #556589;
+                font-family: var(--font-family-mulish);
+                font-size: var(--font-size-l);
+                font-weight: 800;
+                letter-spacing: 0;
+                line-height: normal;
+                min-height: 18px;
+                margin-left: 10%;
+                min-width: 10%;
+            }
+
+            .bilgisayarimdan-veri-yukleme .overlap-group-1 {
+                align-items: flex-start;
+                background-color: var(--blueberry);
+                border-color: var(--mystic);
+                border-left-style: solid;
+                border-left-width: 1px;
+                border-right-style: solid;
+                border-right-width: 1px;
+                box-shadow: inset 0px -1px 0px #dee3ed;
+                display: flex;
+                height: 56px;
+                left: 0;
+                min-width: 95%;
+                padding: 7px 23px;
+                top: 58px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .k-hesap-5 {
+                align-self: center;
+                letter-spacing: 0;
+                line-height: normal;
+                margin-bottom: 2.0px;
+                min-height: 18px;
+                min-width: 10%;
+            }
+
+            .bilgisayarimdan-veri-yukleme .group-619 {
+                align-items: flex-start;
+                display: flex;
+                gap: 8px;
+                height: 40px;
+                margin-left: 10%;
+                min-width: 10%;
+            }
+
+            .bilgisayarimdan-veri-yukleme .icons-1 {
+                align-items: flex-end;
+                display: flex;
+                height: 20px;
+                justify-content: flex-end;
+                min-width: 20px;
+                padding: 0.8px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .check-circle {
+                height: 18px;
+                width: 18px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .k-hesap-container {
+                align-items: flex-start;
+                align-self: flex-end;
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+                min-height: 39px;
+                width: 100%;
+            }
+
+            .bilgisayarimdan-veri-yukleme .k-hesap {
+                letter-spacing: 0;
+                line-height: normal;
+                min-height: 18px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .k-hesap-6 {
+                color: #516795;
+                font-family: var(--font-family-mulish);
+                font-size: var(--font-size-m);
+                font-weight: 600;
+                letter-spacing: 0;
+                line-height: normal;
+                min-height: 15px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .group-628 {
+                align-items: flex-start;
+                background-color: var(--alabaster);
+                border: 1px solid;
+                border-color: var(--mystic);
+                border-radius: 4px;
+                display: flex;
+                height: 40px;
+                margin-left: 65%;
+                min-width: 48px;
+                padding: 8px 12px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .icon-refresh {
+                height: 22px;
+                width: 22px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .overlap-group1 {
+                align-items: flex-start;
+                background-color: var(--text);
+                border-color: var(--mystic);
+                border-left-style: solid;
+                border-left-width: 1px;
+                border-right-style: solid;
+                border-right-width: 1px;
+                box-shadow: inset 0px -1px 0px #dee3ed;
+                display: flex;
+                height: 56px;
+                left: 0;
+                min-width: 1138px;
+                padding: 7px 23px;
+                position: absolute;
+                top: 114px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .k-hesap-7 {
+                align-self: center;
+                letter-spacing: 0;
+                line-height: normal;
+                margin-bottom: 2.0px;
+                min-height: 18px;
+                width: 40px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .group-619-1 {
+                margin-left: 77px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .k-hesap-1 {
+                letter-spacing: 0;
+                line-height: normal;
+                min-height: 15px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .overlap-group2 {
+                align-items: flex-start;
+                background-color: var(--blueberry);
+                border: 1px solid;
+                border-color: var(--mystic);
+                box-shadow: inset 0px -1px 0px #dee3ed;
+                display: flex;
+                height: 56px;
+                left: 0;
+                min-width: 1138px;
+                padding: 7px 23px;
+                position: absolute;
+                top: 170px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .k-hesap-8 {
+                align-self: center;
+                letter-spacing: 0;
+                line-height: normal;
+                margin-bottom: 2.0px;
+                min-height: 18px;
+                min-width: 32px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .group-619-2 {
+                margin-left: 85px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .overlap-group3 {
+                align-items: flex-start;
+                background-color: var(--text);
+                border-color: var(--mystic);
+                border-left-style: solid;
+                border-left-width: 1px;
+                border-right-style: solid;
+                border-right-width: 1px;
+                box-shadow: inset 0px -1px 0px #dee3ed;
+                display: flex;
+                height: 56px;
+                left: 0;
+                min-width: 1138px;
+                padding: 7px 23px;
+                position: absolute;
+                top: 226px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .k-hesap-9 {
+                align-self: center;
+                letter-spacing: 0;
+                line-height: normal;
+                margin-bottom: 2.0px;
+                min-height: 18px;
+                min-width: 38px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .group-619-3 {
+                margin-left: 79px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .overlap-group4 {
+                align-items: flex-start;
+                background-color: var(--blueberry);
+                border: 1px solid;
+                border-color: var(--mystic);
+                box-shadow: inset 0px -1px 0px #dee3ed;
+                display: flex;
+                height: 56px;
+                left: 0;
+                min-width: 1138px;
+                padding: 7px 23px;
+                position: absolute;
+                top: 282px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .k-hesap-10 {
+                align-self: center;
+                letter-spacing: 0;
+                line-height: normal;
+                margin-bottom: 2.0px;
+                min-height: 18px;
+                min-width: 39px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .group-619-4 {
+                margin-left: 78px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .overlap-group5 {
+                align-items: flex-start;
+                background-color: var(--text);
+                border-color: var(--mystic);
+                border-left-style: solid;
+                border-left-width: 1px;
+                border-right-style: solid;
+                border-right-width: 1px;
+                box-shadow: inset 0px -1px 0px #dee3ed;
+                display: flex;
+                gap: 64px;
+                height: 56px;
+                left: 0;
+                min-width: 1138px;
+                padding: 10px 23px;
+                position: absolute;
+                top: 338px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .k-hesap-11 {
+                align-self: center;
+                letter-spacing: 0;
+                line-height: normal;
+                margin-bottom: 2.0px;
+                min-height: 18px;
+                min-width: 53px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .buttons-2 {
+                width: 120px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .overlap-group6 {
+                align-items: flex-start;
+                background-color: var(--blueberry);
+                border: 1px solid;
+                border-color: var(--mystic);
+                box-shadow: inset 0px -1px 0px #dee3ed;
+                display: flex;
+                gap: 60px;
+                height: 56px;
+                left: 0;
+                min-width: 1138px;
+                padding: 17px 23px;
+                position: absolute;
+                top: 394px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .k-hesap-12 {
+                letter-spacing: 0;
+                line-height: normal;
+                margin-top: 1px;
+                min-height: 18px;
+                min-width: 56px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .group-618 {
+                align-items: center;
+                display: flex;
+                gap: 12px;
+                min-width: 834px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .alert {
+                height: 18px;
+                width: 18px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .k-hesap-2 {
+                letter-spacing: 0;
+                line-height: normal;
+                margin-top: 1.0px;
+                min-height: 15px;
+                min-width: 800px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .overlap-group7 {
+                align-items: flex-start;
+                background-color: var(--text);
+                border-color: var(--mystic);
+                border-left-style: solid;
+                border-left-width: 1px;
+                border-right-style: solid;
+                border-right-width: 1px;
+                box-shadow: inset 0px -1px 0px #dee3ed;
+                display: flex;
+                gap: 61px;
+                height: 56px;
+                left: 0;
+                min-width: 1138px;
+                padding: 17px 23px;
+                position: absolute;
+                top: 450px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .k-hesap-13 {
+                letter-spacing: 0;
+                line-height: normal;
+                margin-top: 1px;
+                min-height: 18px;
+                min-width: 55px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .overlap-group8 {
+                align-items: flex-start;
+                background-color: var(--blueberry);
+                border: 1px solid;
+                border-color: var(--mystic);
+                box-shadow: inset 0px -1px 0px #dee3ed;
+                display: flex;
+                gap: 85px;
+                height: 56px;
+                left: 0;
+                min-width: 1138px;
+                padding: 17px 23px;
+                position: absolute;
+                top: 506px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .k-hesap-14 {
+                letter-spacing: 0;
+                line-height: normal;
+                min-height: 18px;
+                min-width: 31px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .overlap-group9 {
+                align-items: flex-start;
+                background-color: var(--text);
+                border-color: var(--mystic);
+                border-left-style: solid;
+                border-left-width: 1px;
+                border-right-style: solid;
+                border-right-width: 1px;
+                box-shadow: inset 0px -1px 0px #dee3ed;
+                display: flex;
+                gap: 84px;
+                height: 56px;
+                left: 0;
+                min-width: 1138px;
+                padding: 17px 23px;
+                position: absolute;
+                top: 562px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .k-hesap-15 {
+                letter-spacing: 0;
+                line-height: normal;
+                min-height: 18px;
+                min-width: 32px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .overlap-group10 {
+                align-items: flex-start;
+                background-color: var(--blueberry);
+                border: 1px solid;
+                border-color: var(--mystic);
+                box-shadow: inset 0px -1px 0px #dee3ed;
+                display: flex;
+                gap: 75px;
+                height: 56px;
+                left: 0;
+                min-width: 1138px;
+                padding: 17px 23px;
+                position: absolute;
+                top: 618px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .k-hesap-16 {
+                letter-spacing: 0;
+                line-height: normal;
+                min-height: 18px;
+                min-width: 41px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .overlap-group11 {
+                align-items: flex-start;
+                background-color: var(--text);
+                border-color: var(--mystic);
+                border-left-style: solid;
+                border-left-width: 1px;
+                border-right-style: solid;
+                border-right-width: 1px;
+                box-shadow: inset 0px -1px 0px #dee3ed;
+                display: flex;
+                gap: 77px;
+                height: 56px;
+                left: 0;
+                min-width: 1138px;
+                padding: 17px 23px;
+                position: absolute;
+                top: 674px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .k-hesap-17 {
+                letter-spacing: 0;
+                line-height: normal;
+                min-height: 18px;
+                min-width: 39px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .line-16 {
+                height: 730px;
+                left: 117px;
+                object-fit: cover;
+                position: absolute;
+                top: 0;
+                width: 1px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .alert-6 {
+                height: 18px;
+                width: 18px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .buttons-3 {
+                align-items: center;
+                background-color: var(--cardinal-pink);
+                border-radius: 4px;
+                display: flex;
+                gap: 8px;
+                justify-content: center;
+                padding: 7px 8px;
+                position: relative;
+            }
+
+            .bilgisayarimdan-veri-yukleme .check-circle-5 {
+                height: 18px;
+                width: 18px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .flex {
+                align-items: flex-start;
+                display: flex;
+            }
+
+            .bilgisayarimdan-veri-yukleme .group-619-5 {
+                align-items: flex-start;
+                display: flex;
+                gap: 8px;
+                height: 40px;
+                min-width: 124px;
+            }
+
+            .bilgisayarimdan-veri-yukleme .yeniliki-ve-kolay-3 {
+                font-size: var(--font-size-xl);
+                font-weight: 700;
+                letter-spacing: 0;
+                line-height: 23px;
+                white-space: nowrap;
+            }
+    </style>
+
+
+
+}
+<input type="hidden" style="display:none" id="txtcompname" value="@Model.currentcompname" />
+<input type="hidden" style="display:none" id="txtcurcomCount" value="@Model.curcomCount" />
+<input type="hidden" style="display:none" id="txtcurcomide" value="@Model.curcomID" />
+<section class="content home">
+    <div class="container-fluid">
+        <div class="block-header">
+            <div class="row clearfix">
+                <div class="col-lg-5 col-md-5 col-sm-12">
+                    <h2>Dashboard</h2>
+                    <ul class="breadcrumb padding-0">
+                        <li class="breadcrumb-item"><a href=""><i class="zmdi zmdi-home"></i></a></li>
+                        <li class="breadcrumb-item active">Dashboard</li>
+                    </ul>
+                </div>
+                <div class="col-lg-7 col-md-7 col-sm-12">
+                    <div class="input-group m-b-0">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="body">
+                                    <div class="row">
+                                        <div class="col-6" style="text-align:left">
+                             
+
+                                        </div>
+                                        <div class="col-6" style="text-align:right">
+
+                                  @(Html.DevExtreme().TextBox()
+                                .Value(Model.CompName)  .ReadOnly(true)
+                            )
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <input type="hidden" style="display:none" id="txtmyear" value="@Model.CurrentUser.SelectedYear" />
+        <input type="hidden" style="display:none" id="txtmcomp" value="@Model.CompID" />
+        <input type="hidden" style="display:none" id="txtyearcount" value="@Model.YearCount" />
+        <input type="hidden" style="display:none" id="txtcompcount" value="@Model.CompCount" />
+        <input type="hidden" style="display:none" value="0" id="txtisupdate" />
+        <div class="row clearfix">
+            <div class="col-lg-12 col-md-12">
+
+                <script>
+                    var tyear = $("#txtmyear").val();
+                    var mcompid = $("#txtmcomp").val();
+                    function onCellPrepared(e) {
+
+                        if (e.columnIndex == 4 && e.rowType == "data") {
+                            var chkk = e.data;
+
+                            if (chkk.TxResult == "Bekleniyor" || parseInt(chkk.ErrorCount) < 0) {
+                                e.cellElement.find(".dx-link-edit").remove();
+                                e.cellElement.find(".dxmain").remove();
+
+                            }
+                        }
+
+                        if (e.columnIndex == 5 && e.rowType == "data") {
+                            var chkk = e.data;
+
+                            if (chkk.TxResult == "Bekleniyor" || parseInt(chkk.ErrorCount) < 0) {
+
+                                e.cellElement.find(".dxmain").remove();
+
+                            }
+                        }
+                    }
+                    var misready = "nok";
+                    var chkReadyState = setInterval(function () {
+                        if (document.readyState == "complete") {
+
+                            clearInterval(chkReadyState);
+
+                            misready = "ok";
+                        }
+                    }, 100);
+                    function onRowPrepared(info) {
+                        if (info.rowType != "header" && info.data.TxResult == "Bekleniyor") {
+
+                            info.rowElement.addClass("orangecolor");
+                        } else if (info.rowType != "header") {
+                            info.rowElement.addClass("greencolor");
+                        }
+                    }
+                    var dt1 = "0";
+                    var compid = $("#txtmcomp").val();
+                    var monthid = 0;
+                    var year = $("#txtmyear").val();
+                    function onItemClick(data) {
+
+                        $("#mainyear").val(data.MainYear);
+                        $("#mainmonth").val(data.MainMonth);
+
+                        if (data.TxResult == "Bekleniyor") {
+                            $("#txtisupdate").val("0");
+                            $('#uploadInput').focus().trigger('click');
+
+                        }
+                        else {
+
+                            Swal.fire({
+                                title: 'Daha Önce Yüklenen E-Defteri değiştirmek istiyor musunuz?',
+                                showDenyButton: true,
+                                confirmButtonText: 'Evet',
+                                denyButtonText: 'Hayır',
+                            }).then((result) => {
+                                /* Read more about isConfirmed, isDenied below */
+                                if (result.isConfirmed) {
+                                    $("#txtisupdate").val("1");
+                                    $('#uploadInput').focus().trigger('click');
+                                } else if (result.isDenied) {
+                                    Swal.fire('Değiştirme İşlemi İptal Edildi', '', 'info')
+                                }
+                            })
+                        }
+
+
+                    }
+
+
+                     $(document).ready(function () {
+                     
+
+                   
+
+                         $('#btnupppload').click(function (event) {
+
+                           
+                             
+
+                            
+
+
+                             var status = $(this).attr('data-id');
+                             var statusa = $(this).attr('data-year');
+                           
+                             $("#mainyear").val(status);
+                             $("#mainmonth").val(statusa);
+                             $('#uploadInput').focus().trigger('click');
+
+
+                             return;
+                             var tttdate = $("#mainmonth").val() + "_" + $("#mainyear").val();
+                             compid = $("#txtcurcomide").val();
+
+                             var fdatam = new FormData();
+                             fdatam.append('id', 0);
+                             fdatam.append('Caption', tttdate);
+                             fdatam.append('ide', $("#txtcurcomide").val());
+
+
+                             $.ajax({
+                                 url: "/JsonService/Main/moodUploadOneProcess",
+                                 method: "POST",
+                                 statusCode: {
+                                     500: function () {
+                                         document.getElementById('uploadInput').value = null;
+                                         getLoadPanelInstance().hide();
+                                         Swal.fire({
+                                             title: 'Server Erişim Sorunuz. Lütfen Sayfayı Yenileyiniz...',
+                                             confirmButtonText: 'Yenile'
+                                         }).then((result) => {
+                                             /* Read more about isConfirmed, isDenied below */
+                                             if (result.isConfirmed) {
+
+                                                 location.reload();
+                                             }
+                                         });
+                                     },
+                                     404: function () {
+                                         alert("Script 404");
+                                     }
+                                 },
+                                 contentType: false,
+                                 data: fdatam,
+                                 processData: false,
+                                 cache: false,
+                                 success: function (data) {
+                                     if (data == "nok") {
+                                         //swal.close();
+                                         getLoadPanelInstance().hide(); document.getElementById('uploadInput').value = null;
+                                         Swal.fire(
+                                             'Hata!',
+                                             'E-defter Yüklenemedi Lütfen Seçili Tarih ile E-Defter tarihini / E-Defter Entegratör Tipini KOntrol Ediniz!',
+                                             'error'
+                                         )
+                                     }
+                                     else {
+                                         Swal.fire(
+                                             'Başarılı!',
+                                             'E-defter Yüklendi!',
+                                             'success'
+                                         )
+                                     }
+
+
+                                 }
+                             });
+
+                         });
+
+ 
+
+                    });
+
+                   
+                    function onItemClickTesta(data) {
+                        console.log("nası yani");
+                        $("#mainyear").val(data.MainYear);
+                        $("#mainmonth").val(data.MainMonth);
+                        let elementz = document.getElementById("grdContYearDefter");
+                        var tttdate = $("#mainmonth").val() + "_" + $("#mainyear").val();
+                        compid = $("#txtcurcomide").val();
+
+                        var fdatam = new FormData();
+                        fdatam.append('id', 0);
+                        fdatam.append('Caption', tttdate);
+                        fdatam.append('ide', $("#txtcurcomide").val());
+
+
+                        $.ajax({
+                            url: "/JsonService/Main/moodUploadOneProcess",
+                            method: "POST",
+                            statusCode: {
+                                500: function () {
+                                    document.getElementById('uploadInput').value = null;
+                                    getLoadPanelInstance().hide();
+                                    Swal.fire({
+                                        title: 'Server Erişim Sorunuz. Lütfen Sayfayı Yenileyiniz...',
+                                        confirmButtonText: 'Yenile'
+                                    }).then((result) => {
+                                        /* Read more about isConfirmed, isDenied below */
+                                        if (result.isConfirmed) {
+
+                                            location.reload();
+                                        }
+                                    });
+                                },
+                                404: function () {
+                                    alert("Script 404");
+                                }
+                            },
+                            contentType: false,
+                            data: fdatam,
+                            processData: false,
+                            cache: false,
+                            success: function (data) {
+                                if (data == "nok") {
+                                    //swal.close();
+                                    getLoadPanelInstance().hide(); document.getElementById('uploadInput').value = null;
+                                    Swal.fire(
+                                        'Hata!',
+                                        'E-defter Yüklenemedi Lütfen Seçili Tarih ile E-Defter tarihini / E-Defter Entegratör Tipini KOntrol Ediniz!',
+                                        'error'
+                                    )
+                                }
+                                else {
+                                    Swal.fire(
+                                        'Başarılı!',
+                                        'E-defter Yüklendi!',
+                                        'success'
+                                    )
+                                }
+
+
+                            }
+                        });
+
+                    }
+                    function getselectYearInstance() {
+                        return $("#slctYear").dxSelectBox("instance");
+                    }
+                  
+                    function selectYear_Initialized() {
+                        getselectYearInstance().option("value", parseInt($("#txtmyear").val()));
+                        var chkco = parseInt($("#txtyearcount").val());
+
+                        //if (chkco < 2) {
+                        //    getselectYearInstance().option("readOnly", true);
+                        //}
+
+
+                    }
+
+                    
+
+                    function selectYear_valueChanged(data) {
+                        var slctval = data.selectedItem.MYear;
+                        var turl = '/admin/uploadtest?handler=GraphYear&nyear=' + slctval;
+
+                        if (misready == "ok" && tyear.toString() != slctval.toString()) {
+                            getLoadPanelInstance().show();
+                            $.ajax({
+                                type: "GET",
+                                url: turl,
+                                contentType: "application/json; charset=utf-8",
+                                dataType: "json",
+                                success: function (response) {
+                                    if (response == "ok") {
+                                        location.reload();
+                                    }
+                                },
+                                failure: function (response) {
+                                    alert(response);
+                                }
+                            });
+                        }
+
+                    }
+ 
+                    function funcUpload() {
+                        $('#uploadInput').focus().trigger('click');
+
+                    }
+                    function successOapiumProcess() {
+
+                        //let elementz = document.getElementById("grdContYearDefter");
+                        //let instancez = DevExpress.ui.dxDataGrid.getInstance(elementz);
+                        var tttdate = $("#mainmonth").val() + "_" + $("#mainyear").val();
+                        compid = $("#txtcurcomide").val();
+
+                        var fdatam = new FormData();
+                        fdatam.append('id', 0);
+                        fdatam.append('Caption', tttdate);
+                        fdatam.append('ide', $("#txtcurcomide").val());
+
+
+                        monthid = $("#mainmonth").val();
+
+                        fdatam.append('idexml', "0");
+                        //con
+                        //instancez.getDataSource().reload();
+                        getLoadPanelInstance().hide();
+                        //swal.close(); dataGridInstance.option("loadPanel").text = "Test";
+                        startitwithTextMal();
+                        document.getElementById('uploadInput').value = null;
+                        $.ajax({
+                            url: "/JsonService/Main/moodUploadOneProcess",
+                            method: "POST",
+                            statusCode: {
+                                500: function () {
+                                    getLoadPanelInstance().hide();
+                                    Swal.fire({
+                                        title: 'Server Erişim Sorunuz. Lütfen Sayfayı Yenileyiniz...',
+                                        confirmButtonText: 'Yenile'
+                                    }).then((result) => {
+                                        /* Read more about isConfirmed, isDenied below */
+                                        if (result.isConfirmed) {
+
+                                            location.reload();
+                                        }
+                                    });
+                                },
+                                404: function () {
+                                    alert("Script 404");
+                                }
+                            },
+                            contentType: false,
+                            data: fdatam,
+                            processData: false,
+                            cache: false,
+                            success: function (data) {
+                                if (data == "nok") {
+                                    //swal.close();
+                                    getLoadPanelInstance().hide(); document.getElementById('uploadInput').value = null;
+                                    instancez.getDataSource().reload();
+                                    Swal.fire(
+                                        'Hata!',
+                                        'E-defter Yüklenemedi Lütfen Seçili Tarih ile E-Defter tarihini / E-Defter Entegratör Tipini KOntrol Ediniz!',
+                                        'error'
+                                    )
+                                }
+                                else {
+                                    getLoadPanelInstance().hide(); document.getElementById('uploadInput').value = null;
+                                    instancez.getDataSource().reload();
+                                    Swal.fire(
+                                        'Başarılı!',
+                                        'E-defter Yüklendi!',
+                                        'success'
+                                    )
+                                }
+
+
+                            }
+                        });
+
+
+
+
+                    }
+                    function successOapium(data) {
+
+                        let elementz = document.getElementById("grdContYearDefter");
+                        let instancez = DevExpress.ui.dxDataGrid.getInstance(elementz);
+                        var tttdate = $("#mainmonth").val() + "_" + $("#mainyear").val();
+                        compid = $("#txtcurcomide").val();
+                        var arr = data.split('_');
+                        var fdatam = new FormData();
+                        fdatam.append('id', 0);
+                        fdatam.append('Caption', tttdate);
+                        fdatam.append('ide', $("#txtcurcomide").val());
+
+
+                        var returnCount = arr[0];
+                        var lastCount = arr[1];
+
+                        if (lastCount == "1") {
+                            /*    dt1 = arr[0];*/
+                            //$("#txtrowcount").text(arr[1]);
+                            //$("#txterroredcombin").text(arr[2]);
+                            //monthid = $("#mainmonth").val();
+
+
+
+                            // instancez.getDataSource().reload();
+
+                            //swal.close();
+                            getLoadPanelInstance().hide(); document.getElementById('uploadInput').value = null;
+                            successOapiumProcess();
+                        }
+                        else {
+                            monthid = $("#mainmonth").val();
+
+                            fdatam.append('idexml', returnCount.toString());
+                            //con
+                            //instancez.getDataSource().reload();
+                            getLoadPanelInstance().hide();
+                            //swal.close(); dataGridInstance.option("loadPanel").text = "Test";
+                            startitwithText(returnCount);
+                            document.getElementById('uploadInput').value = null;
+                            $.ajax({
+                                url: "/JsonService/Main/moodUploadOneGoOn",
+                                method: "POST",
+                                statusCode: {
+                                    500: function () {
+                                        getLoadPanelInstance().hide();
+                                        Swal.fire({
+                                            title: 'Server Erişim Sorunuz. Lütfen Sayfayı Yenileyiniz...',
+                                            confirmButtonText: 'Yenile'
+                                        }).then((result) => {
+                                            /* Read more about isConfirmed, isDenied below */
+                                            if (result.isConfirmed) {
+
+                                                location.reload();
+                                            }
+                                        });
+                                    },
+                                    404: function () {
+                                        alert("Script 404");
+                                    }
+                                },
+                                contentType: false,
+                                data: fdatam,
+                                processData: false,
+                                cache: false,
+                                success: function (data) {
+                                    if (data == "nok") {
+                                        //swal.close();
+                                        getLoadPanelInstance().hide(); document.getElementById('uploadInput').value = null;
+                                        Swal.fire(
+                                            'Hata!',
+                                            'E-defter Yüklenemedi Lütfen Seçili Tarih ile E-Defter tarihini / E-Defter Entegratör Tipini KOntrol Ediniz!',
+                                            'error'
+                                        )
+                                    }
+                                    else {
+                                        successOapium(data);
+                                    }
+
+
+                                }
+                            });
+                        }
+
+
+
+                    }
+
+                    function funcClose() {
+                        const popuprz = $("#popupgrid").dxPopup("instance");
+                        popuprz.hide();
+                    }
+
+                    function readURL(input) {
+
+                        var reader = new FileReader();
+                        //let elementz = document.getElementById("grdContYearDefter");
+                        //let instancez = DevExpress.ui.dxDataGrid.getInstance(elementz);
+
+                        compid = $("#txtcurcomide").val();
+
+
+
+
+                        if (input.files && input.files[0]) {
+                            var ext = "";
+                            var fdatam = new FormData();
+                            var tttdate = $("#mainmonth").val() + "_" + $("#mainyear").val();
+                            for (var i = 0; i < input.files.length; i++) {
+                                fdatam.append('file', input.files[i]);
+                                if (input.files[i].name.split('.')[1] == 'xml' && input.files[i].name.toLowerCase().indexOf("-y-") < 0) {
+                                    Swal.fire(
+                                        'Hata!',
+                                        'E-defter Yüklenemedi Lütfen Yevmiye Kayıtları olan E-defter xml ini Yükleyiniz!',
+                                        'error'
+                                    )
+
+                                    return;
+                                }
+                            }
+
+                            if (input.files.length > 1 && input.files[0].name.split('.')[1] == 'zip') {
+                                reader.onload = function (e) {
+
+                                    var imgur = e.target.result;
+                                };
+                                reader.readAsDataURL(input.files[0]);
+                                fdatam.append('id', 0);
+                                fdatam.append('Caption', tttdate);
+                                fdatam.append('ide', $("#txtcurcomide").val());
+                                fdatam.append('idexml', "0");
+                                startit();
+
+                                if ($("#txtisupdate").val() == "0" || $("#txtisupdate").val() == 0) {
+                                    $.ajax({
+                                        url: "/JsonService/Main/moodUploadOne",
+                                        method: "POST",
+                                        statusCode: {
+                                            500: function () {
+                                                getLoadPanelInstance().hide();
+                                                Swal.fire({
+                                                    title: 'Server Erişim Sorunuz. Lütfen Sayfayı Yenileyiniz...',
+                                                    confirmButtonText: 'Yenile'
+                                                }).then((result) => {
+                                                    /* Read more about isConfirmed, isDenied below */
+                                                    if (result.isConfirmed) {
+
+                                                        location.reload();
+                                                    }
+                                                });
+                                            },
+                                            404: function () {
+                                                alert("Script 404");
+                                            }
+                                        },
+                                        contentType: false,
+                                        data: fdatam,
+                                        processData: false,
+                                        cache: false,
+                                        success: function (data) {
+                                            if (data == "nok") {
+                                                //swal.close();
+                                                getLoadPanelInstance().hide();
+                                                document.getElementById('uploadInput').value = null;
+                                                Swal.fire(
+                                                    'Hata!',
+                                                    'E-defter Yüklenemedi Lütfen Seçili Tarih ile E-Defter tarihini / E-Defter Entegratör Tipini KOntrol Ediniz!',
+                                                    'error'
+                                                )
+                                            }
+                                            else {
+                                                successOapium(data);
+                                            }
+
+
+                                        }
+                                    });
+                                }
+                                else {
+                                    $.ajax({
+                                        url: "/JsonService/Main/moodUploadOneUpdate",
+                                        method: "POST",
+                                        statusCode: {
+                                            500: function () {
+                                                getLoadPanelInstance().hide();
+                                                Swal.fire({
+                                                    title: 'Server Erişim Sorunuz. Lütfen Sayfayı Yenileyiniz...',
+                                                    confirmButtonText: 'Yenile'
+                                                }).then((result) => {
+                                                    /* Read more about isConfirmed, isDenied below */
+                                                    if (result.isConfirmed) {
+
+                                                        location.reload();
+                                                    }
+                                                });
+                                            },
+                                            404: function () {
+                                                alert("Script 404");
+                                            }
+                                        },
+                                        contentType: false,
+                                        data: fdatam,
+                                        processData: false,
+                                        cache: false,
+                                        success: function (data) {
+                                            if (data == "nok") {
+                                                //swal.close();
+                                                getLoadPanelInstance().hide(); document.getElementById('uploadInput').value = null;
+                                                Swal.fire(
+                                                    'Hata!',
+                                                    'E-defter Yüklenemedi Lütfen Seçili Tarih ile E-Defter tarihini / E-Defter Entegratör Tipini KOntrol Ediniz!',
+                                                    'error'
+                                                )
+                                            }
+                                            else {
+                                                successOapium(data);
+                                            }
+
+
+                                        }
+                                    });
+                                }
+
+
+                            }
+                            else {
+                                reader.onload = function (e) {
+
+                                    var imgur = e.target.result;
+                                };
+                                reader.readAsDataURL(input.files[0]);
+                                fdatam.append('id', 0);
+                                fdatam.append('Caption', tttdate);
+                                fdatam.append('ide', $("#txtcurcomide").val());
+                                fdatam.append('idexml', "0");
+                                startit();
+
+                                if ($("#txtisupdate").val() == "0" || $("#txtisupdate").val() == 0) {
+                                    $.ajax({
+                                        url: "/JsonService/Main/moodUpload",
+                                        method: "POST",
+                                        statusCode: {
+                                            500: function () {
+                                                getLoadPanelInstance().hide();
+                                                Swal.fire({
+                                                    title: 'Server Erişim Sorunuz. Lütfen Sayfayı Yenileyiniz...',
+                                                    confirmButtonText: 'Yenile'
+                                                }).then((result) => {
+                                                    /* Read more about isConfirmed, isDenied below */
+                                                    if (result.isConfirmed) {
+
+                                                        location.reload();
+                                                    }
+                                                });
+                                            },
+                                            404: function () {
+                                                alert("Script 404");
+                                            }
+                                        },
+                                        contentType: false,
+                                        data: fdatam,
+                                        processData: false,
+                                        cache: false,
+                                        success: function (data) {
+                                            if (data == "nok") {
+                                                //swal.close();
+                                                getLoadPanelInstance().hide();
+                                                document.getElementById('uploadInput').value = null;
+                                                Swal.fire(
+                                                    'Hata!',
+                                                    'E-defter Yüklenemedi Lütfen Seçili Tarih ile E-Defter tarihini / E-Defter Entegratör Tipini KOntrol Ediniz!',
+                                                    'error'
+                                                )
+                                            }
+                                            else {
+                                                var arr = data.split('_');
+                                                dt1 = arr[0];
+
+                                                $("#txtrowcount").text(arr[1]);
+                                                $("#txterroredcombin").text(arr[2]);
+
+                                                monthid = $("#mainmonth").val();
+
+                                                 
+
+                                                //swal.close();
+                                                getLoadPanelInstance().hide(); document.getElementById('uploadInput').value = null;
+                                                Swal.fire(
+                                                    'Başarılı!',
+                                                    'E-defter Yüklendi!',
+                                                    'success'
+                                                )
+                                            }
+
+
+                                        }
+                                    });
+                                }
+                                else {
+                                    $.ajax({
+                                        url: "/JsonService/Main/moodUploadUpdate",
+                                        method: "POST",
+                                        statusCode: {
+                                            500: function () {
+                                                getLoadPanelInstance().hide();
+                                                Swal.fire({
+                                                    title: 'Server Erişim Sorunuz. Lütfen Sayfayı Yenileyiniz...',
+                                                    confirmButtonText: 'Yenile'
+                                                }).then((result) => {
+                                                    /* Read more about isConfirmed, isDenied below */
+                                                    if (result.isConfirmed) {
+
+                                                        location.reload();
+                                                    }
+                                                });
+                                            },
+                                            404: function () {
+                                                alert("Script 404");
+                                            }
+                                        },
+                                        contentType: false,
+                                        data: fdatam,
+                                        processData: false,
+                                        cache: false,
+                                        success: function (data) {
+                                            if (data == "nok") {
+                                                //swal.close();
+                                                getLoadPanelInstance().hide(); document.getElementById('uploadInput').value = null;
+                                                Swal.fire(
+                                                    'Hata!',
+                                                    'E-defter Yüklenemedi Lütfen Seçili Tarih ile E-Defter tarihini / E-Defter Entegratör Tipini KOntrol Ediniz!',
+                                                    'error'
+                                                )
+                                            }
+                                            else {
+                                                var arr = data.split('_');
+
+                                                dt1 = arr[0];
+                                                //$("#txtrowcount").text(arr[1]);
+                                                //$("#txterroredcombin").text(arr[2]);
+                                                monthid = $("#mainmonth").val();
+
+
+ 
+
+                                                //swal.close();
+                                                getLoadPanelInstance().hide(); document.getElementById('uploadInput').value = null;
+                                                Swal.fire(
+                                                    'Başarılı!',
+                                                    'E-defter Yüklendi!',
+                                                    'success'
+                                                )
+                                            }
+
+
+                                        }
+                                    });
+                                }
+
+                            }
+
+                        }
+                    }
+
+                    function startitwithText(dataz) {
+                        getLoadPanelInstance().show();
+                        var tt = dataz.toString() + " - Numaralı Edefter Verileri İşleniyor";
+                        getLoadPanelInstance().option("message", tt);
+
+
+                    };
+                    function startitwithTextMal() {
+                        getLoadPanelInstance().show();
+                        var tt = "Tüm edefterler yüklendi  Mali Veri analizleri Yapılıyor ";
+                        getLoadPanelInstance().option("message", tt);
+
+
+                    };
+
+                    function startit() {
+                        getLoadPanelInstance().show();
+                        // Hide the label at start
+                        //let timerInterval
+                        //Swal.fire({
+                        //    title: 'E-Defter İşleniyor!',
+                        //    html: '  Kontrol Ediliyor.....',
+                        //    timer: 610000,
+                        //    timerProgressBar: true,
+                        //    didOpen: () => {
+                        //        Swal.showLoading()
+                        //        timerInterval = setInterval(() => {
+
+                        //        }, 100)
+                        //    },
+                        //    willClose: () => {
+                        //        clearInterval(timerInterval)
+                        //    }
+                        //}).then((result) => {
+                        //    /* Read more about handling dismissals below */
+                        //    if (result.dismiss === Swal.DismissReason.timer) {
+                        //        console.log('I was closed by the timer')
+                        //    }
+                        //})
+
+                    };
+                    function functionsec(data) {
+
+                        monthid = data;
+                        $("#mainmonth").val(monthid);
+                        var compidz = $("#txtmcomp").val();
+
+                        var yearz = $("#txtmyear").val();
+                        //const popuprz = $("#popupgrid").dxPopup("instance");
+                        //popuprz.show();
+                        //let elementz = document.getElementById("grdErroredDefter");
+                        //let instancez = DevExpress.ui.dxDataGrid.getInstance(elementz);
+                        //instancez.getDataSource().reload();
+                        window.open(
+                            '/admin/reportpot?nyear=' + yearz + '&nmon=' + compidz + '&nmont=' + monthid,
+                            '_blank' // <- This is what makes it open in a new window.
+                        );
+                        // location.href = '/admin/reportpot?nyear=' + yearz + '&nmon=' + compidz + '&nmont=' + monthid;
+                    }
+
+
+                </script>
+
+
+
+
+
+                 
+            </div>
+
+        </div>
+
+
+
+    </div>
+
+    <div class="card">
+        <div class="body">
+
+            <div class="row">
+
+                <div class="container-center-horizontal">
+                    <div class="bilgisayarimdan-veri-yukleme screen">
+
+                        <div class="flex-col flex">
+       
+                            <div class="yeniliki-ve-kolay-2 yeniliki-ve-kolay-3">Belge Yükle</div>
+                            <p class="e-defterlerinizi-yk mulish-normal-ebony-clay-14px">
+                                e-Defterlerinizi yüklemek istediğiniz kaynağı seçiniz.
+                            </p>
+                            <div class="flex-row flex">
+                                <div class="frame-914">
+                                    <div class="frame-911">
+                                        <div class="group-86">
+                                            <div class="talimat-arama mulish-bold-ebony-clay-14px">Kaynak</div>
+                                            <div class="input">
+                                                <div class="e-posta-adresiniz mulish-normal-ebony-clay-14px">QNB  </div>
+                                                <img class="icons" src="/img/icons.svg" alt="Icons" />
+                                            </div>
+                                        </div>
+                                        <div class="buttons">
+                                            <div class="lemler valign-text-middle mulish-bold-white-14px">Belge Yükle</div>
+                                        </div>
+                                    </div>
+                                    <div class="group-86-1">
+                                        <div class="talimat-arama-1 mulish-bold-ebony-clay-14px " style="padding-right: 25px; padding-left: 20px;">Yıl</div>
+                                  
+                                            @(Html.DevExtreme().SelectBox()
+                    .DataSource(Model.myearResult).ID("slctYear").OnInitialized("selectYear_Initialized")
+                    .DisplayExpr("MText").OnSelectionChanged("selectYear_valueChanged")
+                    .ValueExpr("MYear").Width(305)
+                )
+                                         
+                                    </div>
+                                </div>
+                                <div class="product-purchasedw-ribbon">
+                                    <div class="qnb-finansbank-container">
+                                        <p class="neden-qnb-finansbank">
+                                            <span class="span0">Neden QNB ile verilerimi paylaşmalıyım?</span><span></span>
+                                        </p>
+                                        <p class="qnb-finansbank-ile-v">
+                                            <span class="mulish-normal-ebony-clay-14px">QNB ile verilerinizi paylaşmanız durumunda </span><span class="mulish-bold-ebony-clay-14px">hiçbir ücret ödemeden</span><span class="mulish-normal-ebony-clay-14px">
+                                                e-Defter verileriniz ile ilgili finansal raporu alabilir ve güncel mali tablolarınızı FinCheckUp
+                                                içerisinden takip edebilirsiniz.
+                                            </span>
+                                        </p>
+                                    </div>
+                                    <div class="flex-col-1">
+                                        <div class="overlap-group"><div class="qnb-finansbank">QNB  </div></div>
+                                        <div class="buttons-1 buttons-3">
+                                            <div class="lemler valign-text-middle mulish-bold-white-14px">Paylaş</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="overlap-group12">
+                                <div class="frame-901">
+                                    <div class="k-hesap-3">AY</div>
+                                    <div class="k-hesap-4">BELGE DURUMU</div>
+                                </div>
+                                <div class="frame-901a" style="padding-bottom:55px;">
+
+                                </div>
+                                @foreach (var item in Model.currentUploadMOK)
+                                {
+                                    <div class="overlap-group-1">
+                                        <div class="k-hesap-5 mulish-semi-bold-ebony-clay-14px"> @item.DocumentMonthTr </div>
+                                        <div class="group-619">
+                                            <div class="icons-1"><img class="check-circle" src="/img/check-circle.svg" alt="check-circle" /></div>
+                                            <div class="k-hesap-container">
+                                                <div class="k-hesap mulish-semi-bold-ebony-clay-14px">Belge Yüklü</div>
+                                                <div class="k-hesap-6">Bilgisayarımdan</div>
+                                            </div>
+                                        </div>
+                                        <div class="group-628"><img class="icon-refresh" src="/img/group-628@2x.png" alt="icon-refresh" /></div>
+                                    </div>
+                                }
+                                @foreach (var item in Model.currentUploadMMonth)
+                                {
+                                    <div class="overlap-group-1">
+                                        <div class="k-hesap-5 mulish-semi-bold-ebony-clay-14px"> @item.DocumentMonthTr </div>
+                                        <div class="group-619">
+                                            <div class="icons-1"> </div>
+                                            <div class="k-hesap-container">
+                                                <div class="buttons-2 buttons-3">
+                                                    <div class="lemler valign-text-middle mulish-bold-white-14px" id="btnupppload" data-id="@item.MainMonth" data-year="@item.MainYear"  >Belge Yükle</div>
+                                                </div>
+                                            </div>
+                                        </div> 
+                                    </div>
+                                }
+
+                                @foreach (var item in Model.currentUploadMNoOK)
+                                {
+                                    <div class="overlap-group-1">
+                                        <div class="k-hesap-5 mulish-semi-bold-ebony-clay-14px"> @item.DocumentMonthTr </div>
+                                        <div class="group-619">
+                                            <div class="icons-1"> </div>
+                                            <div class="k-hesap-container">
+                                               
+                                                    <div class="icons-1"><img class="alert" src="img/alert.svg" alt="alert"></div>
+                                                    <p class="k-hesap-2 mulish-normal-ebony-clay-12px">
+                                                        Belgeniz hazır olduğunda anlaşmalı firma tarafından otomatik olarak sisteme yüklenecektir veya manuel
+                                                        olarak bilgisayarınızdan yükleyebilirsiniz
+                                                    </p>
+                                                
+                                            </div>
+                                        </div>
+                                     
+                                    </div>
+                                }
+
+
+
+
+
+
+
+
+
+
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+</section>
+@(Html.DevExtreme().LoadPanel()
+        .ID("loadPanel")
+        .ShadingColor("rgba(0,0,0,0.4)")
+        .Position(p => p.Of("#employee"))
+        .Visible(false)
+        .ShowIndicator(true).Message("E-defter İşleniyor.. Lütfen Bekleyiniz...")
+        .ShowPane(true).Height(300).Width(500)
+        .Shading(true)
+          .HideOnOutsideClick(false)
+        .OnShown("loadPanel_shown")
+    )
+<input type="text" id="mainyear" name="mainyear" value="@Model.CurrentUser.SelectedYear" style="display:none" />
+<input type="text" id="mainmonth" name="mainmonth" style="display:none" />
+<input type="file" id="uploadInput" multiple name="myFile" onchange="readURL(this);" style="display:none" accept=".xml, .csv, .zip" />
+
+
+
+
+
+@section Scripts{
+    <script src="~/js/polyfill.min.js"></script>
+    <script src="~/js/exceljs.min.js"></script>
+    <script src="~/js/FileSaver.min.js"></script>
+
+    <script>
+        function getLoadPanelInstance() {
+            return $("#loadPanel").dxLoadPanel("instance");
+        }
+        function loadPanel_shown(e) {
+            setTimeout(function () {
+                e.component.hide();
+            }, 7610000);
+        }
+        function functionupdate(data) {
+            startit();
+            monthid = data;
+            var fdatam = new FormData();
+            fdatam.append('companyid', $("#txtcurcomide").val());
+            fdatam.append('month', data);
+            fdatam.append('year', $("#mainyear").val());
+
+            $.ajax({
+                url: "/JsonService/Main/moodUpdate",
+                method: "POST",
+                statusCode: {
+                    500: function () {
+                        getLoadPanelInstance().hide();
+                        Swal.fire({
+                            title: 'Server Erişim Sorunuz. Lütfen Sayfayı Yenileyiniz...',
+                            confirmButtonText: 'Yenile'
+                        }).then((result) => {
+                            /* Read more about isConfirmed, isDenied below */
+                            if (result.isConfirmed) {
+
+                                location.reload();
+                            }
+                        });
+                    },
+                    404: function () {
+                        alert("Script 404");
+                    }
+                },
+                contentType: false,
+                data: fdatam,
+                processData: false,
+                cache: false,
+                success: function (data) {
+                    getLoadPanelInstance().hide();
+                    if (data == "nok") {
+
+                        Swal.fire(
+                            'Hata!',
+                            'Hata ile Karşılaşıldı!',
+                            'error'
+                        )
+                    }
+                    else {
+                        var arr = data.split('_');
+
+                        dt1 = arr[0];
+
+                        Swal.fire(
+                            'Başarılı!',
+                            'Güncelleme Tamamlandı!',
+                            'success'
+                        )
+                    }
+
+
+                }
+            });
+
+
+        }
+
+        var txcompname = $("txtcompname").val();
+
+        function formatMessage(e) {
+
+            return $("#txtcompname").val();
+        }
+        function exporting(e) {
+            e.component.beginUpdate();
+            e.component.columnOption('DocumentDate', 'visible', true);
+            e.component.columnOption('DetailComment', 'visible', true);
+            e.component.columnOption('EnteredBy', 'visible', true);
+            e.component.columnOption('DocumentTypeDescription', 'visible', true);
+            e.component.columnOption('PaymentMethod', 'visible', true);
+            e.component.columnOption('AccountMainDescription', 'visible', true);
+            e.component.columnOption('AccountSubDescription', 'visible', true);
+            e.component.columnOption('AccountSubID', 'visible', true);
+
+            var workbook = new ExcelJS.Workbook();
+            var worksheet = workbook.addWorksheet('Uyarı Alan Kayıtlar');
+
+            worksheet.columns = [
+                { width: 1 }, { width: 25 }, { width: 25 }, { width: 15 }, { width: 15 }, { width: 35 }, { width: 25 }, { width: 35 }, { width: 15 }, { width: 15 }, { width: 35 }, { width: 15 }, { width: 15 }, { width: 5 }, { width: 55 }
+            ];
+            var chkktxt = "";
+            DevExpress.excelExporter.exportDataGrid({
+                component: e.component,
+                worksheet: worksheet,
+                keepColumnWidths: false,
+                topLeftCell: { row: 2, column: 2 },
+                customizeCell: function (options) {
+                    var gridCell = options.gridCell;
+                    var excelCell = options.excelCell;
+                    var chknum = 0;
+                    if (gridCell.rowType === "data") {
+                        if (gridCell.column.dataField === 'DocumentDate') {
+
+                            chkktxt = $("#mainyear").val() + "_" + $("#mainmonth").val();
+                        }
+                        chknum = 0;
+
+
+
+                    }
+                    if (gridCell.rowType === "group") {
+                        excelCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: "BEDFE6" } };
+                    }
+                }
+            }).then(function () {
+                workbook.xlsx.writeBuffer().then(function (buffer) {
+                    saveAs(new Blob([buffer], { type: "application/octet-stream" }), chkktxt + "_" + "kayitlar.xlsx");
+                });
+            });
+            e.cancel = true;
+        }
+
+        function exportingz(e) {
+            e.component.beginUpdate();
+            e.component.columnOption('DocumentDate', 'visible', true);
+            e.component.columnOption('DetailComment', 'visible', true);
+            e.component.columnOption('EnteredBy', 'visible', true);
+            e.component.columnOption('DocumentTypeDescription', 'visible', true);
+            e.component.columnOption('PaymentMethod', 'visible', true);
+            e.component.columnOption('AccountMainDescription', 'visible', true);
+            e.component.columnOption('AccountSubDescription', 'visible', true);
+            e.component.columnOption('AccountSubID', 'visible', true);
+
+            var workbook = new ExcelJS.Workbook();
+            var worksheet = workbook.addWorksheet('Uyarı Alan Kayıtlar');
+
+            worksheet.columns = [
+                { width: 1 }, { width: 25 }, { width: 25 }, { width: 15 }, { width: 15 }, { width: 35 }, { width: 25 }, { width: 35 }, { width: 15 }, { width: 15 }, { width: 35 }, { width: 15 }, { width: 15 }, { width: 5 }, { width: 55 }
+            ];
+            var chkktxt = "";
+            DevExpress.excelExporter.exportDataGrid({
+                component: e.component,
+                worksheet: worksheet,
+                keepColumnWidths: false,
+                topLeftCell: { row: 2, column: 2 },
+                customizeCell: function (options) {
+                    var gridCell = options.gridCell;
+                    var excelCell = options.excelCell;
+                    var chknum = 0;
+                    if (gridCell.rowType === "data") {
+                        if (gridCell.column.dataField === 'DocumentDate') {
+                            chkktxt = $("#mainyear").val() + "_" + $("#mainmonth").val();
+                        }
+
+                        chknum = 0;
+
+                    }
+                    if (gridCell.rowType === "group") {
+                        excelCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: "BEDFE6" } };
+                    }
+                }
+            }).then(function () {
+                workbook.xlsx.writeBuffer().then(function (buffer) {
+                    saveAs(new Blob([buffer], { type: "application/octet-stream" }), chkktxt + "_" + "kayitlar.xlsx");
+                });
+            });
+            e.cancel = true;
+        }
+    </script>
+
+}
+

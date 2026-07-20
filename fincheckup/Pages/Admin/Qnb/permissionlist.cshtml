@@ -1,0 +1,1323 @@
+﻿@page
+@using fincheckup.Helper
+@using fincheckup.Models.Hvvn
+@using fincheckup.Models.NKolay.ViewM
+@using fincheckup.Models.ViewM
+@using fincheckup.Report
+@using fincheckup.Models.NKolay.QnbReport
+@using Microsoft.AspNetCore.Mvc.RazorPages;
+@using fincheckup.Models.Qnb
+
+
+{
+
+@model IndexModel
+@{
+    ViewData["Title"] = "İzin Ekranı";
+    Layout = "~/Pages/Shared/_LayoutQnbMain.cshtml";
+}
+@using DevExpress.XtraPrinting;
+@using fincheckup.ENTITY
+@functions {
+    public class IndexModel : PageModel
+    {
+        public IOrderedEnumerable<TBLAAQnbSignLog> reportList;
+
+        public IEnumerable<YearResult> myearResult;
+        public long UserID; public int YearCurrent;
+        public long CompID;
+        public int CompCount;
+        public string CompName;
+        public string NewRepName;
+        public int YearCount;
+        public long curcomID;
+        public int curcomCount;
+        
+        public HhvnUsers CurrentUser;
+        
+        public IEnumerable<NaceCode> cNaceCodeUpload;
+        
+        
+        public IEnumerable<Companies> mreqListCompany;
+        public Companies curCompany;
+        
+
+        public string currentcompname { get; set; }
+
+        public void OnGet()
+        {
+
+
+            myearResult = YearResult.getValue();
+
+            cNaceCodeUpload = NaceCode.Get_NaceCode();
+            YearCurrent = 2021;
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+            mreqListCompany = Companies.Getby_User(UserID);
+            curCompany = mreqListCompany.Where(x => x.IsDefault == 1).FirstOrDefault();
+            CompName = mreqListCompany.Where(x => x.IsDefault == 1).FirstOrDefault().CompanyName;
+            currentcompname = curCompany.CompanyName;
+            YearCurrent = CurrentUser.SelectedYear;
+            curcomID = curCompany.ID;
+            curcomCount = mreqListCompany.Count();
+
+            //currentUpload = UploadMain.Get_Data(DateTime.Now.Year, curcomID); 3320
+
+            CompID = curCompany.ID;
+            YearCount = TBLXml.GetYearByComapnyID(CompID);
+            CompCount = mreqListCompany.Count();
+            reportList = TBLAAQnbSignLog.Get_All().Where(x=>x.CompanyEntegratorID!=2 && x.CompanyID == CompID).OrderBy(a => a.CreatedDate);
+
+
+        }
+
+
+
+
+        public JsonResult OnGetSalerDate(DataSourceLoadOptions options)
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+
+            curcomID = Companies.Getby_User(UserID).Where(x => x.IsDefault == 1).FirstOrDefault().ID;
+
+            var currentUploadM = ReportSetMain.Get_StatbyCompanyMainQNB(curcomID);
+
+
+            return new JsonResult(DataSourceLoader.Load(currentUploadM.OrderBy(x => x.MainMonth).ToList(), options));
+
+        }
+        public JsonResult OnGetSalerYear(DataSourceLoadOptions options)
+        {
+
+
+            var YearSetm = YearResult.getValue().OrderByDescending(x => x.MYear);
+            return new JsonResult(DataSourceLoader.Load(YearSetm, options));
+
+        }
+        public IActionResult OnGetGetRep(long reportID)
+        {
+            //string filename = "File.pdf";
+            //string filepath = AppDomain.CurrentDomain.BaseDirectory + "/Path/To/File/" + filename;
+            //byte[] filedata = System.IO.File.ReadAllBytes(filepath);
+            //string contentType = MimeMapping.GetMimeMapping(filepath);
+
+            //var cd = new System.Net.Mime.ContentDisposition
+            //{
+            //    FileName = filename,
+            //    Inline = true,
+            //};
+
+
+            NewRepName = CompanyQnbReport.Get_CompanyReport(reportID).ReportName;
+
+
+
+            //
+            //string filePathZ = WebHelper.path;
+            //string filePathZt = WebHelper.pathdomain;
+            //string FilePath = System.IO.Path.Combine(filePathZ, FileDic);
+            //Response.AppendHeader("Content-Disposition", cd.ToString());
+            //return File(FileDic, "application /pdf", NewRepName);
+            //return PhysicalFile(FilePath, "application/pdf", NewRepName);
+            //return File(System.IO.File.ReadAllBytes(FilePath), "application/pdf", NewRepName);
+
+
+            var FileDocz = "/FileContent/" + NewRepName;
+
+            //Send the File to Download.
+            return new JsonResult(FileDocz);
+            //return File(filedata, contentType);
+
+        }
+        public JsonResult OnGetCheckRep(long companyID, int nyear, string nacceco)
+        {
+            try
+            {
+                UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+
+
+            }
+            catch (Exception ex)
+            {
+                var chk = ex;
+                return new JsonResult(ex.ToString());
+
+
+            }
+
+            //var FileDocz = "/FileContent/" + NewRepName;
+
+            //Send the File to Download.
+            return new JsonResult("ok");
+
+        }
+        public JsonResult OnGetSalerComp(DataSourceLoadOptions options)
+        {
+
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            mreqListCompany = Companies.Getby_User(UserID);
+            return new JsonResult(DataSourceLoader.Load(mreqListCompany, options));
+
+        }
+
+        
+        public JsonResult OnGetGraphYear(int nyear)
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            HhvnUsers.SetYear(nyear, UserID);
+            return new JsonResult("ok");
+        }
+
+    }
+}
+@section Styles {
+    <script src="~/assets/progress.js"></script>
+
+    <style>
+
+        @@import url("https://fonts.googleapis.com/css?family=Mulish:400,700,600,800");
+        /* The following line is used to measure usage of this code in production. For more info see our usage billing page */
+
+
+        @@font-face {
+            font-family: "Cordale-Bold";
+            font-style: normal;
+            font-weight: 700;
+            src: url("/fonts/Cordale_Bd.ttf") format("truetype");
+        }
+
+        .orangecolor {
+            background-color: #874651;
+        }
+
+        .greencolor {
+            background-color: #004aad; 
+        }
+
+        /*   .dx-scrollview-content {
+                position: absolute;
+            }*/
+
+        #grdContYearDefter .centerdiv {
+            vertical-align: middle !important;
+            font-weight: bold;
+            font-size: 13px;
+            color: whitesmoke;
+        }
+
+        #grdContYearDefter .dx-header-row .centerdiv {
+            vertical-align: middle !important;
+            font-weight: bold;
+            font-size: 13px;
+            color: black;
+        }
+
+        .screen a {
+            display: contents;
+            text-decoration: none;
+        }
+
+        .container-center-horizontal {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            pointer-events: none;
+            width: 100%;
+        }
+
+            .container-center-horizontal > * {
+                flex-shrink: 0;
+                pointer-events: auto;
+                width: 100%;
+            }
+
+        .valign-text-middle {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .rapor-olustur1-2 {
+            align-items: flex-start;
+            background-color: var(--text);
+            border: 0.08vw none;
+            display: flex;
+            overflow: hidden;
+            width: 100%;
+        }
+        .buttons-3 {
+            align-items: center;
+            /* background-color: var(--cardinal-pink); */
+            border-radius: 4px;
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            padding: 7px 8px;
+            position: relative;
+            width: 407px;
+            /* border-color: tomato; */
+            border-bottom-color: #870052;
+            border-style: solid;
+            border-left-color: transparent;
+            border-top-color: transparent;
+            border-right-color: transparent;
+        }
+        .buttons-5 {
+            align-items: center;
+            /* background-color: var(--cardinal-pink); */
+            border-radius: 4px;
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            padding: 7px 8px;
+            position: relative;
+            width: 555px;
+            /* border-color: tomato; */
+            border-bottom-color: transparent;
+            border-style: solid;
+            border-left-color: transparent;
+            border-top-color: transparent;
+            border-right-color: transparent;
+        }
+
+            .rapor-olustur1-2 .dashboard-karllk-trend {
+                height: 81.93vw;
+                margin-left: 100%;
+                width: 5.2vw;
+            }
+
+            .rapor-olustur1-2 .flex-col {
+                flex-direction: column;
+                margin-right: 1vw;
+                margin-left: 1.92vw;
+                margin-top: 1.2vw;
+                min-height: 44.36vw;
+                width: 100%;
+            }
+
+        .flex-colz {
+            flex-direction: column;
+            margin-right: 1vw;
+            margin-left: 1.92vw;
+            margin-top: 1.2vw;
+            min-height: 44.36vw;
+            width: 100%;
+        }
+
+        .rapor-olustur1-2 .yeniliki-ve-kolay {
+            color: #696a69;
+            font-family: var(--font-family-mulish);
+            font-size: var(--font-size-l);
+            font-weight: 700;
+            letter-spacing: 0;
+            line-height: 1.84vw;
+            white-space: nowrap;
+        }
+
+        .rapor-olustur1-2 .yeniliki-ve-kolay-1 {
+            color: #696a69;
+            font-family: var(--font-family-mulish);
+            margin-top: 0.64vw;
+        }
+
+        .rapor-olustur1-2 .yeniliki-ve-kolay-2 {
+            color: var(--ebony-clay);
+            font-family: var(--font-family-cordale-bold);
+            margin-top: 1.92vw;
+        }
+
+        .rapor-olustur1-2 .risk-raporu-al {
+            color: var(--ebony-clay);
+            font-family: var(--font-family-mulish);
+            font-size: var(--font-size-m);
+            font-weight: 700;
+            letter-spacing: 0;
+            line-height: normal;
+            margin-top: 1.36vw;
+            min-height: 1.44vw;
+            width: 20%;
+        }
+
+        .rapor-olustur1-2 .finansal-risk-raporu {
+            color: var(--ebony-clay);
+            font-family: var(--font-family-mulish);
+            font-size: var(--font-size-m);
+            font-weight: 400;
+            letter-spacing: 0;
+            line-height: normal;
+            margin-top: 1.2vw;
+            min-height: 1.44vw;
+            width: 100%;
+        }
+
+        .rapor-olustur1-2 .flex-row {
+            gap: 1.76vw;
+            margin-top: 1.36vw;
+            min-width: 41%;
+        }
+
+        .rapor-olustur1-2 .group-86 {
+            align-items: center;
+            display: flex;
+            gap: 2.08vw;
+            min-width: 33%;
+            padding: 0 0.09vw;
+        }
+
+        .rapor-olustur1-2 .talimat-arama {
+            height: 0.8vw;
+            margin-bottom: 0.01vw;
+            width: 21%
+        }
+
+        .rapor-olustur1-2 .input {
+            align-items: center;
+            background-color: var(--text);
+            border: 0.08vw solid;
+            border-color: var(--mystic);
+            border-radius: 0.32vw;
+            display: flex;
+            gap: 0.64vw;
+        }
+        .bilgisayarimdan-veri-yukleme .lemler {
+            letter-spacing: 0;
+            line-height: normal;
+            margin-top: -1.00px;
+            position: relative;
+            width: fit-content;
+            cursor: pointer;
+        }
+        .rapor-olustur1-2 .e-posta-adresiniz {
+            color: var(--ebony-clay);
+            flex: 1;
+            font-family: var(--font-family-mulish);
+            font-size: var(--font-size-m);
+            font-weight: 400;
+            letter-spacing: 0;
+            line-height: normal;
+            margin-bottom: -0.64vw;
+            margin-top: -0.8vw;
+            position: relative;
+        }
+
+        .rapor-olustur1-2 .icons {
+            height: 1.76vw;
+            margin-bottom: -0.88vw;
+            margin-top: -0.88vw;
+            min-width: 1.76vw;
+            position: relative;
+        }
+
+        .rapor-olustur1-2 .buttons-1 {
+            align-items: center;
+            background-color: #870052;
+            border-radius: 0.32vw;
+            display: flex;
+            gap: 0.64vw;
+            justify-content: center;
+            padding: 0.56vw 0.64vw;
+            position: relative;
+            width: fit-content;
+        }
+
+        .rapor-olustur1-2 .lemler-1 {
+            color: var(--text);
+            font-family: var(--font-family-mulish);
+            font-size: var(--font-size-m);
+            font-weight: 700;
+            letter-spacing: 0;
+            line-height: normal;
+            margin-top: -0.08vw;
+            position: relative;
+            width: fit-content;
+        }
+
+        .rapor-olustur1-2 .group-594 {
+            align-items: flex-start;
+            display: flex;
+            flex-direction: column;
+            gap: 1.28vw;
+            margin-top: 1.28vw;
+            min-height: 25.66vw;
+            width: 100%;
+        }
+
+        .rapor-olustur1-2 .yeniliki-ve-kolay-3 {
+            color: var(--ebony-clay);
+            font-family: var(--font-family-cordale-bold);
+        }
+
+        .rapor-olustur1-2 .overlap-group1 {
+            position: relative;
+            /*    padding-bottom: 50px;*/
+        }
+
+        .rapor-olustur1-2 .overlap-group {
+            left: 0;
+            position: inherit;
+            top: 0;
+        }
+
+        .rapor-olustur1-2 .overlap-group3 {
+            position: inherit;
+        }
+
+        .rapor-olustur1-2 .overlap-group31 {
+            left: 0;
+            position: inherit;
+            top: 0;
+        }
+
+        .rapor-olustur1-2 .frame-901 {
+            align-items: flex-start;
+            background-color: #f0f2f5;
+            border: 0.08vw solid;
+            border-color: var(--mystic);
+            display: flex;
+            height: 4.64vw;
+            left: 0;
+            min-width: 750px;
+            padding: 1.44vw 15.99vw;
+            position: inherit;
+            top: 0;
+        }
+
+        .rapor-olustur1-2 .noun_filter_1938478 {
+            align-items: flex-start;
+            align-self: center;
+            display: flex;
+            flex-direction: column;
+            gap: 0.08vw;
+            justify-content: center;
+            margin-bottom: 0.16vw;
+            min-height: 1.28vw;
+            width: 1.92vw;
+        }
+
+        .rapor-olustur1-2 .shape {
+            height: 0.64vw;
+            margin-left: 0;
+            width: 1.92vw;
+        }
+
+        .rapor-olustur1-2 .k-hesap-1 {
+            margin-left: 14.23vw;
+            min-height: 1.44vw;
+            min-width: 25%;
+        }
+
+        .rapor-olustur1-2 .noun_filter_1938478-1 {
+            align-items: flex-start;
+            align-self: center;
+            display: flex;
+            flex-direction: column;
+            gap: 0.08vw;
+            justify-content: center;
+            margin-bottom: 0.16vw;
+            margin-left: 1.36vw;
+            min-height: 1.28vw;
+            width: 1.92vw;
+        }
+
+        .rapor-olustur1-2 .k-hesap-2 {
+            margin-left: 16.59vw;
+            min-height: 1.44vw;
+        }
+
+        .rapor-olustur1-2 .group-568 {
+            align-items: center;
+            background-color: #3585f80d;
+            border: 0.08vw solid;
+            border-color: var(--mystic);
+            box-shadow: inset 0.0vw -0.08vw 0.0vw #dee3ed;
+            display: flex;
+            gap: 20.06vw;
+            height: 4.48vw;
+            justify-content: flex-end;
+            left: 0;
+            min-width: 100%;
+            padding: 0 4.08vw;
+            position: absolute;
+            top: 9.03vw;
+        }
+
+        .rapor-olustur1-2 .k-hesap {
+            letter-spacing: 0;
+            line-height: normal;
+            min-height: 1.44vw;
+            min-width: 15%;
+        }
+
+        .rapor-olustur1-2 .buttons {
+            /*   align-items: center;
+        background-color: var(--text);
+        border: 0.08vw solid;
+        border-color: var(--mystic);
+        border-radius: 0.48vw;
+        display: flex;
+        gap: 0.8vw;
+        height: 2.56vw;
+        justify-content: center;
+        padding: 0.56vw 0.64vw;
+        position: relative;
+        width: 23%;*/
+        }
+
+        .rapor-olustur1-2 .lemler {
+            letter-spacing: 0;
+            line-height: normal;
+            margin-top: -0.16vw;
+            position: relative;
+            text-align: center;
+            width: fit-content;
+        }
+
+        .rapor-olustur1-2 .group-569 {
+            align-items: center;
+            background-color: var(--text);
+            border-color: var(--mystic);
+            border-left-style: solid;
+            border-left-width: 0.08vw;
+            border-right-style: solid;
+            border-right-width: 0.08vw;
+            box-shadow: inset 0.0vw -0.08vw 0.0vw #dee3ed;
+            display: flex;
+            gap: 20.06vw;
+            height: 4.48vw;
+            justify-content: flex-end;
+            left: 0;
+            min-width: 100%;
+            padding: 0 4.08vw;
+            position: absolute;
+            top: 4.64vw;
+        }
+
+        .rapor-olustur1-2 .group-5619 {
+            align-items: center;
+            background-color: var(--text);
+            border-color: var(--mystic);
+            border-left-style: solid;
+            border-left-width: 0.08vw;
+            border-right-style: solid;
+            border-right-width: 0.08vw;
+            box-shadow: inset 0.0vw -0.08vw 0.0vw #dee3ed;
+            display: flex;
+            gap: 20.06vw;
+            height: 4.48vw;
+            justify-content: flex-end;
+            left: 0.1%;
+            min-width: 100%;
+            padding: 0 4.08vw;
+            position: relative;
+            margin-top: -1.3%
+        }
+
+        .rapor-olustur1-2 .group-5621 {
+            align-items: center;
+            background-color: var(--text);
+            border-color: var(--mystic);
+            border-left-style: solid;
+            border-left-width: 0.08vw;
+            border-right-style: solid;
+            border-right-width: 0.08vw;
+            box-shadow: inset 0.0vw -0.08vw 0.0vw #dee3ed;
+            display: flex;
+            gap: 20.06vw;
+            height: 4.48vw;
+            justify-content: flex-end;
+            left: 0.1%;
+            min-width: 100%;
+            padding: 0 4.08vw;
+            position: relative;
+            margin-top: -1.4%
+        }
+
+
+        .rapor-olustur1-2 .group-570 {
+            align-items: center;
+            background-color: #3585f80d;
+            border: 0.08vw solid;
+            border-color: var(--mystic);
+            box-shadow: inset 0.0vw -0.08vw 0.0vw #dee3ed;
+            display: flex;
+            gap: 20.06vw;
+            height: 4.48vw;
+            justify-content: flex-end;
+            left: 0;
+            min-width: 100%;
+            padding: 0 4.08vw;
+            position: absolute;
+            top: 17.91vw;
+        }
+
+        .rapor-olustur1-2 .group-571 {
+            align-items: center;
+            background-color: var(--text);
+            border-color: var(--mystic);
+            border-left-style: solid;
+            border-left-width: 0.08vw;
+            border-right-style: solid;
+            border-right-width: 0.08vw;
+            box-shadow: inset 0.0vw -0.08vw 0.0vw #dee3ed;
+            display: flex;
+            gap: 20.06vw;
+            height: 91px;
+            justify-content: flex-end;
+            left: 0;
+            min-width: 100%;
+            padding: 0 4.08vw;
+            position: absolute;
+            top: 13.51vw;
+        }
+
+        .rapor-olustur1-2 .line-16 {
+            left: 33%;
+        }
+
+        .rapor-olustur1-2 .line-18 {
+            left: 65%;
+        }
+
+        .rapor-olustur1-2 .k-hesap-3 {
+            left: 1.92vw;
+            position: absolute;
+            top: 1.6vw;
+        }
+
+        .rapor-olustur1-2 .k-hesap-4 {
+            left: 1.92vw;
+            position: absolute;
+            top: 10.55vw;
+        }
+
+        .rapor-olustur1-2 .k-hesap-5 {
+            left: 1.92vw;
+            position: inherit;
+            top: 6.16vw;
+        }
+
+        .group-5619 .k-hesap-51 {
+            /*  left: 1.92vw;
+        position: relative;
+        top: 5px !important*/
+        }
+
+        .rapor-olustur1-2 .k-hesap-6 {
+            left: 1.92vw;
+            position: absolute;
+            top: 19.42vw;
+        }
+
+        .rapor-olustur1-2 .k-hesap-7 {
+            left: 1.92vw;
+            position: absolute;
+            top: 15.03vw;
+        }
+
+        .rapor-olustur1-2 .flex {
+            align-items: flex-start;
+            display: flex;
+        }
+
+        .rapor-olustur1-2 .k-hesap-8 {
+            letter-spacing: 0;
+            line-height: normal;
+            padding-left: 5%;
+        }
+
+        .rapor-olustur1-2 .k-hesap-811 {
+            letter-spacing: 0;
+            line-height: normal;
+            padding-left: 19%;
+        }
+
+        .rapor-olustur1-2 .line {
+            height: 15%;
+            object-fit: cover;
+            position: inherit;
+            width: 0.08vw;
+        }
+
+        .rapor-olustur1-2 .overlap {
+            height: 100%;
+            width: 100%;
+        }
+
+        .rapor-olustur1-2 .overlap1 {
+            height: 100%;
+            width: 100%;
+        }
+
+        .rapor-olustur1-2 .yeniliki-ve-kolay-4 {
+            font-size: var(--font-size-l);
+            font-weight: 700;
+            letter-spacing: 0;
+            line-height: 1.84vw;
+            white-space: nowrap;
+        }
+
+        :root {
+            --black: #000000;
+            --ebony-clay: #222943;
+            --kashmir-blue: #556589;
+            --mystic: #dee3ed;
+            --text: #ffffff;
+            --font-size-l: 16px;
+            --font-size-m: 14px;
+            --font-family-cordale-bold: "Cordale-Bold", Helvetica;
+            --font-family-mulish: "Mulish", Helvetica;
+        }
+
+        .mulish-semi-bold-ebony-clay-14px {
+            color: var(--ebony-clay);
+            font-family: var(--font-family-mulish);
+            font-size: var(--font-size-m);
+            font-style: normal;
+            font-weight: 600;
+        }
+
+        .mulish-bold-ebony-clay-16px {
+            color: var(--ebony-clay);
+            font-family: var(--font-family-mulish);
+            font-size: var(--font-size-l);
+            font-style: normal;
+            font-weight: 700;
+        }
+
+        .mulish-extra-bold-kashmir-blue-14px {
+            color: var(--kashmir-blue);
+            font-family: var(--font-family-mulish);
+            font-size: var(--font-size-m);
+            font-style: normal;
+            font-weight: 800;
+        }
+
+        .mulish-bold-ebony-clay-16px :focus {
+            outline-color: transparent;
+            outline-style: solid;
+            box-shadow: 0 0 0 4px #5a01a7;
+        }
+
+        .mulish-bold-ebony-clay-16px :active {
+            border-color: #ffbf00;
+        }
+
+        .mulish-bold-ebony-clay-16px :hover {
+            border-color: #002ead;
+            transition: 0.7s;
+        }
+
+
+        .arrow-right-hov {
+            color: blue
+        }
+
+        #ttt1 {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: white;
+            border-radius: 5px;
+            font-size: 20px;
+            font-weight: lighter;
+            letter-spacing: 2px;
+            transition: 1s box-shadow;
+            align-items: center;
+            background-color: var(--text);
+            border: 0.08vw solid;
+            border-color: var(--mystic);
+            border-radius: 0.48vw;
+            display: flex;
+            gap: 0.8vw;
+            height: 2.56vw;
+            justify-content: center;
+            padding: 0.56vw 0.64vw;
+            position: relative;
+            width: 23%;
+        }
+
+        .retvalbutton {
+            cursor: pointer;
+        }
+
+        #ttt1:hover {
+            box-shadow: 10 55px 55px 10px rgba(0,0,0,.1);
+            border-color: midnightblue;
+        }
+
+            #ttt1:hover::before, #ttt1:hover::after {
+                display: block;
+                content: '';
+                position: absolute;
+                border-color: #FDA8CF;
+                border-radius: 5px;
+                z-index: -1;
+            }
+
+            #ttt1:hover:after {
+                cursor: pointer;
+                border-color: #F3CE5E;
+            }
+
+        #tttcoderep {
+            align-items: center;
+            background-color: #870052;
+            border-radius: 0.32vw;
+            display: flex;
+            gap: 0.64vw;
+            transition: 1s box-shadow;
+            justify-content: center;
+            padding: 0.56vw 0.64vw;
+            position: relative;
+            width: fit-content;
+        }
+
+            #tttcoderep:hover {
+                cursor: pointer;
+                box-shadow: 10 55px 55px 10px rgba(0,0,0,.1);
+                border-color: midnightblue;
+            }
+
+                #tttcoderep:hover::before, #tttcoderep:hover::after {
+                    display: block;
+                    content: '';
+                    position: absolute;
+                    border-color: #FDA8CF;
+                    border-radius: 5px;
+                    z-index: -1;
+                }
+
+            #tttcoderep:after {
+                border-color: #F3CE5E;
+            }
+
+
+            #tttcoderep:focus {
+                cursor: pointer;
+                outline-color: transparent;
+                outline-style: solid;
+                box-shadow: 0 0 0 4px #5a01a7;
+            }
+
+            #tttcoderep:active {
+                border-color: #ffbf00;
+            }
+
+            #tttcoderep:hover {
+                cursor: pointer;
+                border-color: #002ead;
+                transition: 0.7s;
+            }
+
+        .dx-datagrid .dx-row-alt {
+            background-color: #DEE3ED;
+        }
+
+            .dx-datagrid .dx-row-alt > td, .dx-datagrid .dx-row-alt > tr > td {
+                background-color: #DEE3ED;
+            }
+
+        .dx-datagrid {
+            font-family: 'Mulish';
+            font-style: normal;
+            font-weight: 600;
+            font-size: 14px;
+            line-height: 18px;
+            /* identical to box height */
+            /* Mass/LightMode/TextColors/T1000 */
+
+            color: #222943;
+        }
+
+        .custom {
+            height: 55px;
+            text-align: center;
+            font-family: 'Mulish';
+            font-style: normal;
+            font-weight: 600;
+            font-size: 14px;
+            line-height: 18px;
+            /* identical to box height */
+            /* Mass/LightMode/TextColors/T1000 */
+
+            color: #222943;
+        }
+
+            .custom[role="columnheader"] {
+                margin-top: 25%;
+                vertical-align: central !important;
+                height: 58px;
+                background: #F0F2F5;
+                font-family: Mulish;
+                font-size: 14px;
+                font-weight: 800;
+                line-height: 18px;
+                letter-spacing: 0px;
+                text-align: left;
+            }
+
+        .dx-datagrid-content .dx-datagrid-table .dx-row > td, .dx-datagrid-content .dx-datagrid-table .dx-row > tr > td {
+            vertical-align: central !important;
+        }
+
+        .cbrbox {
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            padding: 7px 8px;
+            gap: 10px;
+            position: absolute;
+            width: 284px;
+            height: 32px;
+            left: 892px;
+            top: 490px;
+            background: #FFFFFF;
+            border: 1px solid #DEE3ED;
+            border-radius: 6px;
+        }
+    </style>
+}
+<input type="hidden" style="display:none" id="txtcompname" value="@Model.currentcompname" />
+<input type="hidden" style="display:none" id="txtcurcomCount" value="@Model.curcomCount" />
+<input type="hidden" style="display:none" id="txtcurcomide" value="@Model.curcomID" />
+<section class="content home">
+    <div class="container-fluid">
+        <div class="block-header">
+            <div class="row clearfix">
+                <div class="col-lg-5 col-md-5 col-sm-12">
+                    <h2>Ana Sayfa</h2>
+                    <ul class="breadcrumb padding-0">
+                        <li class="breadcrumb-item"><a href=""><i class="zmdi zmdi-home"></i></a></li>
+                        <li class="breadcrumb-item active">Kaynak İzin Yönetimi</li>
+                    </ul>
+                </div>
+                <div class="col-lg-7 col-md-7 col-sm-12">
+                    <div class="input-group m-b-0">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="body">
+                                    <div class="row">
+                                        <div class="col-6" style="text-align:left">
+
+                                        </div>
+                                        <div class="col-6" style="text-align:right">
+
+
+                                            @(Html.DevExtreme().TextBox()
+                                .Value(Model.CompName)  .ReadOnly(true)
+                            )
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <input type="hidden" style="display:none" id="txtmyear" value="@Model.CurrentUser.SelectedYear" />
+        <input type="hidden" style="display:none" id="txtmcomp" value="@Model.CompID" />
+        <input type="hidden" style="display:none" id="txtyearcount" value="@Model.YearCount" />
+        <input type="hidden" style="display:none" id="txtcompcount" value="@Model.CompCount" />
+        <input type="hidden" style="display:none" value="0" id="txtisupdate" />
+        <div class="row clearfix">
+            <div class="col-lg-12 col-md-12">
+
+                <script>
+                    var tyear = $("#txtmyear").val();
+                    var mcompid = $("#txtmcomp").val(); 
+                    var misready = "nok";
+                    var chkReadyState = setInterval(function () {
+                        if (document.readyState == "complete") {
+
+                            clearInterval(chkReadyState);
+
+                            misready = "ok";
+                        }
+                    }, 100);
+                    function onRowPrepared(info) {
+                        if (info.rowType != "header" && info.data.TxResult == "Bekleniyor") {
+
+                            info.rowElement.addClass("orangecolor");
+                        } else if (info.rowType != "header") {
+                            info.rowElement.addClass("greencolor");
+                        }
+                    }
+                    var dt1 = "0";
+                    var compid = $("#txtmcomp").val();
+                    var monthid = 0;
+                    var year = $("#txtmyear").val();
+
+
+
+                    function getselectYearInstance() {
+                        return $("#slctYear").dxSelectBox("instance");
+                    }
+                    
+                    function selectYear_Initialized() {
+                        getselectYearInstance().option("value", parseInt($("#txtmyear").val()));
+                        var chkco = parseInt($("#txtyearcount").val());
+
+                        //if (chkco < 2) {
+                        //    getselectYearInstance().option("readOnly", true);
+                        //}
+
+
+                    }
+
+                 
+                    function funczone() {
+
+                        location.href ="/admin/qnb/upload" 
+                    }
+                    function funcret() {
+
+                        location.href = "/admin/qnb/upload"
+                    }
+                    $(document).ready(function () {
+
+
+
+                        //$('.retvalbutton').click(function (event) {
+
+                        //});
+
+
+                    });
+
+
+
+                  
+
+                    function funcUpload() {
+                        $('#uploadInput').focus().trigger('click');
+                        $("#griddiv").css("display", "none");
+                    }
+
+
+
+
+
+
+
+
+                    function startit() {
+                        getLoadPanelInstance().show();
+
+                    };
+
+                    function selecta() {
+
+
+                    };
+
+                    function selectb() {
+
+                        location.href = "/admin/qnb/permissionlista";
+                    };
+
+                    function cell_prepared(e) {
+                     
+
+                        if (e.columnIndex == 3 && e.rowType == "data") {
+                            var chkk = e.data;
+                            console.log(parseInt(chkk.TRowCount));
+                            if (parseInt(chkk.DeclinedUserID) >0) {
+                                fieldHtml = "<p style='text-align:center'> <img class='retvalbutton' onclick='funczone()' data-id='<%= data.ID %>' src='/ico/reletbtn.svg' /></p>"
+                                e.cellElement.html(fieldHtml);
+
+
+                            }
+                            else {
+                                var ttt = chkk.ID;
+                                fieldHtml = "<p style='text-align:center'> <img class='retvalbutton'  onclick='functionValidationdefterIzinSil(" + ttt + ")'  src='/ico/iziniptal.svg' /></p>"
+                                e.cellElement.html(fieldHtml);
+                            }
+                        }
+                         
+                    }
+
+                </script>
+
+
+
+
+
+
+            </div>
+
+        </div>
+
+
+
+    </div>
+
+    <div class="card">
+
+        <div class="body">
+     
+
+            <div class="container-center-horizontal">
+                <div class="bilgisayarimdan-veri-yukleme screen">
+
+                    <div class="rapor-olustur1-2 screen">
+                        <div class="flex-col flex">
+                            <div class="row" style="width:100%">
+                                <div class="col-3">
+                                    <div class="buttons-2 buttons-3" id="slctBtnz" onclick="selecta()">
+                                        <div class="lemler valign-text-middle mulish-bold-white-14px" id="slctBtn" style="padding-right: 11px; padding-left: 5px; padding-top: 5px; margin-left: 5px ;"><span style="font-family:Mulish;font-weight:700;font-size:16px;line-height:20.08px">Kaynak İzin Yönetimi</span></div>
+
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="buttons-2 buttons-5" id="slctBtnzz" onclick="selectb()">
+                                        <div class="lemler valign-text-middle mulish-bold-white-14px" id="slctBtnt" style="padding-right: 11px; padding-left: 5px; padding-top: 5px; margin-left: 5px ;"><span style="font-family: Mulish; color: #666F85; font-weight: 700; font-size: 16px; line-height: 20.08px">QNB ile İzin Yönetimi  </span></div>
+
+                                    </div>
+                                </div>
+                                <div class="col-3"></div>
+                            </div>
+
+
+                            <div class="group-594">
+
+
+                                <div class="overlap-group1 overlap">
+                                    @(Html.DevExtreme().DataGrid<TBLAAQnbSignLog>().ColumnHidingEnabled(true).ID("grdContainerDefter")
+    .Scrolling(s => s
+        .Mode(GridScrollingMode.Virtual)
+        .RowRenderingMode(GridRowRenderingMode.Virtual)
+    )
+    .Paging(p => p.PageSize(10))
+    .ColumnAutoWidth(true).ShowBorders(false)
+    .HeaderFilter(f => f.Visible(true))
+    .WordWrapEnabled(true).RowAlternationEnabled(true)
+    .OnCellPrepared("cell_prepared")
+    .ShowBorders(true).DataSource(Model.reportList).Columns(columns =>
+    {
+    columns.AddFor(m => m.EntegratorCompanyName).Caption("KAYNAK ADI").CssClass("custom");
+    columns.AddFor(m => m.CreatedDate).Caption("İZİN VERİLEN TARİH").CssClass("custom").Format(Format.ShortDate);
+    columns.AddFor(m => m.EndDate).Caption("İZİN BİTİŞ TARİHİ").CssClass("custom").Format(Format.ShortDate);
+    columns.Add().CssClass("custom").Caption("İZİN İŞLEMLERİ").CellTemplate(@<text>   </text>);
+
+    })
+                        )
+
+
+
+
+                                </div>
+
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+
+        </div>
+    </div>
+
+
+
+</section>
+ 
+
+
+
+
+    @(Html.DevExtreme().LoadPanel()
+        .ID("loadPanel")
+        .ShadingColor("rgba(0,0,0,0.4)")
+        .Position(p => p.Of("#employee"))
+        .Visible(false)
+        .ShowIndicator(true).Message("Raporunuz Hazırlanıyor ... Lütfen Bekleyiniz...")
+        .ShowPane(true).Height(300).Width(500)
+        .Shading(true)
+          .HideOnOutsideClick(false)
+        .OnShown("loadPanel_shown")
+    )
+    <input type="text" id="mainyear" name="mainyear" value="@Model.CurrentUser.SelectedYear" style="display:none" />
+    <input type="text" id="mainmonth" name="mainmonth" style="display:none" />
+
+
+
+
+    @section Scripts{
+        <script src="~/js/polyfill.min.js"></script>
+        <script src="/assets/plugins/jquery-steps/jquery.steps.js"></script>
+        <script>
+
+
+            function getLoadPanelInstance() {
+                return $("#loadPanel").dxLoadPanel("instance");
+            }
+            function loadPanel_shown(e) {
+                setTimeout(function () {
+                    e.component.hide();
+                }, 610000);
+            }
+
+
+            var txcompname = $("txtcompname").val();
+
+            function formatMessage(e) {
+
+                return $("#txtcompname").val();
+            }
+
+
+            function functionValidationdefterIzinSil(data) {
+         
+                var fdatam = new FormData();
+                fdatam.append('vknTckn', "2018111314");
+                fdatam.append('ide', "@Model.CurrentUser.ID");
+                fdatam.append('comide', "@Model.curcomID");
+            fdatam.append('rowide', data);
+                $.ajax({
+                    url: "/JsonService/FinWsdl/ValidationdefterIzinSilRequest",
+                    method: "POST",
+                    statusCode: {
+                        500: function () {
+                            getLoadPanelInstance().hide();
+                            Swal.fire({
+                                title: 'Server Erişim Sorunu . Lütfen Sayfayı Yenileyiniz...',
+                                confirmButtonText: 'Yenile'
+                            }).then((result) => {
+                                /* Read more about isConfirmed, isDenied below */
+                                if (result.isConfirmed) {
+
+                                    location.reload();
+                                }
+                            });
+                        },
+                        404: function () {
+                            alert("Script 404");
+                        }
+                    },
+                    contentType: false,
+                    data: fdatam,
+                    processData: false,
+                    cache: false,
+                    success: function (data) {
+                        var chkkzyt = data.split('_');
+                        console.log(data);
+
+
+                    }
+                });
+
+
+            }
+        </script>
+
+    }
+

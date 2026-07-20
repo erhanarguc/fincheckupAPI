@@ -1,0 +1,87 @@
+﻿@page
+
+@using fincheckup.Models.Hvvn
+@using fincheckup.Models.NKolay
+
+@model IndexModel
+@{
+    ViewData["Title"] = "Report";
+    Layout = "~/Pages/Shared/_LayoutReport.cshtml";
+}
+@using fincheckup.Models.NKolay.json
+@using fincheckup.ENTITY
+@using fincheckup.Models.ViewM
+@using fincheckup.Report
+@using DevExpress.AspNetCore
+@using DevExpress.DataAccess.ObjectBinding;
+@using fincheckup.Models.NKolay.ViewM;
+
+
+
+@functions {
+    public class IndexModel : PageModel
+    {
+         
+
+        public List<DataViewer> ncheck;
+        public List<DataViewer> ncheckMain;
+        public void OnGet(int nyear, int nmon, int nmont)
+        {
+
+
+
+            ncheck = MainDash.DataViewerMainSource(nyear, nmon, nmont);
+            ncheckMain = ErrorCheckMain.Get_ReportSetOther(nyear, nmon, nmont);
+
+            ncheck.AddRange(ncheckMain); 
+            ncheck = ncheck.Distinct().OrderBy(c => c.EntryNumber).ThenBy(n => n.DescriptionTax).ToList();
+
+        }
+
+
+    }
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/viewer.part.bundle.css" />
+
+    <script src="~/js/viewer.part.bundle.js"></script>
+    <style>
+        .dxrd-toolbar-item-3 {
+            display: none !important;
+        }
+
+        .dxrd-toolbar-item-4 {
+            display: none !important;
+        }
+
+        .dxrd-preview.dxrd-designer-wrapper .dxrd-toolbar-wrapper .dxrd-preview-pager.dxrd-toolbar-item {
+            display: none !important;
+        }
+
+        dxrd-toolbar-item-0 {
+            display: none !important;
+        }
+
+        .dx-shadow-right {
+            display: none;
+        }
+    </style>
+
+}
+
+@{
+    var report = new IcDenetimVergi();
+
+    ObjectDataSource objectDataSource = new ObjectDataSource();
+    objectDataSource.Name = "DataViewer";
+    objectDataSource.DataSource = Model.ncheck;
+
+    objectDataSource.Fill();
+    report.DataSource = objectDataSource;
+    report.PrintingSystem.Document.Name = "Uyarı_raporları";
+    @Html.DevExpress().WebDocumentViewer("DocumentViewer").Height("1000px").Bind(report)
+}
+
+@section Scripts{
+
+} 

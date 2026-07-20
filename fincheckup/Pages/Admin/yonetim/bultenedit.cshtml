@@ -1,0 +1,208 @@
+﻿@page
+
+@using fincheckup.Models.Hvvn
+@using fincheckup.Models.NKolay
+
+@model IndexModel
+@{
+    ViewData["Title"] = "Giriş Ekranı";
+    Layout = "~/Pages/Shared/_LayoutFirm.cshtml";
+}
+@using DevExtreme.AspNet.Data
+@using fincheckup.Models.NKolay.json
+@using DevExtreme.AspNet.Mvc
+@using fincheckup.Models.NKolay.ENTITY
+@using fincheckup.ENTITY
+@functions {
+    public class IndexModel : PageModel
+    {
+        public long UserID;
+        public HhvnUsers CurrentUser; 
+        public bulten mrequest;
+
+        public int StartQuestions { get; set; }
+        public int AQuestions { get; set; }
+        public int BQuestions { get; set; }
+        public int CQuestions { get; set; }
+        public void OnGet(int id = 0)
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+            if (CurrentUser.UserTypeID != 1001)
+            {
+                Response.Redirect("/logout?handler=logout");
+            }
+
+            if (id == 0)
+            {
+                mrequest = new bulten();
+            }
+            else
+            {
+                mrequest = bulten.Get_bulten(id);
+            } 
+        }
+
+        
+
+    }
+}
+@section Styles {
+    <link rel="stylesheet" href="/assets/plugins/jquery-datatable/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="/assets/plugins/morrisjs/morris.css">
+    <style>
+        .tdnormall {
+            padding-top: 0.1rem !important;
+            padding-left: 0.75rem !important;
+            padding-bottom: 0.1rem !important;
+            padding-right: 0.75rem !important;
+        }
+
+        #chartxt {
+            max-height: 255px !important;
+        }
+    </style>
+}
+<section class="content home">
+    <div class="container-fluid">
+        <div class="block-header">
+            <div class="row clearfix">
+                <div class="col-lg-5 col-md-5 col-sm-12">
+                    <h2>Bülten İçerik</h2>
+                    <ul class="breadcrumb padding-0">
+                        <li class="breadcrumb-item"><a href=""><i class="zmdi zmdi-home"></i></a></li>
+                        <li class="breadcrumb-item active">Bülten İçerik</li>
+                    </ul>
+                </div>
+                <div class="col-lg-7 col-md-7 col-sm-12">
+                    <div class="input-group m-b-0">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row clearfix">
+
+            <div class="col-md-12 col-lg-12">
+                <div class="card">
+                    <div class="body">
+
+
+
+                        <form id="frm">
+
+                            @(Html.DevExtreme().Form<bulten>
+    ()
+    .ID("form").ShowValidationSummary(false)
+    .Items(items => {
+        items.AddGroup().Caption("Bülten Detayı")
+        .ColCount(4)
+        .Items(groupItems => {
+
+            groupItems.AddGroup().ColSpan(3).Items(secondGroupItems => {
+                secondGroupItems.AddSimpleFor(m => m.ID).Editor(e => e.NumberBox().ReadOnly(true)).Label(l => l.Text("ID"));
+                secondGroupItems.AddSimpleFor(m => m.Title).Editor(e => e.TextBox()).Label(l => l.Text("Başlık"));
+                secondGroupItems.AddSimpleFor(m => m.SubTitle).Editor(e => e.TextBox()).Label(l => l.Text("Alt Başlık"));
+                secondGroupItems.AddSimpleFor(m => m.YururlulukTarih).Editor(e => e.DateBox().Value(DateTime.Now)).Label(l => l.Text("Yürürlük Tarihi"));
+                secondGroupItems.AddSimpleFor(m => m.DuzenleyenKurum).Label(l => l.Text("Düzenlemeyi Yapan Kurum"));
+                secondGroupItems.AddSimpleFor(m => m.Kapsam).Label(l => l.Text("Kapsam")).Editor(e => e
+                               .TextArea()
+                               .Height(90)
+
+                               );
+                secondGroupItems.AddSimpleFor(m => m.Description).Label(l => l.Text("İçerik")).Editor(e => e
+                              .TextArea()
+                              .Height(490)
+
+                              );
+                //secondGroupItems.AddSimpleFor(m => m.Description).Label(l => l.Text("İçerik")).Editor(e => e
+                //       .HtmlEditor()
+                //       .Height(495)
+                //       .Toolbar(toolbar => toolbar.Items(
+                //           items =>
+                //           {
+                //               items.Add().FormatName(HtmlEditorToolbarItem.Bold);
+                //               items.Add().FormatName(HtmlEditorToolbarItem.Italic);
+                //               items.Add().FormatName(HtmlEditorToolbarItem.Underline);
+                //               items.Add().FormatName(HtmlEditorToolbarItem.CodeBlock);
+                //           })
+                //       ));
+
+            });
+        });
+        items.AddGroup()
+       .ColCount(4)
+       .Items(groupItems =>
+       {
+
+           groupItems.AddGroup().ColSpan(3).Items(secondGroupItems =>
+           {
+
+
+               secondGroupItems.AddButton()
+                   .HorizontalAlignment(HorizontalAlignment.Right)
+                   .ButtonOptions(b => b.Text("Kaydet")
+                       .Type(ButtonType.Success)
+                       .UseSubmitBehavior(true)
+               );
+
+           });
+       });
+
+
+
+
+
+    })
+
+    .FormData(Model.mrequest)
+    )
+                        </form>
+
+
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+
+        </div>
+
+
+
+
+
+    </div>
+</section>
+
+
+@section Scripts{ 
+
+
+    <script>
+
+        var dt1 = "105";
+
+        $("#frm").submit(function () {
+            var vals = $(this).serialize();
+
+
+
+            $.ajax({
+                url: "/JsonService/MainPost/FormSubmita",
+                method: "POST",
+                data: vals,
+                success: function (data) {
+
+                    location.href = "/admin/yonetim/bultenedit?id=0";
+                }
+            });
+
+            return false; // prevent from submit
+        });
+    </script>
+} 

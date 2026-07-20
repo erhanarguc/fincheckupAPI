@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34330.188
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "fincheckupAPI", "fincheckup\fincheckupAPI.csproj", "{DF5A1ECB-6799-4E25-8668-ED308BD15754}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DevExtreme NuGet.config", "DevExtreme NuGet.config", "{3FFE007A-3B2E-4FCC-8EDA-9C2987093C1F}"
+	ProjectSection(SolutionItems) = preProject
+		NuGet.config = NuGet.config
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DF5A1ECB-6799-4E25-8668-ED308BD15754}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF5A1ECB-6799-4E25-8668-ED308BD15754}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF5A1ECB-6799-4E25-8668-ED308BD15754}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF5A1ECB-6799-4E25-8668-ED308BD15754}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A8B24181-1D55-4AD4-B7FB-9DB9608E2117}
+	EndGlobalSection
+EndGlobal

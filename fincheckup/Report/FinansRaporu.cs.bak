@@ -1,0 +1,19 @@
+﻿using fincheckup.Helper;
+using System.Drawing;
+
+namespace fincheckup.Report
+{
+    public partial class FinansRaporu : DevExpress.XtraReports.UI.XtraReport
+    {
+        public FinansRaporu()
+        {
+            InitializeComponent();
+        }
+
+        private void FinansRaporu_BeforePrint(object sender, System.Drawing.Printing.PrintEventArgs e)
+        {
+            xrRichTxtMeitn.ResetFont();
+            xrRichTxtMeitn.Font = new Font(CustomFontsHelper.GetFamily("Mulish"), 9F, FontStyle.Regular, GraphicsUnit.Point);
+        }
+    }
+}

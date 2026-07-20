@@ -1,0 +1,898 @@
+﻿@page
+
+
+
+@model IndexModel
+@{
+    ViewData["Title"] = "Giriş Ekranı";
+    Layout = "~/Pages/Shared/_LayoutQnbMizan.cshtml";
+}
+
+@using fincheckup.Models.Hvvn
+@using fincheckup.Models.NKolay.ENTITY
+@using fincheckup.Models.NKolay.MizanView
+@using fincheckup.ENTITY
+
+@functions {
+    public class IndexModel : PageModel
+    {
+
+        public long UserID;
+        public long CompID;
+        public int CompCount;
+        public int YearCount;
+        public HhvnUsers CurrentUser;
+        public YearlyErrorResultView mrequestEntryView; 
+        public IEnumerable<Companies> mreqListCompany;
+        public IEnumerable<YearlyReportDashMizan> dashEbitMarjin;
+        public string CompName;
+        public IEnumerable<YearlyReportDashMizan> dashGrossProfit;
+        public IEnumerable<YearlyReportDashMizan> dashRevenue;
+        public IEnumerable<YearlyReportDashMizan> dashDonemselKarzarar;
+        public IEnumerable<YearlyReportDashMizan> dashWorkingCapital;
+        public IEnumerable<YearlyReportDashMizanGrap> dDashFrossViewMarjBrut;
+        public string dashEbitMarjinastr;
+        public string dashGrossProfitstr;
+        public string dashRevenuestr;
+        public string dashDonemselKarzararstr;
+        public string dashWorkingCapitalstr;
+        public string  dDashFrossViewMarjBrutstr;
+         
+        //  public ReportDashViewMarkupMarjin dashMarkupMarjin;
+
+        public void OnGet()
+        {
+
+
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            mrequestEntryView = new YearlyErrorResultView();
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+            mreqListCompany = Companies.Getby_User(UserID);
+            CompID = mreqListCompany.Where(x => x.IsDefault == 1).FirstOrDefault().ID;
+
+            CompName = mreqListCompany.Where(x => x.IsDefault == 1).FirstOrDefault().CompanyName;
+            dashGrossProfit = ReportDashMizan.Get_Data_GrossProfit( CompID).Where(x=>x.Amount !=0);
+            dashRevenue = ReportDashMizan.Get_Data_Revenue(  CompID).Where(x => x.Amount != 0);
+            dashDonemselKarzarar = ReportDashMizan.Get_Data_DonemselKarzarar(  CompID).Where(x => x.Amount != 0);
+            dashEbitMarjin = ReportDashMizan.Get_Data_EbitMarjin( CompID).Where(x => x.Amount != 0);
+            dashWorkingCapital =  ReportDashMizan.Get_Data_WorkingCapital(  CompID).Where(x => x.Amount != 0);
+            dDashFrossViewMarjBrut = ReportDashMizan.Get_Data_GrossProfitGraphic(  CompID).Where(x => x.Amount != 0);
+
+
+            dashEbitMarjinastr = dashEbitMarjin.Count()>0? dashEbitMarjin.OrderByDescending(x => x.Year).FirstOrDefault().Amount.ToString("n0"):"";
+
+            dashGrossProfitstr = dashGrossProfit.Count() > 0 ? dashGrossProfit.OrderByDescending(x => x.Year).FirstOrDefault().Amount.ToString("n0") : "";
+
+            dashRevenuestr = dashRevenue.Count() > 0 ? dashRevenue.OrderByDescending(x => x.Year).FirstOrDefault().Amount.ToString("n0") : "";
+
+            dashDonemselKarzararstr = dashDonemselKarzarar.Count() > 0 ? dashDonemselKarzarar.OrderByDescending(x => x.Year).FirstOrDefault().Amount.ToString("n0") : "";
+
+            dDashFrossViewMarjBrutstr = dDashFrossViewMarjBrut.Count() > 0 ? dDashFrossViewMarjBrut.OrderByDescending(x => x.Year).FirstOrDefault().Amount.ToString("n2") : "";
+
+            dashWorkingCapitalstr = dashWorkingCapital.Count() > 0 ? dashWorkingCapital.OrderByDescending(x => x.Year).FirstOrDefault().Amount.ToString("n0") : "";
+            //DashYearlyResultWorkingCapital chk = ReportDashMizan.Get_Data_WorkingCapital(  CompID);
+            //int lastmont = ReportDash.Get_LastMonthYear(CurrentUser.SelectedYear, CompID);
+            //DashYearlyResultWorkingCapital chk1 = DashYearlyResultWorkingCapital.setProp(lastmont, chk);
+            //dashWorkingCapital = DashYearlyResultChart.SetResultMain(chk1, CurrentUser.SelectedYear);
+
+
+            //NetEbitMarjin = ReportDashViewWCap.getRealyVal(dashEbitMarjin);
+            //NetGrossProfit = ReportDashViewWCap.getRealyVal(dashGrossProfit);
+            //NetRevenue = ReportDashViewWCap.getRealyVal(dashRevenue);
+            //NetDonemselKarzarar = ReportDashViewWCap.getRealyVal(dashDonemselKarzarar);
+            //NetWorkingCapital = ReportDashViewWCap.getRealyValT(dashWorkingCapital);
+
+
+
+            //NetGrossProfitGraphic = new DashRep();
+            //NetGrossProfitGraphic.EntryCountTotal = Convert.ToDecimal(NetRevenue.EntryCountTotal) == 0 ? "0" : "% " + String.Format("{0:0.##}", (Convert.ToDecimal(NetGrossProfit.EntryCountTotal) / Convert.ToDecimal(NetRevenue.EntryCountTotal) * 100));
+            //NetGrossProfitGraphic.EntryCountBefore = Convert.ToDecimal(NetRevenue.EntryCountBefore) == 0 ? "0" : "% " + String.Format("{0:0.##}", (Convert.ToDecimal(NetGrossProfit.EntryCountBefore) / Convert.ToDecimal(NetRevenue.EntryCountBefore) * 100));
+            //NetGrossProfitGraphic.EntryCountLast = Convert.ToDecimal(NetRevenue.EntryCountLast) == 0 ? "0" : "% " + String.Format("{0:0.##}", (Convert.ToDecimal(NetGrossProfit.EntryCountLast) / Convert.ToDecimal(NetRevenue.EntryCountLast) * 100));
+
+            //HhvnUsers.SetYearMain(CompID, UserID);
+
+            YearCount = TBLXml.GetYearByComapnyID(CompID);
+            CompCount = mreqListCompany.Count();
+
+
+
+            //dDashBilancoViewMarjBrut = DashBilanco.Get_MAINBrutKarZarar(CurrentUser.SelectedYear, CompID);
+            //dDashBilancoViewMarjNet = DashBilanco.Get_MAINNetSatis(CurrentUser.SelectedYear, CompID);
+
+
+
+
+            //decimal docz = Convert.ToDecimal(NetRevenue.EntryCountTotal);
+            //decimal doc = Convert.ToDecimal(NetRevenue.EntryCountBefore.Replace(",", ""));
+            //decimal doc1 = Convert.ToDecimal(NetRevenue.EntryCountLast.Replace(",", ""));
+
+            //if (docz == 0) { docz = 1; }
+            //if (doc == 0) { doc = 1; }
+            //if (doc1 == 0) { doc1 = 1; }
+            //if (dDashBilancoViewMarjNet != null)
+            //{
+            //    decimal valNet = dDashBilancoViewMarjNet.OverViewTotal;
+            //    if (valNet == 0)
+            //    {
+            //        valNet = 1;
+            //    }
+
+            //    RetValGross = "% " + String.Format("{0:0.##}", (Convert.ToDecimal(dDashBilancoViewMarjBrut.OverViewTotal) / Convert.ToDecimal(valNet)) * 100);
+            //}
+            //else
+            //{
+            //    RetValGross = "% " + 0;
+            //}
+
+
+        }
+        public JsonResult OnGetMarkupMarjin(DataSourceLoadOptions options,   long compid)
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            if (!HhvnUsers.CheckUser(compid, UserID))
+            {
+                return new JsonResult(DataSourceLoader.Load(new List<YearlyReportDashMizan>(), options));
+            }
+
+
+            IEnumerable<YearlyReportDashMizanGrap> mrequestResult_1 = ReportDashMizan.Get_Data_GrossProfitGraphic(  compid).OrderBy(x => x.Year);
+
+
+            return new JsonResult(DataSourceLoader.Load(mrequestResult_1, options));
+        }
+        public JsonResult OnGetEbitMarjin(DataSourceLoadOptions options,   long compid)
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            if (!HhvnUsers.CheckUser(compid, UserID))
+            {
+                return new JsonResult(DataSourceLoader.Load(new List<YearlyReportDashMizan>(), options));
+            }
+
+            var retval = ReportDashMizan.Get_Data_EbitMarjin( compid).OrderBy(x=>x.Year);
+            return new JsonResult(DataSourceLoader.Load(retval, options));
+        }
+        public JsonResult OnGetWorkingCapital(DataSourceLoadOptions options,   long compid)
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            if (!HhvnUsers.CheckUser(compid, UserID))
+            {
+                return new JsonResult(DataSourceLoader.Load(new List<YearlyReportDashMizan>(), options));
+            }
+
+
+
+            IEnumerable<YearlyReportDashMizan> chk = ReportDashMizan.Get_Data_WorkingCapital( compid).OrderBy(x => x.Year);
+            //int lastmont = ReportDashMizan.Get_LastMonthYear(myear, compid);
+            ////DashYearlyResultWorkingCapital chk1 = DashYearlyResultWorkingCapital.setProp(lastmont, chk);
+            //dashWorkingCapital = DashYearlyResultChart.SetResultMain(chk, myear);
+
+
+            return new JsonResult(DataSourceLoader.Load(chk, options));
+        }
+        public JsonResult OnGetDonemselKarZarar(DataSourceLoadOptions options,   long compid)
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            if (!HhvnUsers.CheckUser(compid, UserID))
+            {
+                return new JsonResult(DataSourceLoader.Load(new List<YearlyReportDashMizan>(), options));
+            }
+
+            var retval = ReportDashMizan.Get_Data_DonemselKarzarar(  compid).OrderBy(x => x.Year);
+            return new JsonResult(DataSourceLoader.Load(retval, options));
+        }
+        public JsonResult OnGetRevenue(DataSourceLoadOptions options,  long compid)
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            if (!HhvnUsers.CheckUser(compid, UserID))
+            {
+                return new JsonResult(DataSourceLoader.Load(new List<YearlyReportDashMizan>(), options));
+            }
+
+            var retval = ReportDashMizan.Get_Data_Revenue( compid).OrderBy(x => x.Year);
+            return new JsonResult(DataSourceLoader.Load(retval, options));
+        }
+
+        public JsonResult OnGetGrossProfit(DataSourceLoadOptions options, long compid)
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            if (HhvnUsers.CheckUser(compid, UserID))
+            {
+                var retval = ReportDashMizan.Get_Data_GrossProfit(  compid).OrderBy(x => x.Year);
+                return new JsonResult(DataSourceLoader.Load(retval, options));
+            }
+            return new JsonResult(DataSourceLoader.Load(new List<YearlyReportDashMizan>(), options));
+
+        }
+        public JsonResult OnGetGraphYear(int nyear)
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            HhvnUsers.SetYear(nyear, UserID);
+            return new JsonResult("ok");
+        }
+        
+    }
+}
+@section Styles {
+    <script src="~/assets/js/bootstrap.js"></script>
+    <script src="~/js/flexfont.js"></script>
+
+
+    <script>
+
+    $(document).ready(function () {
+        var counter = 0;
+
+
+
+
+          });
+
+    </script>
+    <style>
+        .chkcoll {
+            padding-left: 5px !important;
+            padding-right: 5px !important;
+        }
+
+        @@media (min-width: 64em) {
+            .tttt {
+                font-size: 0.7em;
+                line-height: 1.8;
+            }
+        }
+
+        @@media (min-width: 85.375em) {
+            .tttt {
+                font-size: 0.8em;
+            }
+        }
+
+        @@media (min-width: 120em) {
+            .tttt {
+                font-size: 1em;
+            }
+        }
+
+        @@media (min-width: 160em) {
+            .tttt {
+                font-size: 1.1em;
+            }
+        }
+
+        .tdnormall {
+            padding-top: 0.1rem !important;
+            padding-left: 0.75rem !important;
+            padding-bottom: 0.1rem !important;
+            padding-right: 0.75rem !important;
+        }
+
+        .dx-overlay-content.dx-popup-fullscreen.dx-resizable.dx-popup-fullscreen-width {
+            transform: translate(0) !important;
+        }
+
+        #grdContainerBulten .shrt {
+            max-height: 55px
+        }
+
+
+        #grdContainerBulten .dx-datagrid-rowsview .dx-row {
+            max-height: 55px
+        }
+    </style>
+}
+<section class="content home" id="employee">
+    @(Html.DevExtreme().LoadPanel()
+        .ID("loadPanel")
+        .ShadingColor("rgba(0,0,0,0.4)")
+        .Position(p => p.Of("#employee"))
+        .Visible(false)
+        .ShowIndicator(true)
+        .ShowPane(true)
+        .Shading(true)
+        .HideOnOutsideClick(false)
+        .OnShown("loadPanel_shown")
+    )
+
+    <input type="hidden" style="display:none" id="txtmyear" value="@Model.CurrentUser.SelectedYear" />
+    <input type="hidden" style="display:none" id="txtmcomp" value="@Model.CompID" />
+    <input type="hidden" style="display:none" id="txtyearcount" value="@Model.YearCount" />
+    <input type="hidden" style="display:none" id="txtcompcount" value="@Model.CompCount" />
+    <div class="container-fluid">
+        <div class="block-header">
+            <div class="row clearfix">
+                <div class="col-lg-5 col-md-5 col-sm-12">
+                    <h2>Raporlar</h2>
+                    <ul class="breadcrumb padding-0">
+                        <li class="breadcrumb-item"><a href=""><i class="zmdi zmdi-home"></i></a></li>
+                        <li class="breadcrumb-item active">Raporlar Genel</li>
+                    </ul>
+                </div>
+                <div class="col-lg-7 col-md-7 col-sm-12">
+                    <div class="input-group m-b-0">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="body">
+                                    <div class="row">
+                                        <div class="col-6" style="text-align:left">
+
+                                   
+                                        </div>
+                                        <div class="col-6" style="text-align:right">
+
+                                
+                                            @(Html.DevExtreme().TextBox()
+                                .Value(Model.CompName)  .ReadOnly(true)
+                            )
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row clearfix">
+            <div class="col-md-12 col-lg-12">
+                <div class="row clearfix">
+                    <div class="col-md-6 col-lg-2 chkcoll">
+                        <div class="card">
+                            <div class="body  l-blue ">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <h4 class="margin-0 tttt1">Revenue </h4>
+                                        <h6 class="tttt3">Gelirler</h6>
+
+                                    </div>
+                                </div>
+                                <br />
+                                <div class="row" style="max-height: 159px; min-height: 159px; overflow-y: hidden; overflow-x: hidden ">
+
+                                    <div class="col-4 left-side">
+                                        <span class="tttt" style="text-align:left">Son Yıl</span>
+
+
+
+                                    </div>
+                                    <div class="col-8 right-side" style="text-align:right">
+                                        <span class="tttt" style="text-align:right">@Model.dashRevenuestr</span>
+
+
+
+                                    </div>
+                                     
+                                    
+                                    <div class="col-12" style="min-height:25px !important;">
+                                        @(Html.DevExtreme().Sparkline()
+                     .DataSource(Model.dashRevenue)
+                              .ArgumentField("Year")
+                   .ValueField("Amount").LineColor("#fff")
+                    .Type(SparklineType.Line)
+                    .ShowMinMax(false)
+                    .MinColor("#f00")
+                    .MaxColor("#2ab71b")
+                    .PointSize(6)
+                    .Size(s => s.Height(25))
+                    .Tooltip(t => t.Enabled(false))
+                )
+
+
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-2 chkcoll">
+                        <div class="card">
+                            <div class="body  l-blue ">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <h4 class="margin-0 tttt1">Gross Profit</h4>
+                                        <h6 class="tttt3">Brüt Kar &Zarar</h6>
+                                    </div>
+                                </div>
+                                <br />
+                                <div class="row" style="max-height: 159px; min-height: 159px; overflow-y: hidden; overflow-x: hidden ">
+
+                                    <div class="col-4 left-side">
+                                        <span class="tttt" style="text-align:left">Son Yıl</span>
+
+
+
+                                    </div>
+                                    <div class="col-8 right-side" style="text-align:right">
+                                        <span class="tttt" style="text-align:right">@Model.dashGrossProfitstr </span>
+
+
+
+                                    </div>
+                                    <div class="col-12" style="min-height:25px !important;">
+                                        @(Html.DevExtreme().Sparkline()
+                     .DataSource(Model.dashGrossProfit)
+                       .ArgumentField("Year")
+                   .ValueField("Amount").LineColor("#fff")
+                    .Type(SparklineType.Line)
+                    .ShowMinMax(false)
+                    .MinColor("#f00")
+                    .MaxColor("#2ab71b")
+                    .PointSize(6)
+                    .Size(s => s.Height(25))
+                    .Tooltip(t => t.Enabled(false))
+                )
+
+
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-2 chkcoll">
+                        <div class="card">
+                            <div class="body   l-blue ">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <h4 class="margin-0 tttt1">Gross Margin</h4>
+                                        <h6 class="tttt3">Brüt Kar & Zarar</h6>
+                                    </div>
+                                </div>
+                                <br />
+                                <div class="row" style="max-height: 159px; min-height: 159px; overflow-y: hidden; overflow-x: hidden ">
+
+
+                                    <div class="col-4 left-side">
+                                        <span class="tttt" style="text-align:left">Son Yıl</span>
+
+
+
+                                    </div>
+                                    <div class="col-8 right-side" style="text-align:right">
+                                        <span class="tttt" style="text-align:right">@Model.dDashFrossViewMarjBrutstr </span>
+
+
+
+                                    </div>
+                                    <div class="col-12" style="min-height:25px !important;">
+                                        @(Html.DevExtreme().Sparkline()
+                     .DataSource(Model.dDashFrossViewMarjBrut)
+                       .ArgumentField("Year")
+                    .ValueField("Amount").LineColor("#fff")
+                    .Type(SparklineType.Line)
+                    .ShowMinMax(false)
+                    .MinColor("#f00")
+                    .MaxColor("#2ab71b")
+                    .PointSize(6)
+                    .Size(s => s.Height(25))
+                    .Tooltip(t => t.Enabled(false))
+                )
+
+
+
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-2 chkcoll">
+                        <div class="card">
+                            <div class="body  l-blue ">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <h4 class="margin-0 tttt1">EBIT</h4>
+                                        <h6 class="tttt3">FAALİYET KAR ZARAR</h6>
+
+                                    </div>
+                                </div>
+                                <br />
+                                <div class="row" style="max-height: 159px; min-height: 159px; overflow-y: hidden; overflow-x: hidden ">
+
+                                    <div class="col-4 left-side">
+                                        <span class="tttt" style="text-align:left">Son Yıl</span>
+
+
+
+                                    </div>
+                                    <div class="col-8 right-side" style="text-align:right">
+                                        <span class="tttt" style="text-align:right">@Model.dashEbitMarjinastr</span>
+
+
+
+                                    </div>
+                                    <div class="col-12" style="min-height:25px !important;">
+                                        @(Html.DevExtreme().Sparkline()
+                     .DataSource(Model.dashEbitMarjin)
+                       .ArgumentField("Year")
+                     .ValueField("Amount").LineColor("#fff")
+                    .Type(SparklineType.Line)
+                    .ShowMinMax(false)
+                    .MinColor("#f00")
+                    .MaxColor("#2ab71b")
+                    .PointSize(6)
+                    .Size(s => s.Height(25))
+                    .Tooltip(t => t.Enabled(false))
+                )
+
+
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-2 chkcoll">
+                        <div class="card">
+                            <div class="body  l-blue ">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <h4 class="margin-0 tttt1">Working Capital</h4>
+                                        <h6 class="tttt3">İşletme Sermayesi</h6>
+                                    </div>
+                                </div>
+                                <br />
+                                <div class="row" style="max-height: 159px; min-height: 159px; overflow-y: hidden; overflow-x: hidden ">
+
+                                    <div class="col-4 left-side">
+                                        <span class="tttt" style="text-align:left">Son Yıl</span>
+
+
+
+                                    </div>
+                                    <div class="col-8 right-side" style="text-align:right">
+                                        <span class="tttt" style="text-align:right">@Model.dashWorkingCapitalstr </span>
+
+
+
+                                    </div>
+                                    <div class="col-12" style="min-height:25px !important;">
+                                        @(Html.DevExtreme().Sparkline()
+                     .DataSource(Model.dashWorkingCapital)
+                       .ArgumentField("Year")
+                   .ValueField("Amount").LineColor("#fff")
+                    .Type(SparklineType.Line)
+                    .ShowMinMax(false)
+                    .MinColor("#f00")
+                    .MaxColor("#2ab71b")
+                    .PointSize(6)
+                    .Size(s => s.Height(25))
+                    .Tooltip(t => t.Enabled(false))
+                )
+
+
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-2 chkcoll">
+                        <div class="card">
+                            <div class="body  l-blue ">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <h4 class="margin-0 tttt1">Monthly Trend</h4>
+                                        <h6 class="tttt3">Dönem Kar Zarar</h6>
+                                    </div>
+                                </div>
+                                <br />
+                                <div class="row" style="max-height: 159px; min-height: 159px; overflow-y: hidden; overflow-x: hidden ">
+
+                                    <div class="col-4 left-side">
+                                        <span class="tttt" style="text-align:left">Son Yıl</span>
+
+
+
+                                    </div>
+                                    <div class="col-8 right-side" style="text-align:right">
+                                        <span class="tttt" style="text-align:right">@Model.dashDonemselKarzararstr </span>
+
+
+
+                                    </div>
+                                    <div class="col-12" style="min-height:25px !important;">
+                                        @(Html.DevExtreme().Sparkline()
+                     .DataSource(Model.dashDonemselKarzarar)
+                       .ArgumentField("Year")
+                    .ValueField("Amount").LineColor("#fff")
+                    .Type(SparklineType.Line)
+                    .ShowMinMax(false)
+                    .MinColor("#f00")
+                    .MaxColor("#2ab71b")
+                    .PointSize(6)
+                    .Size(s => s.Height(25))
+                    .Tooltip(t => t.Enabled(false))
+                )
+
+
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+
+                        <div class="card">
+                            <div class="body">
+                                <div class="row">
+                                    <div class="col-lg-4   col-sm-12">
+                                        <div class="card">
+                                            <div class="body">
+                                                @(Html.DevExtreme().Chart().ID("chaRevenue").CommonSeriesSettings(s => s.ArgumentField("Yeartx").Type(SeriesType.Bar).Point(p => p.HoverMode(ChartPointInteractionMode.AllArgumentPoints))).ArgumentAxis(a => a.ValueMarginsEnabled(false).DiscreteAxisDivisionMode(DiscreteAxisDivisionMode.CrossLabels)).Crosshair(c => c.Enabled(true).Color("#949494").Width(3).DashStyle(DashStyle.Dot).Label(l => l.Visible(true).BackgroundColor("#949494").Font(f => f.Color("#fff").Size(12)))).Series(s =>
+                    {
+                        s.Add().ValueField("Amount").Name("Revenue");
+                    }).Legend(l => l.VerticalAlignment(VerticalEdge.Bottom).HorizontalAlignment(HorizontalAlignment.Center).ItemTextPosition(Position.Bottom)).Title(t => t.Text("Gelirler").Subtitle(s => s.Text(""))).Export(e => e.Enabled(false)).Tooltip(t => t.Enabled(true)).DataSource(d => d.RemoteController().LoadUrl(Url.Page(null, "Revenue")).LoadParams(new {  compid = new JS("function() {return mcompid; }") }))
+                                )
+
+                                            </div>
+                                        </div>
+
+
+                                    </div>
+                                    <div class="col-lg-4  col-sm-12">
+                                        <div class="card">
+                                            <div class="body">
+                                                @(Html.DevExtreme().Chart().ID("chaGrossProfit").Rotated(true).CommonSeriesSettings(s => s.ArgumentField("Yeartx").Type(SeriesType.Bar).Point(p => p.HoverMode(ChartPointInteractionMode.AllArgumentPoints))).ArgumentAxis(a => a.ValueMarginsEnabled(false).DiscreteAxisDivisionMode(DiscreteAxisDivisionMode.CrossLabels)).Crosshair(c => c.Enabled(true).Color("#949494").Width(3).DashStyle(DashStyle.Dot).Label(l => l.Visible(true).BackgroundColor("#949494").Font(f => f.Color("#fff").Size(12)))).Series(s =>
+                                            {
+                                                s.Add().ValueField("Amount").Name("Gross Profit");
+                                            }).Legend(l => l.VerticalAlignment(VerticalEdge.Bottom).HorizontalAlignment(HorizontalAlignment.Center).ItemTextPosition(Position.Bottom)).Title(t => t.Text("Brüt Kar Zarar").Subtitle(s => s.Text(""))).Export(e => e.Enabled(false)).Tooltip(t => t.Enabled(true)).DataSource(d => d.RemoteController().LoadUrl(Url.Page(null, "GrossProfit")).LoadParams(new {  compid = new JS("function() {return mcompid; }") }))
+                                )
+
+                                            </div>
+                                        </div>
+
+
+                                    </div>
+                                    <div class="col-lg-4   col-sm-12">
+                                        <div class="card">
+                                            <div class="body">
+                                                @(Html.DevExtreme().Chart().ID("chartzone").CommonSeriesSettings(s => s.ArgumentField("Yeartx").Type(SeriesType.Spline).Point(p => p.HoverMode(ChartPointInteractionMode.AllArgumentPoints))).ArgumentAxis(a => a.ValueMarginsEnabled(false).DiscreteAxisDivisionMode(DiscreteAxisDivisionMode.CrossLabels).Grid(g => g.Visible(true))).Crosshair(c => c.Enabled(true).Color("#949494").Width(3).DashStyle(DashStyle.Dot).Label(l => l.Visible(true).BackgroundColor("#949494").Font(f => f.Color("#fff").Size(12)))).Series(s =>
+                    {
+                        s.Add().ValueField("Amount").Name("Markup");
+                    }).Legend(l => l.VerticalAlignment(VerticalEdge.Bottom).HorizontalAlignment(HorizontalAlignment.Center).ItemTextPosition(Position.Bottom)).Title(t => t.Text("Brüt Kar Zarar Marjı").Subtitle(s => s.Text(""))).Export(e => e.Enabled(false)).Tooltip(t => t.Enabled(true)).DataSource(d => d.RemoteController().LoadUrl(Url.Page(null, "MarkupMarjin")).LoadParams(new {  compid = new JS("function() {return mcompid; }") }))
+                                )
+
+
+
+
+                                            </div>
+                                        </div>
+
+
+                                    </div>
+
+
+                                </div>
+                                <div class="row">
+                                    <div class="col-lg-4  col-sm-12">
+                                        <div class="card">
+                                            <div class="body">
+                                                @(Html.DevExtreme().Chart().ID("chaEbitMarjin").Rotated(true).CommonSeriesSettings(s => s.ArgumentField("Yeartx").Type(SeriesType.Bar).Point(p => p.HoverMode(ChartPointInteractionMode.AllArgumentPoints))).ArgumentAxis(a => a.ValueMarginsEnabled(false).DiscreteAxisDivisionMode(DiscreteAxisDivisionMode.CrossLabels)).Crosshair(c => c.Enabled(true).Color("#949494").Width(3).DashStyle(DashStyle.Dot).Label(l => l.Visible(true).BackgroundColor("#949494").Format(Format.Year).Font(f => f.Color("#fff").Size(12)))).Series(s =>
+                                            {
+                                                s.Add().ValueField("Amount").Name("Ebit");
+                                            }).Legend(l => l.VerticalAlignment(VerticalEdge.Bottom).HorizontalAlignment(HorizontalAlignment.Center).ItemTextPosition(Position.Bottom)).Title(t => t.Text("Faaliyet Kar Zarar").Subtitle(s => s.Text(""))).Export(e => e.Enabled(false)).Tooltip(t => t.Enabled(true)).DataSource(d => d.RemoteController().LoadUrl(Url.Page(null, "EbitMarjin")).LoadParams(new {   compid = new JS("function() {return mcompid; }") }))
+                                )
+
+                                            </div>
+                                        </div>
+
+
+                                    </div>
+                                    <div class="col-lg-4  col-sm-12">
+                                        <div class="card">
+                                            <div class="body">
+
+                                                @(Html.DevExtreme().Chart().ID("chaWorkingCapital").CommonSeriesSettings(s => s.ArgumentField("Yeartx").Type(SeriesType.Bar).Point(p => p.HoverMode(ChartPointInteractionMode.AllArgumentPoints))).ArgumentAxis(a => a.ValueMarginsEnabled(false).DiscreteAxisDivisionMode(DiscreteAxisDivisionMode.CrossLabels)).Crosshair(c => c.Enabled(true).Color("#949494").Width(3).DashStyle(DashStyle.Dot).Label(l => l.Visible(true).BackgroundColor("#949494").Font(f => f.Color("#fff").Size(12)))).Series(s =>
+                                            {
+                                                s.Add().ValueField("Amount").Name("Working Capital");
+                                            }).Legend(l => l.VerticalAlignment(VerticalEdge.Bottom).HorizontalAlignment(HorizontalAlignment.Center).ItemTextPosition(Position.Bottom)).Title(t => t.Text("İşletme Sermayesi").Subtitle(s => s.Text(""))).Export(e => e.Enabled(false)).Tooltip(t => t.Enabled(true)).DataSource(d => d.RemoteController().LoadUrl(Url.Page(null, "WorkingCapital")).LoadParams(new {  compid = new JS("function() {return mcompid; }") }))
+                                )
+                                            </div>
+                                        </div>
+
+
+                                    </div>
+                                    <div class="col-lg-4  col-sm-12">
+                                        <div class="card">
+                                            <div class="body">
+
+
+                                                @(Html.DevExtreme().Chart().ID("chaDonemselKarZarar").Rotated(true).CommonSeriesSettings(s => s.ArgumentField("Yeartx").Type(SeriesType.Bar).Point(p => p.HoverMode(ChartPointInteractionMode.AllArgumentPoints))).ArgumentAxis(a => a.ValueMarginsEnabled(false).DiscreteAxisDivisionMode(DiscreteAxisDivisionMode.CrossLabels)).Crosshair(c => c.Enabled(true).Color("#949494").Width(3).DashStyle(DashStyle.Dot).Label(l => l.Visible(true).BackgroundColor("#949494").Font(f => f.Color("#fff").Size(12)))).Series(s =>
+                                            {
+                                                s.Add().ValueField("Amount").Name("Monthly Trend");
+                                            }).Legend(l => l.VerticalAlignment(VerticalEdge.Bottom).HorizontalAlignment(HorizontalAlignment.Center).ItemTextPosition(Position.Bottom)).Title(t => t.Text("Dönem Kar Zarar").Subtitle(s => s.Text(""))).Export(e => e.Enabled(false)).Tooltip(t => t.Enabled(true)).DataSource(d => d.RemoteController().LoadUrl(Url.Page(null, "DonemselKarZarar")).LoadParams(new {  compid = new JS("function() {return mcompid; }") }))
+                                )
+
+                                            </div>
+                                        </div>
+
+
+                                    </div>
+
+
+                                </div>
+                            </div>
+
+                        </div>
+
+
+                    </div>
+
+
+                    <div class="col-12">
+
+                        <div class="card">
+                            <div class="body">
+                                <div class="row">
+                                    <div class="col-12">
+
+
+                                    </div>
+
+
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                    </div>
+                </div>
+
+
+
+            </div>
+
+
+
+        </div>
+
+
+
+
+
+    </div>
+</section>
+
+
+
+@section Scripts{
+
+
+
+    <script>
+        var tyear = $("#txtmyear").val();
+        var mcompid = $("#txtmcomp").val();
+    </script>
+    <script>
+        function getLoadPanelInstance() {
+            return $("#loadPanel").dxLoadPanel("instance");
+        }
+        function loadPanel_shown(e) {
+            setTimeout(function () {
+                e.component.hide();
+            }, 7000);
+        }
+        var misready = "nok";
+        var chkReadyState = setInterval(function () {
+            if (document.readyState == "complete") {
+
+                clearInterval(chkReadyState);
+
+                misready = "ok";
+            }
+        }, 100);
+
+        function getselectYearInstance() {
+            return $("#slctYear").dxSelectBox("instance");
+        }
+       
+        function selectYear_Initialized() {
+            getselectYearInstance().option("value", parseInt($("#txtmyear").val()));
+            var chkco = parseInt($("#txtyearcount").val());
+
+            if (chkco < 2) {
+                getselectYearInstance().option("readOnly", true);
+            }
+
+
+        }
+
+        
+        function selectYear_valueChanged(data) {
+            var slctval = data.selectedItem.MYear;
+            var turl = '/admin/dashboard?handler=GraphYear&nyear=' + slctval;
+
+            if (misready == "ok" && tyear.toString() != slctval.toString()) {
+                getLoadPanelInstance().show();
+                $.ajax({
+                    type: "GET",
+                    url: turl,
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (response) {
+                        if (response == "ok") {
+                            location.reload();
+                        }
+                    },
+                    failure: function (response) {
+                        alert(response);
+                    }
+                });
+            }
+
+        }
+
+      
+        function onAppointmentFormOpening(e) {
+            const form = e.form;
+
+            var recurrenceEditor = form.getEditor("recurrenceRule");
+
+
+
+
+            $('.dx-appointment-form-switch').each(function () {
+                $(this).css("display", "none");
+
+
+
+            });
+        }
+
+
+        function onItemDelete(data) {
+            const popup = $("#employee-popup").dxPopup("instance");
+
+            var pageIndex = data.ID;
+            $.ajax({
+                url: "/JsonService/Main/GetHtml",
+                method: "POST",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(pageIndex),
+                success: function (dataz) {
+
+                    if (dataz == "nok") {
+                        swal.close();
+                        Swal.fire(
+                            'Hata!',
+                            'Bülten Yüklenemedi Bir Sorun Oluştu!',
+                            'error'
+                        )
+                    }
+                    else {
+                        var bodyText = dataz.Description;
+                        var titlea = dataz.Title;
+                        var titleb = dataz.SubTitle;
+                        var titlek = dataz.Kapsam;
+                        var titlet = dataz.DuzenleyenKurum;
+                        var titlez = dataz.YururlulukTarih;
+
+                        $("#txtitle").text(titlea);
+                        $("#txtitle1").val(titleb);
+                        $("#txtitle2").val(titlek);
+                        $("#txtitle3").val(titlet);
+                        $("#txtitle4").val(titlez);
+                        $("#textBlock").prop('innerHTML', bodyText);
+                        $("#largeModal").modal('show');
+                    }
+
+
+                }
+            });
+
+
+        }
+    </script>
+
+}

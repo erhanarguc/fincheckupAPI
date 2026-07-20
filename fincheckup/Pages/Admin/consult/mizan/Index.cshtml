@@ -1,0 +1,202 @@
+﻿@page
+
+@using fincheckup.Models.Hvvn
+@using fincheckup.Models.NKolay
+
+@model IndexModel
+@{
+    ViewData["Title"] = "Giriş Ekranı";
+    Layout = "~/Pages/Shared/_LayoutConsultMizan.cshtml";
+}
+@using fincheckup.Models.NKolay.json
+@using fincheckup.Models.ViewM
+@using fincheckup.Models.NKolay.ENTITY
+@using fincheckup.ENTITY
+@using fincheckup.Models.TaxError
+
+@functions {
+    public class IndexModel : PageModel
+    {
+        public HhvnUsers CurrentUser;
+        public long UserID; 
+        public long CompID; 
+
+        public  Companies  mreqListCompany;
+
+        public void OnGet()
+        {
+
+
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+            mreqListCompany = Companies.Getby_User(UserID).Where(x => x.IsDefault == 1).FirstOrDefault();
+            if (mreqListCompany==null)
+            {
+                Response.Redirect("../../logout");
+            }
+            else
+            {
+                CompID = mreqListCompany.ID;
+                UserCompany.setUpdateUser(UserID, CompID);
+            }
+
+
+
+
+        }
+
+
+    }
+}
+@section Styles {
+    <link rel="stylesheet" href="/assets/plugins/jquery-datatable/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="/assets/plugins/morrisjs/morris.css">
+    <script src="~/assets/js/bootstrap.js"></script>
+
+    <style>
+        .theme-black .btn-primary {
+            background-color: #870052;
+        }
+
+        img {
+            width: 100% !important;
+            height: auto !important;
+            border-radius: 1px !important;
+        }
+
+        .tdnormall {
+            padding-top: 0.1rem !important;
+            padding-left: 0.75rem !important;
+            padding-bottom: 0.1rem !important;
+            padding-right: 0.75rem !important;
+        }
+
+        .dx-overlay-content.dx-popup-fullscreen.dx-resizable.dx-popup-fullscreen-width {
+            transform: translate(0) !important;
+        }
+
+        #grdContainerBulten .shrt {
+            max-height: 55px
+        }
+
+
+        #grdContainerBulten .dx-datagrid-rowsview .dx-row {
+            max-height: 55px
+        }
+
+        #divsame1, #divsame3, #divsame1a, #divsame3a, #divsame5a, #divsame5, #divsame9, #divsame9a, #divsame7, #divsame7a {
+            padding: 25px;
+        }
+
+        h3 {
+            font-size: 2em;
+            width: 320px;
+            height: auto;
+        }
+
+        label {
+            font-size: 0.9em;
+            width: 120px;
+            height: auto;
+        }
+
+        .centerdivmain {
+            font-size: 13px;
+            font-weight: bolder;
+        }
+
+        .centerdivmaina {
+            font-size: 13px;
+            font-weight: bolder;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+    </style>
+    <script>
+        var threshold = 100;
+
+        $('h3').each(function () {
+            var $self = $(this),
+                fs = parseInt($self.css('font-size'));
+
+            while ($self.height() > threshold) {
+                $self.css({ 'font-size': fs-- });
+            }
+            $self.height(threshold);
+        });
+    </script>
+}
+
+<section class="content home" id="employee">
+    <div class="container-fluid">
+        <div class="block-header">
+            <div class="row clearfix">
+                <div class="col-lg-5 col-md-5 col-sm-12">
+                    <h2>Dashboard</h2>
+                    <ul class="breadcrumb padding-0">
+                        <li class="breadcrumb-item"><a href=""><i class="zmdi zmdi-home"></i></a></li>
+                        <li class="breadcrumb-item active">Dashboard</li>
+                    </ul>
+                </div>
+                <div class="col-lg-7 col-md-7 col-sm-12">
+                    <div class="input-group m-b-0">
+                        <div class="col-12">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-12">
+            <div class="card">
+                <div class="body">
+                     
+                   
+
+                </div>
+            </div>
+            <div class="card">
+                <div class="body">
+                 
+                    <div class="row">
+                        <h1> Danışman Paneline Hoş Geldiniz</h1>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+
+
+    </div>
+</section>
+
+@(Html.DevExtreme().LoadPanel()
+        .ID("loadPanel")
+        .ShadingColor("rgba(0,0,0,0.4)")
+        .Position(p => p.Of("#employee"))
+        .Visible(false)
+        .ShowIndicator(true)
+        .ShowPane(true)
+        .Shading(true)
+        .HideOnOutsideClick(false)
+    )
+
+@section Scripts{
+
+    <script>
+        var tyear = $("#txtmyear").val();
+        var mcompid = $("#txtmcomp").val();
+    </script>
+    <script>
+
+
+        $(document).ready(function () {
+            location.href = "/admin/consult/mizan/reportmaintestmizan";
+        });
+
+
+    </script>
+
+}

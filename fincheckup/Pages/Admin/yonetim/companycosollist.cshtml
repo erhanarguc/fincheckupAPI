@@ -1,0 +1,246 @@
+﻿@page
+
+@using fincheckup.Models.Hvvn
+@using fincheckup.Models.NKolay
+
+@model IndexModel
+@{
+    ViewData["Title"] = "Giriş Ekranı";
+    Layout = "~/Pages/Shared/_LayoutFirm.cshtml";
+}
+@using DevExtreme.AspNet.Data
+@using fincheckup.Models.NKolay.json
+@using DevExtreme.AspNet.Mvc
+@using fincheckup.Models.NKolay.ENTITY
+@using fincheckup.ENTITY
+@functions {
+    public class IndexModel : PageModel
+    {
+        public long UserID;
+        public HhvnUsers CurrentUser;
+        public IEnumerable<Companies> mreqList;
+        public Companies mrequest;
+
+        public void OnGet(int id = 0)
+        {
+            mreqList = new List<Companies>();
+
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+            mrequest = new Companies();
+
+            if (id == 0)
+            {
+                Response.Redirect("/admin/yonetim/companylist");
+            }
+            else
+            {
+                mrequest = Companies.Get_Company(id);
+                mreqList = Companies.Get_ConsoleAll(id);
+            }
+
+        }
+        public JsonResult OnGetKonList(DataSourceLoadOptions options, long ide)
+        {
+
+    
+            var winModelTlist = Companies.UpdateStat_Console(ide);
+            return new JsonResult(DataSourceLoader.Load(winModelTlist, options));
+
+        }
+        
+
+
+    }
+}
+@section Styles {
+    <link rel="stylesheet" href="/assets/plugins/jquery-datatable/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="/assets/plugins/morrisjs/morris.css">
+    <style>
+        .tdnormall {
+            padding-top: 0.1rem !important;
+            padding-left: 0.75rem !important;
+            padding-bottom: 0.1rem !important;
+            padding-right: 0.75rem !important;
+        }
+
+        #chartxt {
+            max-height: 255px !important;
+        }
+    </style>
+}
+<section class="content home">
+    <div class="container-fluid">
+        <div class="block-header">
+            <div class="row clearfix">
+                <div class="col-lg-5 col-md-5 col-sm-12">
+                    <h2>Şirket Listesi</h2>
+                    <ul class="breadcrumb padding-0">
+                        <li class="breadcrumb-item"><a href=""><i class="zmdi zmdi-home"></i></a></li>
+                        <li class="breadcrumb-item active">Şirket Listesi</li>
+                    </ul>
+                </div>
+                <div class="col-lg-7 col-md-7 col-sm-12">
+                    <div class="input-group m-b-0">
+                        @Model.mrequest.CompanyName Şirketleri
+                    </div>
+                </div>
+            </div>
+        </div>  <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="body">
+                        <div class="row">
+                            <div class="col-6"> </div>
+                            <div class="col-6" style="text-align:right">
+                                @(Html.DevExtreme().Button()
+        .ID("buttonz")
+        .Text("Yeni Ekle").OnClick("functionrefresh")
+        .Type(ButtonType.Default)
+    )
+
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row clearfix">
+
+            <div class="col-md-12 col-lg-12">
+                <div class="card">
+                    <div class="body">
+
+                        <div class="row">
+
+                            @(Html.DevExtreme().DataGrid<Companies>().ColumnHidingEnabled(true)
+.ID("gridContainer").Paging(p => p.PageSize(10))
+.Pager(p => p
+.ShowPageSizeSelector(true)
+.AllowedPageSizes(new[] { 10, 25, 50, 100 })
+)
+.ShowBorders(true).FilterRow(f => f.Visible(false)).ShowRowLines(true)
+.RemoteOperations(true)
+.SearchPanel(s => s
+.Visible(true)
+.HighlightCaseSensitive(true)
+)
+.Editing(e => e.Mode(GridEditMode.Popup).UseIcons(true)
+)
+.Columns(columns => {
+
+columns.AddFor(m => m.ID).Visible(false);
+columns.AddFor(m => m.CompanyName).Caption("Şirket").AllowHeaderFiltering(true);
+columns.AddFor(m => m.City).Caption("Şehir").AllowHeaderFiltering(true);
+columns.AddFor(m => m.MainCompanyID).Caption("MainID").AllowHeaderFiltering(true);
+
+columns.Add()
+.CssClass("dx-command-edit dx-command-edit-with-icons centerdiv")
+.CellTemplate(@<text>
+         <a href="/admin/yonetim/companyconsol?id=<%= data.ID %>&mainid=<%= data.MainCompanyID %>" class="btn btn-secondary btn-round btn-simple" title="Detail"><span class="dx-icon fa fa-info-circle"></span></a>
+                   </text>);
+    columns.Add()
+.CssClass("dx-command-info dx-command-info-with-icons centerdiv")
+.CellTemplate(@<text>
+         <a  data-ide="<%= data.ID %>" data-id="<%= data.ID %>" class="btn btn-secondary btn-round btn-simple" onclick="functionref(this)" title="Sil"><span class="dx-icon fa fa-remove"></span></a>
+                   </text>);
+
+})
+        .DataSource(Model.mreqList
+        )
+    )
+                        </div>
+
+
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+
+        </div>
+
+
+
+
+
+    </div>
+</section>
+
+
+@section Scripts{
+
+
+
+    <script>
+
+        var dt1 = "105";
+
+        function functionref(data) { 
+            //var dta31 = $(data).data('id');
+            var dta = $(data).attr('data-ide');
+             
+             
+         //   location.href = "/admin/yonetim/companyconsol?mainid=@Model.mrequest.ID"
+
+
+            new     swal({
+                title: "Emin Misiniz?",
+                text: "Bu Şirket Bağıl Ortaklıktan silinecek!",
+                icon: "warning",
+                buttons: [
+                    'Hayır, Sakın Yapma!',
+                    'Evet, Sil Gitsin!'
+                ],
+                dangerMode: true,
+            }).then(function (isConfirm) {
+                if (isConfirm) {
+           
+                    new   swal({
+                        title: 'Silindi!',
+                        text: 'Bu şirket artık bu listede yok!',
+                        icon: 'success'
+                    }).then(function () {
+                        var turl = '/admin/yonetim/companycosollist?handler=KonList&ide=' +  dta ;
+                 
+                            $.ajax({
+                                type: "GET",
+                                url: turl,
+                                contentType: "application/json; charset=utf-8",
+                                dataType: "json",
+                                success: function (response) {
+                                  
+                                        location.reload();
+                                   
+
+                                },
+                                failure: function (response) {
+                                    alert(response);
+                                }
+                            });
+                        
+
+
+
+
+
+                      
+                    });
+                } else {
+                    new   swal("Tebrikler Kurtardın", "Az daha şirketi siliyordun :)", "error");
+                }
+            })
+        }
+        function functionrefresh(data) {
+
+            //alert(data);
+            location.href = "/admin/yonetim/companyconsol?mainid=@Model.mrequest.ID"
+
+        }
+    </script>
+} 

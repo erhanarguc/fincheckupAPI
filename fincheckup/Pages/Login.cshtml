@@ -1,0 +1,63 @@
+﻿@page
+@model fincheckup.Pages.LoginModel
+@{
+}
+<form method="post">
+
+    <input asp-for="RememberMe" type="hidden" />
+     
+
+    <table>
+
+        <tr>
+
+            <td>
+
+                <label asp-for="UserID"></label>
+
+            </td>
+
+            <td>
+
+                <input asp-for="UserPassword" />
+
+            </td>
+
+         
+
+        </tr>
+
+        <tr>
+
+            <td>
+            </td>
+
+            <td>
+
+                <input asp-for="RememberMe" />
+
+                <label asp-for="RememberMe"></label>
+
+            </td>
+
+            <td>
+
+                <span asp-validation-for="RememberMe"></span>
+
+            </td>
+
+        </tr>
+
+        <tr>
+
+            <td colspan="2" style="text-align:right">
+
+                <input type="submit" value="login!" />
+
+            </td>
+
+        </tr>
+
+    </table>
+
+</form>

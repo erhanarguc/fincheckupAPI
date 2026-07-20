@@ -1,0 +1,194 @@
+﻿@page
+@using fincheckup.Models.Hvvn 
+@using fincheckup.Models.NKolay.json 
+@using fincheckup.Models.ViewM 
+@using fincheckup.ENTITY
+@model IndexModel
+@{
+    ViewData["Title"] = "NEF";
+    Layout = "~/Pages/Shared/_LayoutFirm.cshtml";
+}
+
+@functions
+{
+
+    public class IndexModel : PageModel
+    {
+ 
+        public IEnumerable<YearResult> myearResult;
+        public long UserID;
+        public long CompID;
+        public int CompCount;
+        public int YearCount;
+        public HhvnUsers CurrentUser;   
+
+        public IEnumerable<Companies> mreqListCompany;
+
+
+
+        public void OnGet()
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            mreqListCompany = Companies.Getby_User(UserID);
+            CompID = mreqListCompany.Where(x => x.IsDefault == 1).FirstOrDefault().ID;
+            HhvnUsers.SetYearMain(CompID, UserID);
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+            YearCount = TBLXml.GetYearByComapnyID(CompID);
+            CompCount = mreqListCompany.Count();
+            myearResult = YearResult.getValue();
+
+
+
+        }
+    }
+
+}
+
+<section class="content home" id="employee">
+    <input type="hidden" style="display:none" id="txtmyear" value="@Model.CurrentUser.SelectedYear" />
+    <input type="hidden" style="display:none" id="txtmcomp" value="@Model.CompID" />
+    <input type="hidden" style="display:none" id="txtyearcount" value="@Model.YearCount" />
+    <input type="hidden" style="display:none" id="txtcompcount" value="@Model.CompCount" />
+    <div class="container-fluid">
+        <div class="block-header">
+            <div class="row clearfix">
+                <div class="col-lg-5 col-md-5 col-sm-12">
+                    <h2>Dashboard</h2>
+                    <ul class="breadcrumb padding-0">
+                        <li class="breadcrumb-item"><a href=""><i class="zmdi zmdi-home"></i></a></li>
+                        <li class="breadcrumb-item active">Dashboard</li>
+                    </ul>
+                </div>
+                <div class="col-lg-7 col-md-7 col-sm-12">
+                    <div class="input-group m-b-0">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="body">
+                                    <div class="row">
+                                        <div class="col-6" style="text-align:left">
+
+                                            @(Html.DevExtreme().SelectBox()
+                    .DataSource(Model.myearResult).ID("slctYear") 
+                    .DisplayExpr("MText").OnSelectionChanged("selectYear_valueChanged")
+                    .ValueExpr("MYear").Width(105)
+                )
+                                        </div>
+                                        <div class="col-6" style="text-align:right">
+
+                                        
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row clearfix">
+            <div class="col-md-12 col-lg-9">
+                <div class="row clearfix">
+                    <div class="col-12">
+
+                        <div class="card">
+                            <div class="body">
+                                <div class="row">
+                                    <div class="col-12">
+                                        @(Html.DevExtreme().DataGrid<Appointment>
+    ()
+    .ID("gridContainer")
+    .SearchPanel(searchPanel => searchPanel.Visible(true))
+    .ShowBorders(true)
+    .Paging(p => p.Enabled(true).PageSize(10))
+    .Editing(e => e.Mode(GridEditMode.Row).AllowAdding(true).AllowDeleting(true).AllowUpdating(true))
+    .Columns(columns => {
+
+        columns.AddFor(m => m.AppointmentId).Caption("AppointmentId").AllowEditing(false);
+        columns.AddFor(m => m.StartDate).Caption("StartDate");
+
+        columns.AddFor(m => m.EndDate).Caption("EndDate") ;
+        columns.AddFor(m => m.Status).Caption("Status");
+        columns.AddFor(m => m.Description)
+        .Width(170).Caption("Description") ;
+        columns.AddFor(m => m.PriorityId).Caption("Priority")
+        .Width(125)
+        .Lookup(lookup => lookup
+        .DataSource(d => d.Mvc().Controller("Daily").LoadAction("GetPriority").Key("Id"))
+        .DisplayExpr("Text")
+        .ValueExpr("Id")
+        );
+        columns.AddFor(m => m.AllDay);
+    })
+    .DataSource(d => d.Mvc()
+    .Controller("Daily").LoadParams(new { tyear = new JS("function() {return tyear; }") })
+    .InsertAction("Post")
+    .LoadAction("GetAll").DeleteAction("Delete")
+    .UpdateAction("Put")
+    .Key("AppointmentId")
+    )
+    )
+
+                                    </div>
+
+
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                    </div>
+
+
+
+
+
+
+                </div>
+
+
+
+            </div>
+
+
+        </div>
+
+
+
+
+
+    </div>
+</section>
+
+
+
+
+
+<script>
+    function onValueChangedmain(e) {
+        if (e.value.length > 1) {
+            const allPrevValues = e.previousValue;
+            e.component.option("value", allPrevValues);
+        }
+    }
+    var tyear = 2022;
+
+    function selectYear_valueChanged(data) {
+        var slctval = data.selectedItem.MYear;
+        tyear = slctval;
+        let elementz = document.getElementById("gridContainer");
+        let instancez = DevExpress.ui.dxDataGrid.getInstance(elementz);
+        instancez.getDataSource().reload();
+        
+
+    }
+</script>
+
+@section Scripts {
+ 
+
+}

@@ -1,0 +1,14 @@
+﻿@page
+@model fincheckup.Pages.TwoFactorAuthModel
+@{
+}
+<h1>Two Factor Authentication</h1>
+
+@if (TempData.ContainsKey("Message"))
+{
+    <p style="color:red">
+
+        <span>@TempData["Message"]</span>
+
+    </p>
+}

@@ -1,0 +1,435 @@
+﻿@page
+
+@model IndexModel
+@{
+    ViewData["Title"] = "Giriş Ekranı";
+    Layout = "~/Pages/Shared/_LayoutQnbMain.cshtml";
+}
+
+@using fincheckup.Models.NKolay.json
+@using fincheckup.ENTITY
+@using fincheckup.Models.ViewM
+@using fincheckup.Models.Hvvn
+@using System.Globalization
+@functions {
+    public class IndexModel : PageModel
+    {
+        public IEnumerable<YearResult> myearResult;
+        public long UserID;
+        public long CompID;
+        public int CompCount;
+        public string CompName { get; set; }
+        public int YearCount;
+        public HhvnUsers CurrentUser;
+        public DashYearlyBilancoChart ncart;
+        public List<DashBilancoView> nRequestList;
+        
+        public List<DashBilancoView> nRequestListChk;
+        public IEnumerable<Companies> mreqListCompany;
+        public string NetIsletme { get; set; }
+        public string CariOran { get; set; }
+        public decimal CariOranT { get; set; }
+        public string NakitOran { get; set; }
+        public Int64 val1 { get; set; }
+        public Int64 val3 { get; set; }
+        public void OnGet()
+        {
+
+
+
+
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            mreqListCompany = Companies.Getby_User(UserID);
+
+            CompID = mreqListCompany.Where(x => x.IsDefault == 1).FirstOrDefault().ID;
+            CompName = mreqListCompany.Where(x => x.IsDefault == 1).FirstOrDefault().CompanyName;
+            HhvnUsers.SetYearMain(CompID, UserID);
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+            YearCount = TBLXml.GetYearByComapnyID(CompID);
+            CompCount = mreqListCompany.Count();
+
+            myearResult = YearResult.getValue();
+
+            nRequestList = DashGelirTablosu.Get_MAINRESULT(CurrentUser.SelectedYear, CompID);
+            //nRequestListTx = DashBilancoViewTx.setDashBilanco(nRequestList);
+
+            //ncart = new DashYearlyBilancoChart();
+            //ncart.SetResult(nRequestList, CurrentUser.SelectedYear);
+
+
+            nRequestListChk = nRequestList;
+            //DashGelirTablosuViewMain.getList(CurrentUser.SelectedYear, CompID);
+
+            val1 = nRequestListChk.Where(x => x.TypeID == 111).Sum(x => x.OverViewTotal);
+            val3 = nRequestListChk.Where(x => x.TypeID == 2222).Sum(x => x.OverViewTotal);
+            if (val3 < 0) { val3 = val3 * -1; }
+            NetIsletme = (val1 - val3).ToString("0,0.00", new CultureInfo("en-US", false));
+
+            // DashBilancoViewMain.getNetIsletme(CurrentUser.SelectedYear, CompID);
+            var val5 = nRequestListChk.Where(x => x.TypeID == 333).Sum(x => x.OverViewTotal);
+            if (val5 == 0)
+            {
+                val5 = 1;
+            }
+            CariOranT = (Convert.ToDecimal(nRequestListChk.Where(x => x.TypeID == 111).Sum(x => x.OverViewTotal)) / Convert.ToDecimal(val5));
+            if (CariOranT < 0)
+            {
+                CariOranT = CariOranT * -1;
+            }
+            CariOran = CariOranT.ToString("0,0.00", new CultureInfo("en-US", false));
+            //DashBilancoViewMain.getCariOran(CurrentUser.SelectedYear, CompID).ToString("F");
+            NakitOran = (Convert.ToDecimal(nRequestListChk.Where(x => (x.TypeID == 10 || x.TypeID == 11)).Sum(x => x.OverViewTotal)) / Convert.ToDecimal(val5)).ToString("N2");
+            //DashBilancoViewMain.getNakitOran(CurrentUser.SelectedYear, CompID).ToString("F");
+        }
+
+      
+        public JsonResult OnGetGraphYear(int nyear)
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            HhvnUsers.SetYear(nyear, UserID);
+            return new JsonResult("ok");
+        }
+        public JsonResult OnGetChartRasyo(DataSourceLoadOptions options)
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+
+            CompID = Companies.Getby_User(UserID).Where(x => x.IsDefault == 1).FirstOrDefault().ID;
+            nRequestList = DashGelirTablosu.Get_MAINRESULT(CurrentUser.SelectedYear, CompID).Where(x => x.IsHidden == 0).ToList();
+            //nRequestListTx = DashBilancoViewTx.setDashBilanco(nRequestList);
+
+            ncart = new DashYearlyBilancoChart();
+            ncart.SetResult(nRequestList, CurrentUser.SelectedYear);
+
+            return new JsonResult(DataSourceLoader.Load(ncart.nresult, options));
+        }
+        public JsonResult OnGetMarkupMarjin(DataSourceLoadOptions options, string myear, long compid)
+        {
+            List<DashBilancoViewMulti> chklist = new List<DashBilancoViewMulti>();
+            if (string.IsNullOrEmpty(myear))
+            {
+                return new JsonResult(DataSourceLoader.Load(chklist, options));
+            }
+
+
+            string[] llist = myear.Split(',');
+            if (llist.Length<0)
+            {
+                return new JsonResult(DataSourceLoader.Load(chklist, options));
+            }
+            var tt = llist.Select(int.Parse).ToList();
+
+            var chk = DashGelirTablosu.Get_MAINRESULTMulti(tt.ToArray(), compid);
+            return new JsonResult(DataSourceLoader.Load(chk, options));
+        }
+        
+    }
+}
+@section Styles {
+    <link rel="stylesheet" href="/assets/plugins/jquery-datatable/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="/assets/plugins/morrisjs/morris.css">
+    <style>
+        .tdnormall {
+            padding-top: 0.1rem !important;
+            padding-left: 0.75rem !important;
+            padding-bottom: 0.1rem !important;
+            padding-right: 0.75rem !important;
+        }
+
+        #chartxt {
+            max-height: 255px !important;
+        }
+    </style>
+}
+<section class="content home" id="employee">
+    @(Html.DevExtreme().LoadPanel()
+        .ID("loadPanel")
+        .ShadingColor("rgba(0,0,0,0.4)")
+        .Position(p => p.Of("#employee"))
+        .Visible(false)
+        .ShowIndicator(true)
+        .ShowPane(true)
+        .Shading(true)
+        .HideOnOutsideClick(false)
+        .OnShown("loadPanel_shown")
+    )
+
+    <input type="hidden" style="display:none" id="txtmyear" value="@Model.CurrentUser.SelectedYear" />
+    <input type="hidden" style="display:none" id="txtmcomp" value="@Model.CompID" />
+    <input type="hidden" style="display:none" id="txtyearcount" value="@Model.YearCount" />
+    <input type="hidden" style="display:none" id="txtcompcount" value="@Model.CompCount" />
+    <div class="container-fluid">
+        <div class="block-header">
+            <div class="row clearfix">
+                <div class="col-lg-5 col-md-5 col-sm-12">
+                    <h2>Bilanço</h2>
+                    <ul class="breadcrumb padding-0">
+                        <li class="breadcrumb-item"><a href=""><i class="zmdi zmdi-home"></i></a></li>
+                        <li class="breadcrumb-item active">Bilanço</li>
+                    </ul>
+                </div>
+                <div class="col-lg-7 col-md-7 col-sm-12">
+                    <div class="input-group m-b-0">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="body">
+                                    <div class="row">
+                                        <div class="col-6" style="text-align:left">
+
+                                            @(Html.DevExtreme().SelectBox().Visible(false)
+                    .DataSource(Model.myearResult).ID("slctYear").OnInitialized("selectYear_Initialized")
+                    .DisplayExpr("MText").OnSelectionChanged("selectYear_valueChanged")
+                    .ValueExpr("MYear").Width(105)
+                )
+                                        </div>
+                                        <div class="col-6" style="text-align:right">
+
+                                       
+                                            @(Html.DevExtreme().TextBox()
+                                .Value(Model.CompName)  .ReadOnly(true)
+                            )
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row clearfix">
+
+            <div class="col-md-12 col-lg-12">
+                <div class="card">
+                    <div class="body">
+
+                        <div class="row">
+
+                            <div class="col-md-12 col-lg-3">
+                                <div class="col-md-12 col-lg-12">
+                                    <div class="card">
+                                        <div class="body l-blue overflowhidden" style="height: 100%;">
+                                            <div class="row">
+
+                                                <div class="card p-b-20">
+
+                                                    <div class="body l-blue overflowhidden">
+                                                        <p class="m-b-0 font-23">Cari Oran (%)</p>
+                                                        <p class="m-b-0"><small>Yüzdesel Ortalama</small> </p>
+                                                        <h3 class="m-t-0 m-b-0">% @Model.CariOran</h3>
+
+                                                    </div>
+                                                </div>
+                                                <div class="card p-b-125">
+                                                    <div class="body l-blue overflowhidden">
+                                                        <p class="m-b-0 font-23">Nakit Oranı (%)</p>
+                                                        <p class="m-b-0"><small>Yüzdesel Ortalama</small> </p>
+                                                        <h3 class="m-t-0 m-b-0">% @Model.NakitOran</h3>
+                                                    </div>
+
+                                                </div>
+
+                                                <div class="card p-b-125">
+                                                    <div class="body l-blue overflowhidden">
+
+                                                    </div>
+
+                                                </div>
+
+
+                                            </div>
+
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="col-md-12 col-lg-9">
+                                <div class="row clearfix">
+                                    <div class="col-md-12 col-lg-12">
+                                        <div class="card">
+                                            <div class="body">
+                                                <div class="row">
+
+                                                    @(Html.DevExtreme().PivotGrid<DashBilancoViewMulti>()
+        .ID("pivotgrid")
+        .AllowSortingBySummary(true)
+        .AllowFiltering(true)
+        .ShowBorders(true)
+        .ShowColumnGrandTotals(false).AllowExpandAll(true)
+        .ShowRowGrandTotals(false)
+        .ShowRowTotals(false).Export(e => e.Enabled(true))
+    .OnExporting("onExporting")
+        .ShowColumnTotals(false).FieldChooser(fc => fc
+        .AllowSearch(false)
+        .ApplyChangesMode(ApplyChangesMode.Instantly)).FieldPanel(e=>e.ShowColumnFields(true).ShowDataFields(false).ShowFilterFields(false).ShowRowFields(false))
+
+               .DataSource(d => d
+            .Store(s => s.RemoteController().LoadUrl(Url.Page(null, "MarkupMarjin")).LoadParams(new { myear = new JS("function() {return tchek; }"), compid = new JS("function() {return mcompid; }") }))
+            .Fields(fields => {
+                fields.AddFor(m => m.GroupName)
+               .Width(170)
+               .Area(PivotGridArea.Row)
+               ; fields.AddFor(m => m.CounterZone)
+                   .Width(120)
+                   .Area(PivotGridArea.Row).SortBy(PivotGridSortBy.Value).Visible(false)
+                   ;
+                fields.AddFor(m => m.AccountMainDescription)
+                    .Width(170)
+                    .Area(PivotGridArea.Row).SortBy(PivotGridSortBy.None).AllowFiltering(false)
+                    ;
+
+                fields.AddFor(m => m.Year).SortBy(PivotGridSortBy.Value).Area(PivotGridArea.Column).Expanded(true);
+
+                fields.AddFor(m => m.Amount)
+                    .SummaryType(SummaryType.Sum)
+                    .DataType(PivotGridDataType.Number).Format(x => x.Precision(1)).Format(Format.FixedPoint)
+                    .Area(PivotGridArea.Data);
+            })
+        )
+    )
+
+
+
+                                                </div>
+
+
+                                            </div>
+                                        </div>
+
+
+                                    </div>
+
+                                </div>
+
+
+
+                            </div>
+
+                        </div>
+
+
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+
+        </div>
+
+
+
+
+
+    </div>
+</section>
+
+
+@section Scripts{
+    <script src="/js/a_poly.js"></script>
+    <script src="/js/a_excel.js"></script>
+    <script src="/js/a_filesave.js"></script>
+
+    <script>
+        function getfdate() {
+            //
+            var usrdate = sessionStorage.getItem("fnckpyear");
+            if (usrdate == null || usrdate == undefined || usrdate == "null") {
+
+
+                usrdate = "";
+            }
+            else {
+                return usrdate;
+            }
+
+        };
+        var tchek = getfdate();
+        function onExporting(e) {
+            var workbook = new ExcelJS.Workbook();
+            var worksheet = workbook.addWorksheet('balancesheet');
+
+            DevExpress.excelExporter.exportPivotGrid({
+                component: e.component,
+                worksheet: worksheet
+            }).then(function () {
+                workbook.xlsx.writeBuffer().then(function (buffer) {
+                    saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'balancesheet.xlsx');
+                });
+            });
+            e.cancel = true;
+        }
+    </script>
+
+    <script>
+        var tyear = $("#txtmyear").val();
+        var mcompid = $("#txtmcomp").val();
+
+        function getLoadPanelInstance() {
+            return $("#loadPanel").dxLoadPanel("instance");
+        }
+        function loadPanel_shown(e) {
+            setTimeout(function () {
+                e.component.hide();
+            }, 7000);
+        }
+        var misready = "nok";
+        var chkReadyState = setInterval(function () {
+            if (document.readyState == "complete") {
+
+                clearInterval(chkReadyState);
+
+                misready = "ok";
+            }
+        }, 100);
+
+        function getselectYearInstance() {
+            return $("#slctYear").dxSelectBox("instance");
+        }
+      
+        function selectYear_Initialized() {
+            getselectYearInstance().option("value", parseInt($("#txtmyear").val()));
+            var chkco = parseInt($("#txtyearcount").val());
+
+            if (chkco < 2) {
+                getselectYearInstance().option("readOnly", true);
+            }
+
+
+        }
+         
+        function selectYear_valueChanged(data) {
+            var slctval = data.selectedItem.MYear;
+            var turl = '/admin/dashbilanco?handler=GraphYear&nyear=' + slctval;
+
+            if (misready == "ok" && tyear.toString() != slctval.toString()) {
+                getLoadPanelInstance().show();
+                $.ajax({
+                    type: "GET",
+                    url: turl,
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (response) {
+                        if (response == "ok") {
+                            location.reload();
+                        }
+                    },
+                    failure: function (response) {
+                        alert(response);
+                    }
+                });
+            }
+
+        }
+
+       
+
+        var dt1 = "105";
+    </script>
+} 

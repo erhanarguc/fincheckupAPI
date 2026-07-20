@@ -1,0 +1,157 @@
+﻿@page
+
+@using fincheckup.Models.Hvvn
+@using fincheckup.Models.NKolay
+
+@model IndexModel
+@{
+    ViewData["Title"] = "Limited Ekranı";
+    Layout = "~/Pages/Shared/_LayoutFirm.cshtml";
+}
+@using DevExtreme.AspNet.Data
+@using fincheckup.Models.NKolay.json
+@using DevExtreme.AspNet.Mvc
+@using fincheckup.Models.NKolay.ENTITY
+@using fincheckup.ENTITY
+@functions {
+    public class IndexModel : PageModel
+    {
+        public long UserID;
+        public HhvnUsers CurrentUser;
+        public IEnumerable<Companies> mreqList; 
+
+        public void OnGet(int year = 2021)
+        {
+            mreqList = new List<Companies>();
+
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+
+            if (CurrentUser.UserTypeID == 1001)
+            {
+                mreqList = Companies.Get_LimitedCompanyQnb();
+            } 
+            else
+            {
+                Response.Redirect("/logout?handler=logout");
+            }
+
+        }
+
+    
+
+
+    }
+}
+@section Styles {
+    <link rel="stylesheet" href="/assets/plugins/jquery-datatable/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="/assets/plugins/morrisjs/morris.css">
+    <style>
+        .tdnormall {
+            padding-top: 0.1rem !important;
+            padding-left: 0.75rem !important;
+            padding-bottom: 0.1rem !important;
+            padding-right: 0.75rem !important;
+        }
+
+        #chartxt {
+            max-height: 255px !important;
+        }
+    </style>
+}
+<section class="content home">
+    <div class="container-fluid">
+        <div class="block-header">
+            <div class="row clearfix">
+                <div class="col-lg-5 col-md-5 col-sm-12">
+                    <h2>Şirket Listesi</h2>
+                    <ul class="breadcrumb padding-0">
+                        <li class="breadcrumb-item"><a href=""><i class="zmdi zmdi-home"></i></a></li>
+                        <li class="breadcrumb-item active">Limited Şirket Listesi</li>
+                    </ul>
+                </div>
+                <div class="col-lg-7 col-md-7 col-sm-12">
+                    <div class="input-group m-b-0">
+                        <h3>Potansiyel Müşteri Şirketler</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row clearfix">
+
+            <div class="col-md-12 col-lg-12">
+                <div class="card">
+                    <div class="body">
+
+                        <div class="row">
+
+                            @(Html.DevExtreme().DataGrid<Companies>()
+.ID("gridContainer").Paging(p => p.PageSize(25))
+.Pager(p => p
+.ShowPageSizeSelector(true)
+.AllowedPageSizes(new[] { 10, 25, 50, 100 })
+)
+.ShowBorders(true).FilterRow(f => f.Visible(false)).ShowRowLines(true)
+.RemoteOperations(true)
+.SearchPanel(s => s
+.Visible(true)
+.HighlightCaseSensitive(true)
+)
+.Editing(e => e.Mode(GridEditMode.Popup).UseIcons(true)
+)
+.Columns(columns => {
+
+    columns.AddFor(m => m.ID).Visible(false);
+    columns.AddFor(m => m.CompanyName).Caption("Şirket").AllowHeaderFiltering(true);
+    columns.AddFor(m => m.ContactGSM).Caption("Contact GSM").AllowHeaderFiltering(false);
+    columns.AddFor(m => m.ContactMail).Caption("ContactMail").AllowHeaderFiltering(false);
+    columns.AddFor(m => m.ContactName).Caption("ContactName").AllowHeaderFiltering(false);
+    columns.AddFor(m => m.CreatedDate).Caption("CreatedDate").AllowHeaderFiltering(false);
+    columns.AddFor(m => m.qnbCorporateId).Caption("qnbCorporateId").AllowHeaderFiltering(false);
+    columns.AddFor(m => m.City).Caption("City").AllowHeaderFiltering(false);
+    columns.AddFor(m => m.Adress).Caption("Adress").AllowHeaderFiltering(false);
+
+})
+        .DataSource(Model.mreqList
+        )
+    )
+                        </div>
+
+
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+
+        </div>
+
+
+
+
+
+    </div>
+</section>
+
+
+@section Scripts{
+
+
+
+    <script>
+
+        var dt1 = "105";
+
+      
+        function functionrefresh(data) {
+
+            alert(data);
+
+
+        }
+    </script>
+} 

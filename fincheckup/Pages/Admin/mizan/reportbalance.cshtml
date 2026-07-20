@@ -1,0 +1,151 @@
+﻿@page
+
+@using fincheckup.Models.Hvvn
+@using fincheckup.Models.NKolay
+@using fincheckup.Models.NKolay.ViewM
+@using fincheckup.Models.NKolay.ENTITY.Mizan
+@model IndexModel
+@{
+    ViewData["Title"] = "Report";
+    Layout = "~/Pages/Shared/_LayoutReport.cshtml";
+}
+@using fincheckup.Models.NKolay.json
+@using fincheckup.ENTITY
+@using fincheckup.Models.ViewM
+@using fincheckup.Report
+@using DevExpress.AspNetCore
+@using DevExpress.DataAccess.ObjectBinding;
+@using DevExpress.XtraReports.UI
+
+
+
+@functions {
+    public class IndexModel : PageModel
+    {
+
+        public long UserID;
+        public long CompID;
+        public string header; 
+        public Companies CCompanies; 
+        public ReportMizan mainreporttext;
+        public HhvnUsers CurrentUser;
+        public IEnumerable<Companies> mreqListCompany;
+        public List<ReportSet> ncheck;
+        public List<DashMizanResult> ncheck1;
+        public List<DashDonukView> ncheck2;
+        public List<DashMizanResult> ncheck3;
+        public List<DashMizanResult> ncheck4;
+        public void OnGet(int nyear = 2021)
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            mreqListCompany = Companies.Getby_User(UserID);
+            CCompanies = mreqListCompany.Where(x => x.IsDefault == 1).FirstOrDefault();
+
+            CompID = CCompanies.ID;
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+            ncheck = ReportSetMain.Get_ReportSetBilanco(nyear, CompID);
+            mainreporttext = ReportMizanCheck.GetComapanyCumulativeMizan(nyear, CompID);
+            header = CCompanies.CompanyName + " " + nyear.ToString() + " Yılı Kümülatif Mizan Raporu";
+            ncheck1 = MizanResult.Get_MizanResult(nyear, CompID);
+            ncheck2 = MizanResult.Get_DonuChk(nyear, CompID);
+            ncheck3 = MizanResult.Get_TicariAlıcıMizan(nyear, CompID);
+            ncheck4 = MizanResult.Get_TicariBorcluMizan(nyear, CompID);
+            //int counter = 0;
+
+
+        }
+
+
+    }
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/viewer.part.bundle.css" />
+
+    <script src="~/js/viewer.part.bundle.js"></script>
+    <style>
+        .dxrd-toolbar-item-3 {
+            display: none !important;
+        }
+
+        .dxrd-toolbar-item-4 {
+            display: none !important;
+        }
+
+        .dxrd-preview.dxrd-designer-wrapper .dxrd-toolbar-wrapper .dxrd-preview-pager.dxrd-toolbar-item {
+            display: none !important;
+        }
+
+        dxrd-toolbar-item-0 {
+            display: none !important;
+        }
+
+        .dx-shadow-right {
+            display: none;
+        }
+    </style>
+
+}
+
+@{
+    BalanceReport report = new BalanceReport();
+
+    ObjectDataSource objectDataSource = new ObjectDataSource();
+    objectDataSource.Name = "DataViewer";
+    objectDataSource.DataSource = Model.ncheck;
+
+    ObjectDataSource objectDataSource1 = new ObjectDataSource();
+    objectDataSource1.Name = "DataViewer1";
+    objectDataSource1.DataSource = Model.ncheck1;
+
+
+    ObjectDataSource objectDataSource3 = new ObjectDataSource();
+    objectDataSource3.Name = "DataViewer3";
+    objectDataSource3.DataSource = Model.ncheck2;
+
+
+    ObjectDataSource objectDataSource4 = new ObjectDataSource();
+    objectDataSource4.Name = "DataViewer4";
+    objectDataSource4.DataSource = Model.ncheck3;
+
+
+
+    ObjectDataSource objectDataSource5 = new ObjectDataSource();
+    objectDataSource5.Name = "DataViewer5";
+    objectDataSource5.DataSource = Model.ncheck4;
+
+    objectDataSource.Fill();
+    DetailReportBand detailReport1 = report.Bands["DetailReport"] as DetailReportBand;
+    DetailReportBand detailReport2 = report.Bands["DetailReport1"] as DetailReportBand;
+    DetailReportBand detailReport3 = report.Bands["DetailReport2"] as DetailReportBand;
+    DetailReportBand detailReport4 = report.Bands["DetailReport3"] as DetailReportBand;
+    DetailReportBand detailReport5 = report.Bands["DetailReport4"] as DetailReportBand;
+
+    report.FindControl("xrLabel1", true).Text = Model.mainreporttext.TotalAssets.ToString("N0");
+    report.FindControl("xrLabel1l", true).Text = Model.mainreporttext.TotalLiability.ToString("N0");
+    report.FindControl("xrLabel1e", true).Text = Model.mainreporttext.TotalEquity.ToString("N0");
+    report.FindControl("xrLabel1p", true).Text = Model.mainreporttext.ProfitOrLoss.ToString("N0");
+    report.xrLabel21rpt.Text = Model.header;
+
+    if (Model.mainreporttext.TrialBalance == 0)
+    {
+        report.FindControl("xrShape2", true).Visible = false;
+    }
+    else
+    {
+        report.FindControl("xrShape1", true).Visible = false;
+    }
+    report.xrResultbalance.Text = Model.mainreporttext.TrialBalance.ToString();
+    detailReport1.DataSource = objectDataSource;
+    detailReport2.DataSource = objectDataSource1;
+    detailReport3.DataSource = objectDataSource3;
+    detailReport4.DataSource = objectDataSource4;
+    detailReport5.DataSource = objectDataSource5;
+    // report.DataSource = objectDataSource;
+    report.PrintingSystem.Document.Name = "Balance_raporlar";
+    @Html.DevExpress().WebDocumentViewer("DocumentViewer").Height("1000px").Bind(report)
+}
+
+@section Scripts{
+
+} 

@@ -1,0 +1,167 @@
+﻿@page
+
+@using fincheckup.Models.Hvvn
+@using fincheckup.Models.NKolay
+
+@model IndexModel
+@{
+    ViewData["Title"] = "Giriş Ekranı";
+    Layout = "~/Pages/Shared/_LayoutFirm.cshtml";
+}
+@using DevExtreme.AspNet.Data
+@using fincheckup.Models.NKolay.json
+@using DevExtreme.AspNet.Mvc
+@using fincheckup.Models.NKolay.ENTITY
+@using fincheckup.ENTITY
+@functions {
+    public class IndexModel : PageModel
+    {
+        public long UserID;
+        public HhvnUsers CurrentUser;
+        public IEnumerable<bulten> mreqList; 
+
+        public int StartQuestions { get; set; }
+        public int AQuestions { get; set; }
+        public int BQuestions { get; set; }
+        public int CQuestions { get; set; }
+        public void OnGet(int year = 2021)
+        {
+
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+            if (CurrentUser.UserTypeID!=1001)
+            {
+                Response.Redirect("/logout?handler=logout");
+            }
+            mreqList = bulten.Get_All(DateTime.Now.Year);
+        }
+
+        
+ 
+
+    }
+}
+@section Styles {
+    <link rel="stylesheet" href="/assets/plugins/jquery-datatable/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="/assets/plugins/morrisjs/morris.css">
+    <style>
+        .tdnormall {
+            padding-top: 0.1rem !important;
+            padding-left: 0.75rem !important;
+            padding-bottom: 0.1rem !important;
+            padding-right: 0.75rem !important;
+        }
+
+        #chartxt {
+            max-height: 255px !important;
+        } 
+
+
+    </style>
+}
+<section class="content home">
+    <div class="container-fluid">
+        <div class="block-header">
+            <div class="row clearfix">
+                <div class="col-lg-5 col-md-5 col-sm-12">
+                    <h2>Bülten Listesi</h2>
+                    <ul class="breadcrumb padding-0">
+                        <li class="breadcrumb-item"><a href=""><i class="zmdi zmdi-home"></i></a></li>
+                        <li class="breadcrumb-item active">Bülten Listesi</li>
+                    </ul>
+                </div>
+                <div class="col-lg-7 col-md-7 col-sm-12">
+                    <div class="input-group m-b-0">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row clearfix">
+
+            <div class="col-md-12 col-lg-12">
+                <div class="card">
+                    <div class="body">
+
+                        <div class="row">
+
+                            @(Html.DevExtreme().DataGrid<bulten>().ColumnHidingEnabled(true)
+.ID("gridContainer").Paging(p => p.PageSize(10))
+.Pager(p => p
+.ShowPageSizeSelector(true)
+.AllowedPageSizes(new[] { 10, 25, 50, 100 })
+).ColumnAutoWidth(true)
+.ShowBorders(true).FilterRow(f => f.Visible(false)).ShowRowLines(true)
+.RemoteOperations(true)
+.SearchPanel(s => s
+.Visible(true)
+.HighlightCaseSensitive(true)
+)
+.Editing(e => e.Mode(GridEditMode.Popup).UseIcons(true)
+)
+.Columns(columns => {
+
+columns.AddFor(m => m.ID).Visible(false);
+columns.AddFor(m => m.Title).Caption("Başlık").AllowHeaderFiltering(true);
+columns.AddFor(m => m.YururlulukTarih).Caption("YururlulukTarih").AllowHeaderFiltering(true);
+
+columns.Add()
+.CssClass("dx-command-edit dx-command-edit-with-icons centerdiv")
+.CellTemplate(@<text>
+         <a href="/admin/yonetim/bultenedit?id=<%= data.ID %>" class="btn btn-secondary btn-round btn-simple" title="Detail"><span class="dx-icon fa fa-info-circle"></span></a>
+                   </text>);
+
+})
+        .DataSource(Model.mreqList
+        )
+    )
+                        </div>
+
+
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+
+        </div>
+
+
+
+
+
+    </div>
+</section>
+
+
+@section Scripts{
+
+
+
+    <script>
+
+        var dt1 = "105";
+
+        $("#frm").submit(function () {
+            var vals = $(this).serialize();
+
+
+
+            $.ajax({
+                url: "/admin/PageApi/FormSubmita",
+                method: "POST",
+                data: vals,
+                success: function (data) {
+                    toastr.success('Success');
+                    location.href = "/admin/pagemain";
+                }
+            });
+
+            return false; // prevent from submit
+        });
+    </script>
+}  

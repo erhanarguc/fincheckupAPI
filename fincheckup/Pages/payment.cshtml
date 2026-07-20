@@ -1,0 +1,836 @@
+﻿@page
+@using DevExpress.XtraPrinting;
+@using fincheckup.ENTITY
+@using fincheckup.Helper
+@using fincheckup.Models.Hvvn
+@using fincheckup.Models.NKolay.ViewM
+@using fincheckup.Models.ViewM
+@using fincheckup.Report
+@using fincheckup.Models.NKolay.QnbReport
+@using Microsoft.AspNetCore.Mvc.RazorPages;
+@using fincheckup.Models.Qnb
+@model IndexModel
+@{
+    ViewData["Title"] = "payment";
+    Layout = "~/Pages/Shared/_Layoutmasterkobi.cshtml";
+}
+
+@functions {
+    public class IndexModel : PageModel
+    {
+        public IOrderedEnumerable<TBLAAQnbSignLog> reportList;
+
+        public IEnumerable<YearResult> myearResult;
+        public long UserID; public int YearCurrent;
+        public long CompID;
+        public int CompCount;
+        public int OrderID;
+        public string CompName;
+        public string NewRepName;
+        public int YearCount;
+        public long curcomID;
+        public int curcomCount;
+
+        public HhvnUsers CurrentUser;
+
+        public IEnumerable<NaceCode> cNaceCodeUpload;
+
+
+        public IEnumerable<Companies> mreqListCompany;
+        public Companies curCompany;
+
+
+        public string currentcompname { get; set; }
+
+        public void OnGet(string lng = "tr")
+        {
+            OrderID = new Random().Next(1, 5555);
+            myearResult = YearResult.getValue();
+
+            cNaceCodeUpload = NaceCode.Get_NaceCode();
+            YearCurrent = 2021;
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+            mreqListCompany = Companies.Getby_User(UserID);
+            curCompany = mreqListCompany.Where(x => x.IsDefault == 1).FirstOrDefault();
+            CompName = mreqListCompany.Where(x => x.IsDefault == 1).FirstOrDefault().CompanyName;
+            currentcompname = curCompany.CompanyName;
+            YearCurrent = CurrentUser.SelectedYear;
+            curcomID = curCompany.ID;
+            curcomCount = mreqListCompany.Count();
+
+            //currentUpload = UploadMain.Get_Data(DateTime.Now.Year, curcomID); 3320
+
+            CompID = curCompany.ID;
+            YearCount = TBLXml.GetYearByComapnyID(CompID);
+            CompCount = mreqListCompany.Count();
+
+        }
+    }
+}
+@section Styles {
+ 
+    <style>
+        .sendd .dx-button-content .dx-button-text {
+            color: white;
+            font-family: 'Mulish';
+            font-style: normal;
+            font-weight: 400;
+            font-size: 12px;
+            line-height: 18px;
+        }
+
+        .sendd .dx-button-content {
+            background-color: #870052;
+            color: white;
+        }
+
+        .sendd {
+        }
+
+
+        .senda .dx-button-content .dx-icon {
+            color: #222943;
+            font-size: 12px;
+        }
+
+        .senda .dx-button-content .dx-button-text {
+            color: #222943;
+            font-family: 'Mulish';
+            font-style: normal;
+            font-weight: 400;
+            font-size: 12px;
+            line-height: 18px;
+        }
+
+        .senda .dx-button-content {
+            color: #222943;
+        }
+
+        .senda {
+            border: none;
+        }
+
+        .send .dx-button-content .dx-icon {
+            color: #257DFB;
+            font-size: 12px;
+        }
+
+        .send .dx-button-content .dx-button-text {
+            color: #257DFB;
+            font-family: 'Mulish';
+            font-style: normal;
+            font-weight: 400;
+            font-size: 12px;
+            line-height: 18px;
+        }
+
+        .send .dx-button-content {
+            color: #257DFB;
+        }
+
+        .send {
+            border: none;
+        }
+
+        .dx-texteditor.dx-editor-outlined {
+            border-style: none !important;
+        }
+
+        .dx-texteditor-input {
+            font-size: 1.3em;
+            font-size: 1.5em;
+            /* identical to box height */
+            /* LightMode/Mass/TextColors/T1000 */
+            color: #222943;
+        }
+
+        .mulish-semi-bold-ebony-clay-14px {
+            color: var(--ebony-clay);
+            font-family: var(--font-family-mulish);
+            font-size: var(--font-size-m);
+            font-style: normal;
+            font-weight: 600;
+        }
+
+        .dx-placeholder {
+            color: black;
+            font-size: 19px
+        }
+
+        .mulish-bold-ebony-clay-16px {
+            color: var(--ebony-clay);
+            font-family: var(--font-family-mulish);
+            font-size: var(--font-size-l);
+            font-style: normal;
+            font-weight: 700;
+        }
+
+        .tinpout {
+            width: 209px;
+            height: 21px;
+            left: 244px;
+            top: 606px;
+            font-family: 'Mulish';
+            font-style: normal;
+            font-weight: 600;
+            font-size: 16px;
+            line-height: 20px;
+            /* LightMode/Mass/TextColors/T800 */
+            color: #666F85;
+        }
+
+        .mulish-extra-bold-kashmir-blue-14px {
+            color: var(--kashmir-blue);
+            font-family: var(--font-family-mulish);
+            font-size: var(--font-size-m);
+            font-style: normal;
+            font-weight: 800;
+        }
+
+        .mulish-bold-ebony-clay-16px :focus {
+            outline-color: transparent;
+            outline-style: solid;
+            box-shadow: 0 0 0 4px #5a01a7;
+        }
+
+        .mulish-bold-ebony-clay-16px :active {
+            border-color: #ffbf00;
+        }
+
+        .mulish-bold-ebony-clay-16px :hover {
+            border-color: #002ead;
+            transition: 0.7s;
+        }
+
+
+        .arrow-right-hov {
+            color: blue
+        }
+
+
+        h1 {
+            font-size: 16px;
+            margin: 5px;
+        }
+
+        /*
+                Payment Information card
+                */
+        .details_card {
+            width: 700px;
+            height: 400px;
+            box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 10px;
+            background-color: #fff;
+        }
+
+        /*
+                Order Summary Card
+                */
+        .summary_card {
+            background-color: #fff;
+            height: 400px;
+            box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        /*
+                Order Card Item Card
+                */
+        .card_item {
+            display: flex;
+            position: relative;
+            margin: 10px 0;
+        }
+
+        .close-btn {
+            position: absolute;
+            right: 10px;
+            top: 5px;
+        }
+
+        .card_item .product_img img {
+            height: 80px;
+            margin-right: 20px;
+            width: 70px;
+            border-radius: 5px;
+        }
+
+        .product_info h1 {
+            font-size: 20px;
+            color: #1e212d;
+            margin: 5px 0;
+        }
+
+        .product_info p {
+            color: #a1a1a1;
+            font-size: 14px;
+        }
+
+        .product_rate_info {
+            display: flex;
+            margin: 5px 0;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /*
+                cart item + & -
+                */
+        .pqt {
+            font-size: 20px;
+            line-height: 30px;
+            width: 30px;
+            text-align: center;
+        }
+
+        .pqt-plus,
+        .pqt-minus {
+            background: #fcfcfc;
+            border: none;
+            font-size: 20px;
+            height: 100%;
+            padding: 0 15px;
+        }
+
+            .pqt-plus:hover,
+            .pqt-minus:hover {
+                background: #53b5aa;
+                color: #fff;
+                cursor: pointer;
+            }
+
+        .pqt-plus {
+            line-height: 30px;
+        }
+
+        .pqt-minus {
+            line-height: 30px;
+        }
+        /*
+                Order price & total
+                */
+        .order_price,
+        .order_service,
+        .order_total {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+        }
+
+            .order_price p,
+            .order_service p {
+                color: #a1a1a1;
+            }
+
+            .order_total p {
+                font-weight: 600;
+            }
+
+        /*
+                Payment Information all input
+                */
+
+        input {
+            outline: 0;
+            border-radius: 4px;
+            width: 100%;
+            height: 100%;
+            border: 0;
+            caret-color: #4f5d7e;
+            padding: 11px 2px;
+            box-sizing: border-box;
+            font-size: 19px;
+            padding-right: 5px;
+            padding-left: 5px;
+        }
+
+        .first_lastName,
+        .shipping_card,
+        .address {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+        }
+
+        .new_card {
+            width: 100%;
+            height: 100px;
+            border: 2px solid #53b5aa;
+            padding: 10px;
+            margin: 10px;
+            border-radius: 10px;
+        }
+
+        .add_savedcard {
+            width: 100%;
+            height: 100px;
+            border: 2px solid #a1a1a1;
+            padding: 10px;
+            margin: 10px;
+            border-radius: 10px;
+        }
+        /*
+                Procced Payment button
+                */
+        .proced_payment a {
+            padding: 10px 20px;
+            width: 200px;
+            border: 2px solid #f5f5f5;
+            background-color: #53b5aa;
+            color: #000;
+            margin-left: 10px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .dx-editor-outlined .dx-label span{
+            color: black;
+        }
+        fieldset {
+            border: 1px solid #cccc;
+            -webkit-border-radius: 8px;
+            -moz-border-radius: 8px;
+            border-radius: 8px;
+        }
+
+        .dx-button-mode-contained.dx-button-danger {
+            background: #870052;
+            width: 100%;
+        }
+
+            .dx-button-mode-contained.dx-button-danger:hover {
+                background: #4b1438;
+            }
+
+        .dx-button-mode-contained.dx-button-default {
+            background: #870052;
+        }
+
+            .dx-button-mode-contained.dx-button-default:hover {
+                background: #4b1438;
+            }
+
+        #mbutton {
+            float: right;
+        }
+    </style>
+
+}
+<div class="dlab-bnr-inr text-center" style="max-height:121px !important">
+</div>
+<input type="hidden" style="display:none" id="txtcompname" value="@Model.currentcompname" />  
+<input type="hidden" style="display:none" id="txtmcomp" value="@Model.CompID" />  
+<!-- Banner End -->
+<!-- Services Details -->
+<section class="content-inner-2">
+    <div class="container">
+        <div class="row">
+
+            <div class="col-lg-6">
+
+                <div class="payment_details">
+                    <form id="payment-form" name="form" class="" style="  ">
+                        <h1 style="font-family: 'Mulish'; font-style: normal; font-weight: 700; font-size: 20px;    display: flex; align-items: center;">Kart Bilgileri</h1>
+                        <div class="" style="border:solid;border-color:gray;border-width:1px;padding:15px;">
+                           
+                            <br />
+                            <fieldset style="height: 55px;border:none">
+                               
+                                <table>
+                                    <tr>
+                                        <td><input type="text" id="CardholderName" name="CardholderName" /></td>
+                                        @(Html.DevExtreme().TextBox().ID("CardholderName").Name("CardholderName").Label("Kart Sahibi").LabelMode(EditorLabelMode.Static)
+                                          .ElementAttr("css", "tinpout")  
+                                            )
+                                    </tr>
+                                </table>
+                            </fieldset><br />
+                            <fieldset style="height: 55px;  border:none">
+                              
+                                <table>
+                                    <tr>
+
+                                        @(Html.DevExtreme().TextBox().ID("card-number").Name("CardNumber").Label("Kart Numarası").LabelMode(EditorLabelMode.Static)
+                                            .Mask("0000-0000-0000-0000").ElementAttr("css", "tinpout") 
+                                            )
+                                    </tr>
+                                </table>
+                            </fieldset><br />
+                            <fieldset style="height: 55px; border:none ; vertical-align: central">
+                              
+                                <table>
+                                    <tr>
+                                        <td>
+                                            @(Html.DevExtreme().TextBox().ID("expireMonth").Name("ExpireMonth").Label("Son Kullanım Tarihi Ay-Yıl").LabelMode(EditorLabelMode.Static)
+                                                .Placeholder("Son Kullanım Tarihi").Mask("00-00").ShowMaskMode(ShowMaskMode.OnFocus).ElementAttr("css", "tinpout")
+                                                .MaskRules(new { X = new JS("/[02-9]/") }) 
+                                                )
+
+                                        </td>
+                                    </tr>
+                                </table>
+                            </fieldset><br />
+                            <fieldset style="height: 55px; border:none;vertical-align:central">
+                           
+                                <table>
+                                    <tr>
+                                        <td>
+                                            @(Html.DevExtreme().TextBox().ID("cvv").Name("CardCode").Label("CVV").LabelMode(EditorLabelMode.Static)
+                                                .Placeholder("CVV*").Mask("000").ShowMaskMode(ShowMaskMode.OnFocus).ElementAttr("css", "tinpout")
+                                                .MaskRules(new { X = new JS("/[02-9]/") }) 
+                                                )
+                                        </td>
+                                    </tr>
+                                </table>
+                            </fieldset>
+
+
+
+                        </div>
+ 
+
+                        <div class="ui center aligned segment" style="">
+                        
+                        </div>
+                        <div style=" padding: 15px 0 0 0; font-size: 15px;display:none">
+                            <input name="Is3D" id="Is3D" type="checkbox" style="vertical-align:middle;display:none" />
+                            <label style=" font-weight: bold; padding-left: 10px; vertical-align:middle;display:none">3D Payment</label>
+                        </div>
+                    </form>
+
+                    @* <h1>Kart Bilgileri</h1>
+                    <div class="details_card">
+                        <div class="name_address">
+                            <div class="first_lastName">
+                                <input type="text" placeholder="Ad-Soyad" /> 
+                            </div>
+                            <div class="first_lastName">
+                                <input type="text" placeholder="Kart No" /> 
+                            </div>
+                            <div class="address"> 
+                                <input type="number" placeholder="Ay-Yıl" />
+                                <input type="text" placeholder="CVV" />
+                            </div>
+                        </div>
+                    
+                        <div class="proced_payment">
+                            <a href="">Ödemeyi Gerçekleştir</a>
+                        </div>
+                    </div> *@
+                </div>
+
+
+            </div>
+            <div class="col-lg-2">
+            </div>
+                <div class="col-lg-4">
+
+                    <div class="order_summary">
+                        <h1>Sipariş Özeti</h1>
+                        <div class="summary_card">
+                            <div class="card_item">
+                                <div class="product_img">
+                                    <img src="/package.png" alt="" />
+                                </div>
+                                <div class="product_info">
+                                    <h1>MasterKobi </h1>
+                                <p>Finansal Durum Raporu Paketi</p>
+                                    <div class="close-btn">
+                                        <i class="fa fa-close"></i>
+                                    </div>
+                                    <div class="product_rate_info">
+                                    <h1 style="text-decoration:line-through">5000 TL</h1>
+                                    <h1>2500 TL</h1>
+                                </div>
+                                </div>
+                            </div> 
+                            <hr />
+                            <div class="order_price">
+                                <p>Alt Toplam</p>
+                            <h4>2500 TL</h4>
+                            </div>
+                            <div class="order_service">
+                                <p>KDV</p>
+                                <h4>500 TL</h4>
+                            </div>
+                            <div class="order_total">
+                                <p>Toplam</p>
+                            <h4><span id="amounttxt">1</span> TL</h4>
+                            </div>
+                    </div>    @(
+                    Html.DevExtreme().Button()
+                    .Text("Ödemeyi Tamamla").Height(55)
+                    .Type(ButtonType.Danger).OnClick("odemeyap")
+                    .StylingMode(ButtonStylingMode.Contained)
+
+                    )
+                    </div>
+
+
+                </div>
+
+            </div>
+        </div>
+</section>
+
+<section class="content-inner">
+    <div class="container">
+        <div class="row">
+
+    
+
+        </div>
+    </div>
+</section>
+
+
+
+
+@(Html.DevExtreme().LoadPanel()
+        .ID("loadPanel")
+        .ShadingColor("rgba(0,0,0,0.4)")
+        .Position(p => p.Of("#employee"))
+        .Visible(false)
+        .ShowIndicator(true).Message("Raporunuz Hazırlanıyor ... Lütfen Bekleyiniz...")
+        .ShowPane(true).Height(300).Width(500)
+        .Shading(true)
+          .HideOnOutsideClick(false)
+        .OnShown("loadPanel_shown")
+    )
+
+<input type="text" id="mainmonth" name="mainmonth" style="display:none" />
+<input type="text" id="orderid" name="mainmonth" style="display:none" value="@Model.OrderID" />
+
+
+@(Html.DevExtreme().Popup()
+    .ID("popuperrora")
+    .Width(635)
+    .Height(195).Position(p =>
+    {
+        p.My(HorizontalAlignment.Center, VerticalAlignment.Top);
+        p.At(HorizontalAlignment.Center, VerticalAlignment.Top);
+        p.Of("window");
+        p.Offset(100, 100);
+    })
+    .Visible(false)
+    .ShowTitle(false)
+    .HideOnOutsideClick(false)
+    .ContentTemplate(new TemplateName("popup-templatezzerra"))
+)
+
+@using (Html.DevExtreme().NamedTemplate("popup-templatezzerra"))
+{
+
+    <div class="center1">
+        <img src="~/ico/Combined-Shape.svg" />  &nbsp;&nbsp;&nbsp; Uyarı
+    </div>
+    <br />
+
+    <div class="center31">
+        <%= itemCodecontent %>
+    </div>
+
+    <div class="center13">
+        <p style="text-align:right">
+            @(Html.DevExtreme().Button().ID("eee1zerra")
+                .Text("Vazgeç").Visible(false)
+                .Type(ButtonType.Normal)
+                .StylingMode(ButtonStylingMode.Contained)
+                .Width(120)
+                .OnClick("funcErrorClose")
+                ) @(Html.DevExtreme().Button().ID("eee3zerra")
+              .Text("Kapat")
+              .ElementAttr("class", "sendd")
+              .Width(120)
+              .OnClick("funcErrorClosea")
+              )
+        </p>
+    </div>
+
+
+}
+
+@(Html.DevExtreme().Popup()
+    .ID("popuperroranon")
+    .Width(635)
+    .Height(195).Position(p =>
+    {
+        p.My(HorizontalAlignment.Center, VerticalAlignment.Top);
+        p.At(HorizontalAlignment.Center, VerticalAlignment.Top);
+        p.Of("window");
+        p.Offset(100, 100);
+    })
+    .Visible(false)
+    .ShowTitle(false)
+    .HideOnOutsideClick(false)
+    .ContentTemplate(new TemplateName("popup-templatezzerranon"))
+)
+
+@using (Html.DevExtreme().NamedTemplate("popup-templatezzerranon"))
+{
+
+    <div class="center1">
+        <img src="~/infoicon.svg" />  &nbsp;&nbsp;&nbsp; Bilgilendirme
+    </div>
+    <br />
+
+    <div class="center31">
+        <%= itemCodecontent %>
+    </div>
+
+    <div class="center13">
+        <p style="text-align:right">
+            @(Html.DevExtreme().Button().ID("eee1zerranon")
+                .Text("Vazgeç").Visible(false)
+                .Type(ButtonType.Normal)
+                .StylingMode(ButtonStylingMode.Contained)
+                .Width(120)
+                .OnClick("funcErrorClose")
+                ) @(Html.DevExtreme().Button().ID("eee3zerranon")
+              .Text("Kapat")
+              .ElementAttr("class", "sendd")
+              .Width(120)
+              .OnClick("funcErrorCloseanon")
+              )
+        </p>
+    </div>
+
+
+}
+<button type="button" style="display:none;" class="btn btn-primary" id="btnResultModel" data-bs-toggle="modal" data-bs-target="#resultModal"></button>
+<div class="modal fade" id="resultModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="modalHeader"></h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div id="modalBody" class="modal-body">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Service -->
+<!-- Testimonials -->
+<!-- Clients Logo -->
+@section Scripts{
+    <script>
+        var itemCodecontent = "";
+        function funcErrorOpena(inputz) {
+            itemCodecontent = inputz;
+            const popuprz = $("#popuperrora").dxPopup("instance");
+            popuprz.option("contentTemplate", null);
+            popuprz.option("contentTemplate", $("#popup-templatezzerra"));
+            popuprz.show();
+        }
+        function funcErrorClosea() {
+            const popuprz = $("#popuperrora").dxPopup("instance");
+
+            popuprz.hide();
+        }
+        function funcErrorOpenanon(inputz) {
+            itemCodecontent = inputz;
+            const popuprz = $("#popuperroranon").dxPopup("instance");
+            popuprz.option("contentTemplate", null);
+            popuprz.option("contentTemplate", $("#popup-templatezzerranon"));
+            popuprz.show();
+        }
+        function funcErrorCloseanon() {
+            const popuprz = $("#popuperroranon").dxPopup("instance");
+
+            popuprz.hide();
+        }
+        function funcErrorOpen() {
+            document.getElementById('uploadInput').value = null;
+            const popuprz = $("#popuperror").dxPopup("instance");
+
+            popuprz.show();
+        }
+        function funcErrorClose() {
+            const popuprz = $("#popuperror").dxPopup("instance");
+
+            popuprz.hide();
+        }
+        function odemeyap() {
+            // $('#paymentButton').click();
+            var Is3Dtxt = "off";
+            // var chkd = $("#tred").dxCheckBox("instance").option("value");
+            var amounttxt = $("#amounttxt").html(); 
+            // orderid
+            // var orderidtxt = $("#orderid").val();
+            // if (chkd == true || chkd == "true") { Is3Dtxt = "on"; }
+            var orderidtxt = $("#orderid").val();
+            console.log(orderidtxt);
+
+
+
+            console.log("entered");
+            var form = $("#payment-form")
+            var datas = JSON.stringify(form.serialize()) + "&Is3D=" + Is3Dtxt + "&Amount=" + amounttxt + "&OrderId=" + orderidtxt;
+            console.log(datas);
+            $.ajax({
+                type: 'POST',
+                dataType: 'json',
+                data: datas,
+                url: '/Transaction/PaySmartNombmaster/',
+                success: function (data) {
+
+                    const result = jQuery.parseJSON(data);
+                    console.log(data);
+                    // $("#modalHeader").text(result.status_description);
+                    // $("#modalBody").text(`Status Code : ${result.status_code}`);
+                    // $('#btnResultModel').click();
+                    // if (data.includes("100")) { funcErrorOpenanon("Payment process successful"); } else { funcErrorOpena("Payment Failed"); }
+                    location.href = "/transaction/request3d";
+                    
+                },
+                error: function (err) {
+                    console.log(err);
+
+
+                    location.href = "/transaction/request3d";
+
+                    // const winHtml = err.responseText;
+
+                    // const winUrl = URL.createObjectURL(
+                    //     new Blob([winHtml], { type: "text/html" })
+                    // );
+
+                    // const win = window.open(
+                    //     winUrl,
+                    //     "win",
+                    //     `width=800,height=400,screenX=200,screenY=200`
+                    // );
+                }
+            });
+
+
+            return false;
+        }
+        function getLoadPanelInstance() {
+            return $("#loadPanel").dxLoadPanel("instance");
+        }
+        function loadPanel_shown(e) {
+            setTimeout(function () {
+                e.component.hide();
+            }, 610000);
+        }
+
+
+        var txcompname = $("txtcompname").val();
+
+        function formatMessage(e) {
+
+            return $("#txtcompname").val();
+        }
+
+    </script>
+          
+}

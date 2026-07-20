@@ -1,0 +1,677 @@
+﻿@page
+
+@using fincheckup.Models.Hvvn
+@using fincheckup.Models.NKolay
+
+@model IndexModel
+@{
+    ViewData["Title"] = "Giriş Ekranı";
+    Layout = "~/Pages/Shared/_LayoutQnbMain.cshtml";
+}
+@using fincheckup.Models.NKolay.json
+@using fincheckup.Models.ViewM
+@using fincheckup.Models.NKolay.ENTITY
+@using fincheckup.ENTITY
+@using fincheckup.Models.TaxError
+@using fincheckup.Helper.Constant
+
+@functions {
+    public class IndexModel : PageModel
+    {
+
+        public long UserID; 
+        public long CompID; 
+        public int YearCount;
+        public Companies companny;
+        public IEnumerable<Companies> mreqListCompany;
+        public byte IsEldeger;
+        public void OnGet()
+        {
+
+
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            mreqListCompany = Companies.Getby_User(UserID);
+
+            companny = mreqListCompany.FirstOrDefault();
+            IsEldeger = companny.IsEledger;
+
+            CompID = companny.ID;
+            UserCompany.setUpdateUser(UserID, CompID);
+            YearCount = TBLXml.GetYearByComapnyID(CompID);
+            if (YearCount!=0)
+            {        
+                 Response.Redirect("/admin/qnb/reportmain");
+                YearCount = TBLXml.GetYearByComapnyIDMizan(CompID);
+                if (YearCount != 0)
+                { 
+                    Response.Redirect("/admin/qnb/mizan/uploadmizan");
+                }
+
+            } 
+        }
+        public JsonResult OnGetChangeCompanyIsEledgerIndo(byte typeId, long compid)
+        {
+
+
+            if (typeId==1)
+            {
+                Companies.UpdateCompanyIsEledger(AppConstant.CompanyIsEdefter, compid);
+            }
+            else
+            {
+                Companies.UpdateCompanyIsEledger(AppConstant.CompanyIsMizanBeyanname, compid);
+            }
+
+            return new JsonResult("ok");
+
+        }
+
+
+    }
+}
+@section Styles {
+    <link rel="stylesheet" href="/assets/plugins/jquery-datatable/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="/assets/plugins/morrisjs/morris.css">
+    <script src="~/assets/js/bootstrap.js"></script>
+
+    <style>
+                .theme-black .btn-primary {
+                    background-color: #870052;
+                }
+
+                img {
+                    width: 100% !important;
+                    height: auto !important;
+                    border-radius: 1px !important;
+                }
+
+        .sendd .dx-button-content .dx-button-text {
+            color: white;
+            font-family: 'Mulish';
+            font-style: normal;
+            font-weight: 400;
+            font-size: 12px;
+            line-height: 18px;
+        }
+
+        .center1 {
+            width: 100%;
+            height: 23px;
+            /* BodyLarge/Bold */
+
+            font-family: 'Mulish';
+            font-style: normal;
+            font-weight: 700;
+            font-size: 18px;
+            line-height: 23px;
+            /* identical to box height */
+            /* Mass/LightMode/TextColors/T1000 */
+
+            color: #222943;
+            /* Inside auto layout */
+
+            flex: none;
+            order: 1;
+            flex-grow: 0;
+        }
+
+        .center3 {
+            width: 636px;
+            height: 54px;
+            /* BodySmall/Regular */
+
+            font-family: 'Mulish';
+            font-style: normal;
+            font-weight: 400;
+            font-size: 14px;
+            line-height: 18px;
+            /* Mass/LightMode/TextColors/T1000 */
+
+            color: #222943;
+            /* Inside auto layout */
+
+            flex: none;
+            order: 1;
+            flex-grow: 0;
+        }
+
+        .center31 {
+            width: 545px;
+            height: 54px;
+            /* BodySmall/Regular */
+
+            font-family: 'Mulish';
+            font-style: normal;
+            font-weight: 400;
+            font-size: 14px;
+            line-height: 18px;
+            /* Mass/LightMode/TextColors/T1000 */
+
+            color: #222943;
+            /* Inside auto layout */
+            padding: 15px;
+            flex: none;
+            order: 1;
+            flex-grow: 0;
+        }
+
+        .center5 {
+            width: 90px;
+            height: 18px;
+            font-family: 'Mulish';
+            font-style: normal;
+            font-weight: 700;
+            font-size: 14px;
+            line-height: 18px;
+            /* identical to box height */
+            /* Mass/LightMode/TextColors/T1000 */
+
+            color: #222943;
+            /* Inside auto layout */
+
+            flex: none;
+            order: 2;
+            flex-grow: 0;
+        }
+
+        #center7t {
+            width: 101px;
+            height: 18px;
+            /* BodySmall/Left/Black/Regular */
+
+            font-family: 'Mulish';
+            font-style: normal;
+            font-weight: 400;
+            font-size: 12px;
+            line-height: 18px;
+            /* identical to box height */
+            /* Mass/LightMode/TextColors/T1000 */
+
+            color: #222943;
+            /* Inside auto layout */
+
+            flex: none;
+            order: 1;
+            flex-grow: 0;
+        }
+
+        #center11t {
+            width: 103px;
+            height: 18px;
+            /* BodySmall/Left/Black/Regular */
+
+            font-family: 'Mulish';
+            font-style: normal;
+            font-weight: 400;
+            font-size: 12px;
+            line-height: 18px;
+            /* identical to box height */
+            /* Mass/LightMode/DecorativeColors/Blue20 */
+
+            color: #257DFB;
+            /* Inside auto layout */
+
+            flex: none;
+            order: 1;
+            flex-grow: 0;
+        }
+
+        .center7 {
+            box-sizing: border-box;
+            /* Auto layout */
+
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 152px;
+            width: 100%;
+            height: 38px;
+            /* Mass/LightMode/OnBrand/OB100 */
+
+            background: #FFFFFF;
+            /* Mass/LightMode/NeutralColors/N400
+
+                        neutral color
+                        */
+            border: 1px solid #DEE3ED;
+            /* PathStyle */
+
+            box-shadow: 0px 1px 0px rgba(222, 227, 237, 0.25);
+            border-radius: 4px;
+            /* Inside auto layout */
+
+            flex: none;
+            order: 3;
+            flex-grow: 0;
+        }
+
+        .sendd .dx-button-content {
+            background-color: #870052;
+            color: white;
+        }
+
+        .sendd {
+        }
+
+                .tdnormall {
+                    padding-top: 0.1rem !important;
+                    padding-left: 0.75rem !important;
+                    padding-bottom: 0.1rem !important;
+                    padding-right: 0.75rem !important;
+                }
+
+                .dx-overlay-content.dx-popup-fullscreen.dx-resizable.dx-popup-fullscreen-width {
+                    transform: translate(0) !important;
+                }
+
+                #grdContainerBulten .shrt {
+                    max-height: 55px
+                }
+
+
+                #grdContainerBulten .dx-datagrid-rowsview .dx-row {
+                    max-height: 55px
+                }
+
+                #divsame1, #divsame3, #divsame1a, #divsame3a, #divsame5a, #divsame5, #divsame9, #divsame9a, #divsame7, #divsame7a {
+                    padding: 25px;
+                }
+
+                h3 {
+                    font-size: 2em;
+                    width: 320px;
+                    height: auto;
+                }
+
+                label {
+                    font-size: 0.9em;
+                    width: 120px;
+                    height: auto;
+                }
+
+                .centerdivmain {
+                    font-size: 13px;
+                    font-weight: bolder;
+                }
+
+                .centerdivmaina {
+                    font-size: 13px;
+                    font-weight: bolder;
+                    text-overflow: ellipsis;
+                    overflow: hidden;
+                }
+        @@media  only screen and (max-device-width: 868px) {
+            #tttdiv {
+                font-size: 15px;
+            }
+        }
+    </style>
+    <script>
+        var threshold = 100;
+
+        $('h3').each(function () {
+            var $self = $(this),
+                fs = parseInt($self.css('font-size'));
+
+            while ($self.height() > threshold) {
+                $self.css({ 'font-size': fs-- });
+            }
+            $self.height(threshold);
+        });
+
+        function funcFinBeyanname() {
+
+
+            var turl = '/admin/qnb/index?handler=ChangeCompanyIsEledgerIndo&typeId=3&compid=@Model.CompID' ;
+
+          
+           
+                $.ajax({
+                    type: "GET",
+                    url: turl,
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (response) {
+
+
+                    location.href = "/admin/qnb/mizan/reportmaintestmizan";
+                        
+                    },
+                    failure: function (response) {
+                        alert(response);
+                    }
+                });
+           
+
+
+            const popuprz = $("#popupEfinans").dxPopup("instance"); 
+            popuprz.hide();
+        }
+
+        function funcFinEdfter() {
+            var turl = '/admin/qnb/index?handler=ChangeCompanyIsEledgerIndo&typeId=1&compid=@Model.CompID';
+
+
+
+            $.ajax({
+                type: "GET",
+                url: turl,
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (response) {
+                    location.href = "/admin/qnb/reportmain";
+
+                },
+                failure: function (response) {
+                    alert(response);
+                }
+            });
+
+
+            const popuprz = $("#popupEfinans").dxPopup("instance"); 
+            popuprz.hide();
+        }
+
+
+        
+    </script>
+}
+
+<section class="content home" id="employee">
+    <div class="container-fluid">
+        <div class="block-header">
+            <div class="row clearfix">
+                <div class="col-lg-5 col-md-5 col-sm-12">
+                    <h2>Dashboard</h2>
+                    <ul class="breadcrumb padding-0">
+                        <li class="breadcrumb-item"><a href=""><i class="zmdi zmdi-home"></i></a></li>
+                        <li class="breadcrumb-item active">Dashboard</li>
+                    </ul>
+                </div>
+                <div class="col-lg-7 col-md-7 col-sm-12">
+                    <div class="input-group m-b-0">
+                        <div class="col-12">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-12">
+            <div class="card">
+                <div class="body">
+                    <div class="row" style=" padding-bottom: 105px; ">
+                        <div class="col-lg-6 col-md-12">
+                            <div class="card single_post" id="divsame1a">
+
+
+
+                                <h3 class="m-t-0" style="font-size:20px"> Sizi neler bekliyor? </h3>
+                                <p>FinCheckup ile kurumsal kredi risk yönetimi, nakit akışı ve finansal denetim süreçlerinize çözümler sağlıyoruz.</p>
+                                <h3 class="m-t-0" style="font-size:20px">  FinCheckUp nedir? </h3>
+                                <p>Kurumun amaçlarını gerçekleştirmek üzere makul bir güvence sağlamak amacıyla potansiyel olay ve durumları belirlemek, değerlendirmek, yönetmek ve kontrol etmek süreçlerinde Teknoloji Tabanlı Denetim Teknikleri (Technology-based Audit Techniques) kullanarak ,Finans Mühendisliği ile KOBİ ve Finans kurumlarının veriye dayalı kararlar almasını, operasyonlarını kolaylaştırmayı ve müşteri deneyimlerini iyileştirme amaçlı geliştirilmiştir.</p>
+
+                                <ul>
+                                    <li>4400+ Algoritma ile Muhasebe , Vergi ve İç Denetim kontrol prosesi Finansal raporlar oluşur</li>
+                                    <li>Vergi Usul Kanununa göre temel kontroller</li>
+                                    <li>Maddi Denetim Tekniği ile Finansal raporlardaki Analizler</li>
+                                    <li> Biçimsel Usul denetim tekniği ile işletmedeki kayıt düzeninlerinin tutulması</li>
+                                </ul>
+
+
+
+                            </div>
+                            <br />   <br />
+                        </div>
+                        <div class="col-lg-6 col-md-12">
+                            <div class="card single_post" id="divsame1">
+                                <div class="img-post">
+
+                                    <img src="/img/ekran1.png" alt="Awesome Image">
+
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6 col-md-12">
+                            <div class="card single_post" id="divsame3a">
+                                <br />   <br />
+
+
+                                <h3 class="m-t-0" style="font-size:20px">  </h3>
+                                <p><br /> </p>
+                                <h2 id="tttdiv" class="m-t-0">Size Özel Veriler</h2>
+                                <p style="font-size:20px">e-Defter verilerinizi yüklediğinizde sizin için hazırlanmış verileri görebilirsiniz.</p>
+                                <a href="" onclick="getIsEledger();return false;" style="width: 180px" title="Veri Yükle" class="btn btn-primary">Veri Yükle</a>
+
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-12">
+                            <div class="card single_post" id="divsame3">
+                                <div class="img-post">
+
+                                    <img src="/img/ekran2.png" alt="Awesome Image">
+
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6 col-md-12">
+                            <div class="card single_post" id="divsame5">
+
+                                <div class="img-post">
+
+                                    <img src="/img/ekran3.png" alt="Awesome Image">
+
+                                </div>
+
+
+
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-12">
+                            <div class="card single_post" id="divsame5a">
+
+                                <p><br /> </p>
+                                <h2 class="m-t-0"> Finansal Durum Raporu</h2>
+                                <p style="font-size:20px">
+                                    e-Defterinizi yükleyerek size özel raporunuzu istediğiniz zaman oluşturabilirsiniz.
+                                </p>
+                                <a href="" onclick="getIsEledger();return false;" style="width: 180px" title="Veri Yükle" class="btn btn-primary">Veri Yükle</a>
+
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="row">
+                        <div class="col-lg-6 col-md-12">
+                            <div class="card single_post" id="divsame7a">
+
+
+
+
+                                <p><br /> </p>
+                                <h2 class="m-t-0"> Finansal Danışmanlık Hizmeti</h2>
+                                <p style="font-size:20px">Dilerseniz de finansal danışmanlarımızla raporunuzu değerlendirebilirsiniz.</p>
+                                <a href="" onclick="getIsEledger();return false;" style="width: 180px" title="Veri Yükle" class="btn btn-primary">Veri Yükle</a>
+
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-12">
+                            <div class="card single_post" id="divsame7">
+                                <div class="img-post">
+
+                                    <img src="/img/ekran4.png" alt="Awesome Image">
+
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="row">
+                        <div class="col-lg-6 col-md-12">
+                            <div class="card single_post" id="divsame9">
+
+                                <div class="img-post">
+
+                                    <img src="/img/ekran5.jpg" alt="Awesome Image">
+
+                                </div>
+
+
+
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-12">
+                            <div class="card single_post" id="divsame9a">
+
+                                <p><br /> </p>
+                                <h2 class="m-t-0">
+                                    E-Defterinizi Dilediğiniz Seçenek ile Yükleyebilirsiniz!<br />Üstelik QNB ile e-Defter Ücretin Bizden
+
+
+                                </h2>
+                                <p style="font-size:20px">
+                                    -Kişisel olarak bilgisayarınızdan dosya seçerek e-defterinizi yükleyebilirsiniz.
+                                </p> <p style="font-size:20px"> 
+    -QNB aracılığıyla belgelerinizin yüklenmesine izin vermeniz durumunda QNB de bulunan e-Defter verileriniz ücretsiz FincheckUp sistemine aktarılıp işlenecektir.
+
+</p><p style="font-size:20px">
+    -QNB haricinde bir entegratör kullanıyorsanız e-Defter bilgilerinizin bankayla paylaşılmasına vereceğiniz izin doğrultusunda güncel döneme ait verileriniz de otomatik olarak ücretsiz aktarılacaktır.
+</p>
+
+
+                                <a href="" onclick="getIsEledger();return false;" style="width: 180px" title="Veri Yükle" class="btn btn-primary">Veri Yükle</a>
+
+</div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+
+
+    </div>
+</section>
+
+@(Html.DevExtreme().LoadPanel()
+        .ID("loadPanel")
+        .ShadingColor("rgba(0,0,0,0.4)")
+        .Position(p => p.Of("#employee"))
+        .Visible(false)
+        .ShowIndicator(true)
+        .ShowPane(true)
+        .Shading(true)
+        .HideOnOutsideClick(false)
+    )
+@(Html.DevExtreme().Popup()
+    .ID("popupEfinansc")
+    .Width(668)
+    .Height(235).Position(p =>
+    {
+        p.My(HorizontalAlignment.Center, VerticalAlignment.Top);
+        p.At(HorizontalAlignment.Center, VerticalAlignment.Top);
+        p.Of("window");
+        p.Offset(100, 100);
+    })
+    .Visible(false)
+    .ShowTitle(false)
+    .HideOnOutsideClick(false)
+    .ContentTemplate(new TemplateName("popupfinansctemp"))
+)
+
+@using (Html.DevExtreme().NamedTemplate("popupfinansctemp"))
+{
+
+    <div class="center1"> <img src="~/infoicon.svg" style="width:15px !important;height:15x !important" /> Mali Veri Bilgi Ekranı.</div>
+    <br />
+
+
+
+    <div class="center5"> </div>
+    <div class="center71" style="padding-top:15px">
+       Son bir yıldan uzun süredir E-Defter mükellefi misiniz?
+
+    </div>
+
+    <div class="center13">
+        <p style="text-align:right">
+            @(Html.DevExtreme().Button().ID("eee1zpp")
+                .Text("Hayır")
+                .Type(ButtonType.Normal)
+                .StylingMode(ButtonStylingMode.Contained)
+                .Width(120)
+                .OnClick("funcFinBeyanname")
+                ) @(Html.DevExtreme().Button().ID("eee3zpp")
+              .Text("Evet")
+              .ElementAttr("class", "sendd")
+              .Width(120).OnClick("funcFinEdfter")
+              )
+        </p>
+    </div>
+
+
+}
+@section Scripts{
+
+    <script>
+        var tyear = $("#txtmyear").val();
+        var mcompid = $("#txtmcomp").val(); 
+        function funcFinOpenabcdz() {
+            const popuprz = $("#popupEfinansc").dxPopup("instance");
+
+            popuprz.show();
+        }
+        function getIsEledger() {
+         
+            if ("@Model.IsEldeger" == "0") {
+                funcFinOpenabcdz();
+                return false;
+            }
+            else if ("@Model.IsEldeger" == "1") {
+                location.href = "/admin/qnb/upload";
+            }
+            else {
+                location.href = "/admin/qnb/mizan/uploadmizan";
+            
+            }
+             return false;s
+
+        }
+
+        $(document).ready(function () {
+            var maxHeight = $('#divsame1').height();
+            var maxHeight1 = $('#divsame3').height();
+            var maxHeight2 = $('#divsame5').height();
+            var maxHeight3 = $('#divsame7').height();
+            var maxHeight4 = $('#divsame9').height();
+
+            $('#divsame1a').height(maxHeight);
+            $('#divsame3a').height(maxHeight1);
+            $('#divsame5a').height(maxHeight2);
+            $('#divsame7a').height(maxHeight3);
+            $('#divsame9a').height(maxHeight4);
+
+            console.log(maxHeight);
+
+            console.log($('#divsame1a').height());
+        });
+
+
+    </script>
+
+}

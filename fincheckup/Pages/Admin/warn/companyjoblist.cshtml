@@ -1,0 +1,217 @@
+﻿@page
+
+@using fincheckup.Models.EarlyWarning
+@using fincheckup.ENTITY
+@using fincheckup.Models.EarlyWarning.Response
+
+@model IndexModel
+@{
+    ViewData["Title"] = "Giriş Ekranı";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+
+@functions {
+    public class IndexModel : PageModel
+    {
+        public long UserID;
+        public IEnumerable<ReminderAccountGroup> mreqList;
+
+        public void OnGet(int year = 2021)
+        {
+            mreqList = new List<ReminderAccountGroup>();
+
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        }
+
+        public JsonResult OnGetMarkupMarjin(DataSourceLoadOptions options)
+        {
+
+            mreqList = ReminderAccountGroup.Get_ReminderAccountGroup();
+            return new JsonResult(DataSourceLoader.Load(mreqList.Where(x=>x.ID>0), options));
+        }
+
+
+
+    }
+}
+@section Styles {
+    <link rel="stylesheet" href="/assets/plugins/jquery-datatable/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="/assets/plugins/morrisjs/morris.css">
+    <style>
+        .tdnormall {
+            padding-top: 0.1rem !important;
+            padding-left: 0.75rem !important;
+            padding-bottom: 0.1rem !important;
+            padding-right: 0.75rem !important;
+        }
+
+        #chartxt {
+            max-height: 255px !important;
+        }
+    </style>
+    <script>
+        var changedBySelectBox;
+        var titleSelectBox;
+        var clearSelectionButton;
+        function button_onInitialized(e) {
+            clearSelectionButton = e.component;
+        }
+        function onInitializedgrid(e) {
+      
+        }
+
+        function button_click() {
+            getDataGridInstance().clearSelection();
+        }
+        function getDataGridInstance() {
+            return $("#grdContainerDefter").dxDataGrid("instance");
+        }
+        function selection_changed(selectedItems) {
+            var dataGrid = getDataGridInstance();
+            var data = selectedItems.selectedRowsData;
+            clearSelectionButton.option('enabled', true);
+            if (data.length > 0) {
+                $("#selectedItemsContainer").val(
+                    data
+                        .map((value) => `${value.TypeID}`)
+                        .join(",")
+                );
+            } else {
+                $("#selectedItemsContainer").val("");
+            }
+            /*   setfdate($("#selectedItemsContainer").val());*/
+            clearSelectionButton.option('disabled', !data.length);
+        }
+    </script>
+}
+<section class="content home">
+    <div class="container-fluid">
+        <div class="block-header">
+            <div class="row clearfix">
+                <div class="col-lg-5 col-md-5 col-sm-12">
+                    <h2>Şirket Erken Uyarı Listesi</h2>
+                    <ul class="breadcrumb padding-0">
+                        <li class="breadcrumb-item"><a href=""><i class="zmdi zmdi-home"></i></a></li>
+                        <li class="breadcrumb-item active">Şirket Erken Uyarı Listesi</li>
+                    </ul>
+                </div>
+                <div class="col-lg-7 col-md-7 col-sm-12">
+                    <div class="input-group m-b-0">
+                    </div>
+                </div>
+            </div>
+        </div>
+            <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="body">
+                        <div class="row">
+                            <div class="col-6"> </div>
+                            <div class="col-6" style="text-align:right">
+                                @(Html.DevExtreme().Button()
+                                        .ID("buttonz")
+                                        .Text("Geri Dön").OnClick((@<text>
+                                    function() {
+                                    history.back();
+                                    }
+                                </text>))
+                                        .Type(ButtonType.Default)
+                                        )
+
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row clearfix"> 
+
+                <div class="col-md-12 col-lg-12">
+                    <div class="card">
+                        <div class="body">
+
+                            <div class="row">
+
+                                @(Html.DevExtreme().DataGrid<ReminderAccountGroup>().ID("grdContainerDefter")
+                                    .Paging(p => p.PageSize(21))
+                                    .ColumnAutoWidth(true)
+                                    .HeaderFilter(f => f.Visible(false))
+                                    .WordWrapEnabled(true).Selection(s => s.Mode(SelectionMode.Multiple).ShowCheckBoxesMode(GridSelectionShowCheckBoxesMode.Always))
+                                    .ColumnMinWidth(50)
+                                    .ColumnAutoWidth(true).OnSelectionChanged("selection_changed")
+                                    .ShowBorders(true).Toolbar(toolbar =>
+                                    {
+                                        toolbar.Items(items =>
+                                        {
+
+
+                                            items.Add()
+                                        .Location(ToolbarItemLocation.Before)
+                                        .Widget(w =>
+                                        w.Button()
+                                        .Text("Seçimi Temizle")
+                                        .Disabled(true)
+                                        .OnClick("button_click")
+                                        .OnInitialized("button_onInitialized")
+                                        );
+                                        });
+                                    }).DataSource(d => d.RemoteController().LoadUrl(Url.Page(null, "MarkupMarjin"))).Columns(columns =>
+                                    {
+                                        columns.AddFor(m => m.ID);
+                                        columns.AddFor(m => m.Name);
+
+                                       
+                                    })
+                                    )
+
+                            </div>
+                            <input type="text" id="selectedItemsContainer" name="selectedItemsContainer" style="display:none" />
+
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+
+            
+
+
+
+
+
+        </div>
+      </div>
+</section>
+
+
+@section Scripts {
+
+
+
+    <script>
+
+        var dt1 = "105";
+
+        function functionedit(data) {
+
+
+            location.href = '/admin/warn/editAccountgroup?accountid=' + data;
+
+
+
+
+        }
+        function functionrefresh(data) {
+
+            alert(data);
+
+
+        }
+    </script>
+} 

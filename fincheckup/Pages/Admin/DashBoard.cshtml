@@ -1,0 +1,746 @@
+﻿@page
+
+@using fincheckup.Models.Hvvn
+@using fincheckup.Models.NKolay
+
+@model IndexModel
+@{
+    ViewData["Title"] = "Giriş Ekranı";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+@using fincheckup.Models.NKolay.json
+@using fincheckup.Models.ViewM
+@using fincheckup.Models.NKolay.ENTITY
+@using fincheckup.ENTITY
+@using fincheckup.Models.TaxError
+
+@functions {
+    public class IndexModel : PageModel
+    {
+        public IEnumerable<YearResult> myearResult;
+        public long UserID;
+        public string CompName;
+        public long CompID;
+        public int CompCount;
+        public int YearCount;
+        public HhvnUsers CurrentUser;
+        public YearlyErrorResultView mrequestEntryView;
+        public IEnumerable<bulten> bultenList;
+        public IEnumerable<Companies> mreqListCompany;
+        public DataViewerMain mrequestDataViewer; 
+        public TaxErrorCheck  ttdashChk;
+        public TaxErrorcheckTest ttdashTest;
+        public TaxErrorcheckDataz ttdashDataz;  
+
+        public void OnGet()
+        {
+
+            ttdashChk = new TaxErrorCheck();
+            ttdashTest = new TaxErrorcheckTest();
+            ttdashDataz = new TaxErrorcheckDataz();
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            mreqListCompany = Companies.Getby_User(UserID);
+            CompID = mreqListCompany.Where(x => x.IsDefault == 1).FirstOrDefault().ID;
+            CompName = mreqListCompany.Where(x => x.IsDefault == 1).FirstOrDefault().CompanyName;
+
+            HhvnUsers.SetYearMain(CompID, UserID);
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+            YearCount = TBLXml.GetYearByComapnyID(CompID);
+            CompCount = mreqListCompany.Count();
+            myearResult = YearResult.getValue();
+            mrequestDataViewer = new DataViewerMain();
+            bultenList = bulten.Get_All(DateTime.Now.Year).OrderByDescending(x=>x.YururlulukTarih);
+            mrequestEntryView = new YearlyErrorResultView();
+            mrequestEntryView.mrequestEntryCount = MainDash.Get_Data(CurrentUser.SelectedYear, CompID);
+            mrequestDataViewer.SetDataViewer(MainDash.DataViewerMain(CurrentUser.SelectedYear, CompID));
+
+
+            //var ttdashchk = Data.Get_AllCompany(CurrentUser.SelectedYear, CompID).Where(x=>x.AccountMainID=="100").ToList();
+            //var ttdashchk1 = TBLXMLSourceMain.Get_AllCompany(CurrentUser.SelectedYear, CompID).Where(x => x.AccountMainID == "100").ToList();
+            //var tttttt = DashGelirTablosu.Get_MAINTAXCheck(CurrentUser.SelectedYear, CompID).Where(x => x.AccountMainID == "100").ToList();
+
+            //ttdashChk.checklist(ttdashchk);
+            //ttdash = ttdashChk.taxchecklist ;
+            //var ttdashchk3 = TBLXMLSourceMain.Get_AllCompanyLast(CurrentUser.SelectedYear, CompID).Where(x => x.AccountMainID == "102").ToList();
+            //var ttdashchk3Int = TBLXMLSourceMain.Get_AllCompanyLast(CurrentUser.SelectedYear, CompID).Where(x => (x.AccountMainID == "646" || x.AccountMainID == "656")).Select(y => y.EndDate.Month).Distinct();
+            ////var tttttt = DashGelirTablosu.Get_MAINTAXCheck(CurrentUser.SelectedYear, CompID).Where(x => x.AccountMainID == "100").ToList();
+            //var ttdashchk1 = ttdashchk3.Where(x => (x.AccountSubDescription.ToLower().Contains("usd") || x.AccountSubDescription.ToLower().Contains("eur") || x.AccountSubDescription.ToLower().Contains("gbp") || x.AccountSubDescription.ToLower().Contains("cny"))).ToList();
+
+            //IEnumerable<int> txhek = new List<int>() { 1, 2 };
+            //ttdashDataz.checklist(ttdashchk1);
+            //ttdash3 = ttdashDataz.taxchecklist;
+
+            //ttdashTest.checklistLast(ttdash3);
+            //ttdash1 = ttdashTest.taxchecklist;
+
+            //var ttt = Tax102.checkFrist(ttdash1, ttdash3, txhek);
+
+            //ttdashTest.checklist(tttttt);
+            //ttdash1 = ttdashTest.taxchecklist;
+
+            //ttdashDataz.checklist(ttdashchk1);
+            //ttdash3 = ttdashDataz.taxchecklist;
+
+            //var ll = Tax100.checkFirst(ttdash);
+            //var lsal = Tax100.checkSecond(ttdash1.FirstOrDefault(), ttdash3);
+            //var lsl = "";
+        }
+
+        public JsonResult OnGetShedule(DataSourceLoadOptions options, int myear)
+        {
+            var nreult = ShedulerMain.Get_Data(DateTime.Now.Year);
+            return new JsonResult(DataSourceLoader.Load(nreult, options));
+        }
+        public JsonResult OnGetPrio(DataSourceLoadOptions options)
+        {
+
+            return new JsonResult(DataSourceLoader.Load(ShedulerCL.PriorityResources, options));
+        }
+
+        public JsonResult OnGetGraphZet(DataSourceLoadOptions options, int myear, long compid)
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            if (!HhvnUsers.CheckUser(compid, UserID))
+            {
+                return new JsonResult(DataSourceLoader.Load(new List<YearlyErrorResult>(), options));
+            }
+
+            var retval = MainDash.Get_Data(myear, compid).OrderBy(x => x.MainMonth);
+            return new JsonResult(DataSourceLoader.Load(retval, options));
+        }
+        public JsonResult OnGetGraphZetM(int myear, long compid)
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            if (!HhvnUsers.CheckUser(compid, UserID))
+            {
+                return new JsonResult(new List<YearlyErrorResult>());
+            }
+
+            var retval = MainDash.Get_Data(myear, compid);
+            return new JsonResult(retval);
+        }
+        public JsonResult OnGetGraphYear(int nyear)
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            HhvnUsers.SetYear(nyear, UserID);
+            return new JsonResult("ok");
+        }
+     
+    }
+}
+@section Styles {
+    <link rel="stylesheet" href="/assets/plugins/jquery-datatable/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="/assets/plugins/morrisjs/morris.css">
+    <script src="~/assets/js/bootstrap.js"></script>
+
+    <style>
+        .tdnormall {
+            padding-top: 0.1rem !important;
+            padding-left: 0.75rem !important;
+            padding-bottom: 0.1rem !important;
+            padding-right: 0.75rem !important;
+        }
+
+        .dx-overlay-content.dx-popup-fullscreen.dx-resizable.dx-popup-fullscreen-width {
+            transform: translate(0) !important;
+        }
+
+        #grdContainerBulten .shrt {
+            max-height: 55px
+        }
+
+
+        #grdContainerBulten .dx-datagrid-rowsview .dx-row {
+            max-height: 55px
+        }
+
+        h3 {
+            font-size: 2em;
+            width: 320px;
+            height: auto;
+        }
+
+        label {
+            font-size: 0.9em;
+            width: 120px;
+            height: auto;
+        }
+
+        .centerdivmain {
+            font-size: 13px;
+            font-weight: bolder; 
+        }
+        .centerdivmaina {
+            font-size: 13px;
+            font-weight: bolder;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        } 
+
+
+    </style>
+    <script  >
+        var threshold = 100;
+
+        $('h3').each(function () {
+            var $self = $(this),
+                fs = parseInt($self.css('font-size'));
+
+            while ($self.height() > threshold) {
+                $self.css({ 'font-size': fs-- });
+            }
+            $self.height(threshold);
+        });
+    </script>
+}
+
+<section class="content home" id="employee">
+    <input type="hidden" style="display:none" id="txtmyear" value="@Model.CurrentUser.SelectedYear" />
+    <input type="hidden" style="display:none" id="txtmcomp" value="@Model.CompID" />
+    <input type="hidden" style="display:none" id="txtyearcount" value="@Model.YearCount" />
+    <input type="hidden" style="display:none" id="txtcompcount" value="@Model.CompCount" />
+    <div class="container-fluid">
+        <div class="block-header">
+            <div class="row clearfix">
+                <div class="col-lg-5 col-md-5 col-sm-12">
+                    <h2>Dashboard</h2>
+                    <ul class="breadcrumb padding-0">
+                        <li class="breadcrumb-item"><a href=""><i class="zmdi zmdi-home"></i></a></li>
+                        <li class="breadcrumb-item active">Dashboard</li>
+                    </ul>
+                </div>
+                <div class="col-lg-7 col-md-7 col-sm-12">
+                    <div class="input-group m-b-0">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="body">
+                                    <div class="row">
+                                        <div class="col-6" style="text-align:left">
+
+                                            @(Html.DevExtreme().SelectBox()
+                    .DataSource(Model.myearResult).ID("slctYear").OnInitialized("selectYear_Initialized")
+                    .DisplayExpr("MText").OnSelectionChanged("selectYear_valueChanged")
+                    .ValueExpr("MYear").Width(105)
+                )
+                                        </div>
+                                        <div class="col-6" style="text-align:right">
+
+                                 
+                                            @(Html.DevExtreme().TextBox()
+                                .Value(Model.CompName)  .ReadOnly(true)
+                            )
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row clearfix">
+            <div class="col-md-12 col-lg-9">
+                <div class="row clearfix">
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card">
+                            <div class="body">
+                                <div class="row">
+                                    <div class="col-9">
+                                        <h4 class="margin-0">Kontrol Edilen Kayıt</h4>
+
+                                    </div>
+                                    <div class="col-3">
+                                        <p class="m-b-20"><i class="zmdi zmdi-assignment zmdi-hc-3x col-blue"></i></p>
+                                    </div>
+
+                                </div>
+                                <div class="row" style="max-height: 159px; min-height: 159px; overflow-y: hidden; overflow-x: hidden ">
+                                    <div class="col-5">
+                                        <br />    <br />
+                                        <h3 class="margin-0">@Model.mrequestEntryView.EntryCountTotal</h3>
+
+                                    </div>
+                                    <div class="col-7">
+                                        <div class="table-responsive" style=" overflow-y: hidden; overflow-x: hidden">
+                                            <table class="table table-hover m-b-0 m-t-20" style=" overflow-y: hidden; overflow-x: hidden">
+                                                <tbody>
+                                                    <tr>
+                                                        <td>
+                                                            <small>Son Ay</small>
+                                                        </td>
+                                                        <td>
+                                                            <label>@Model.mrequestEntryView.EntryCountLast</label>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <small>Önceki Aylar</small>
+
+                                                        </td>
+                                                        <td>
+                                                            <label>@Model.mrequestEntryView.EntryCountBefore</label>
+                                                        </td>
+                                                    </tr>
+
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="col-12" style="min-height:25px !important;">
+                                        @(Html.DevExtreme().Sparkline()
+                     .DataSource(Model.mrequestEntryView.mrequestEntryCount)
+                       .ArgumentField("MainMonth")
+                    .ValueField("TRowCount")
+                    .Type(SparklineType.Line)
+                    .ShowMinMax(false)
+                    .MinColor("#f00")
+                    .MaxColor("#2ab71b")
+                    .PointSize(6)
+                    .Size(s => s.Height(25))
+                    .Tooltip(t => t.Enabled(false))
+                )
+
+
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card">
+                            <div class="body">
+                                <div class="row">
+                                    <div class="col-9">
+                                        <h4 class="margin-0">Standart Dışı Kayıtlar</h4>
+                                        <small>(Kayıt Kombini Bazında)</small>
+                                    </div>
+                                    <div class="col-3">
+                                        <p class="m-b-20"><i class="zmdi zmdi-assignment-alert zmdi-hc-3x col-blue"></i></p>
+                                    </div>
+
+                                </div>
+                                <div class="row" style="max-height: 159px; min-height: 159px; overflow-y: hidden; overflow-x: hidden ">
+                                    <div class="col-5">
+                                        <br />    <br />
+                                        <h3 class="margin-0">@Model.mrequestDataViewer.EntryCombinCount</h3>
+
+                                    </div>
+                                    <div class="col-7">
+                                        <div class="table-responsive" style=" overflow-y: hidden; overflow-x: hidden">
+                                            <table class="table table-hover m-b-0 m-t-20">
+                                                <tbody>
+                                                    <tr>
+                                                        <td>
+                                                            <small>Son Ay</small>
+                                                        </td>
+                                                        <td>
+                                                            <label>@Model.mrequestDataViewer.EntryCombinLast</label>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <small>Önceki Aylar</small>
+
+                                                        </td>
+                                                        <td>
+                                                            <label>@Model.mrequestDataViewer.EntryCombinBefore</label>
+                                                        </td>
+                                                    </tr>
+
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12" style="min-height:25px !important;">
+                                        @(Html.DevExtreme().Sparkline()
+                     .DataSource(Model.mrequestEntryView.mrequestEntryCount)
+                       .ArgumentField("MainMonth")
+                    .ValueField("TErrorRowCount")
+                    .Type(SparklineType.Line)
+                    .ShowMinMax(false)
+                    .MinColor("#f00")
+                    .MaxColor("#2ab71b")
+                    .PointSize(6)
+                    .Size(s => s.Height(25))
+                    .Tooltip(t => t.Enabled(false))
+                )
+
+
+                                    </div>
+
+
+
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card">
+                            <div class="body">
+                                <div class="row">
+                                    <div class="col-9">
+                                        <h4 class="margin-0">Vergi Bültenleri</h4>
+
+                                    </div>
+                                    <div class="col-3">
+                                        <p class="m-b-20"><i class="zmdi zmdi-dns zmdi-hc-3x col-blue"></i></p>
+                                    </div>
+
+                                </div>
+                                <div class="row" style="max-height: 159px; min-height: 159px; overflow-y: auto">
+                                    <div class="table-responsive">
+                                        @(Html.DevExtreme().DataGrid<bulten>().ID("grdContainerBulten").RemoteOperations(true)
+    .Scrolling(s => s
+        .Mode(GridScrollingMode.Virtual)
+        .RowRenderingMode(GridRowRenderingMode.Virtual)
+    )
+    .Paging(p => p.PageSize(5)).WordWrapEnabled(false).AllowColumnResizing(true)
+    .HeaderFilter(f => f.Visible(true)).ShowColumnHeaders(false).ShowColumnLines(false).ShowRowLines(true)
+    .Height(240)
+    .ShowBorders(false).DataSource(Model.bultenList).Columns(columns =>
+    {
+    columns.AddFor(m => m.ID).Caption("").Visible(false).Width(0);
+    columns.AddFor(m => m.YururlulukTarih).Caption("").CssClass("centerdivmain");
+    columns.Add().Caption("").AllowResizing(false).AllowFixing(true).CssClass("centerdivmaina").CellTemplate(@<text>
+                          [%- data.TitleShort %]...                     </text>);
+    columns.Add().Alignment(HorizontalAlignment.Center)
+.CssClass("dx-command-edit dx-command-edit-with-icons")
+.CellTemplate( @<text>
+        @(Html.DevExtreme().Button().Icon("info")
+                .OnClick("function () { onItemDelete(data); }")
+        )
+    </text>);
+    })
+                        )
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+
+                        <div class="card">
+                            <div class="body">
+                                <div class="row">
+                                    <div class="col-12">
+
+
+                                        @(Html.DevExtreme().Chart().ID("chartzone").CommonSeriesSettings(s => s.ArgumentField("DocumentMonthTr").ValueField("MainMonth").Type(SeriesType.Spline).Point(p => p.HoverMode(ChartPointInteractionMode.AllArgumentPoints))).ArgumentAxis(a => a.ValueMarginsEnabled(false).DiscreteAxisDivisionMode(DiscreteAxisDivisionMode.CrossLabels).Grid(g => g.Visible(true))).Crosshair(c => c.Enabled(true).Color("#949494").Width(3).DashStyle(DashStyle.Dot).Label(l => l.Visible(true).BackgroundColor("#949494").Font(f => f.Color("#fff").Size(12)))).Series(s =>
+                    {
+                        s.Add().ValueField("TRowCount").Name("Tüm Kayıtlar");
+                        s.Add().ValueField("TErrorRowCount").Name("Hatalı Kayıt");
+                        s.Add().ValueField("TNonErrorRowCount").Name("Uygun Kayıtlar");
+                    }).Legend(l => l.VerticalAlignment(VerticalEdge.Bottom).HorizontalAlignment(HorizontalAlignment.Center).ItemTextPosition(Position.Bottom).Title("(Kayıt Satırı Bazında)")).Export(e => e.Enabled(false)).Tooltip(t => t.Enabled(true)).DataSource(d => d.RemoteController().LoadUrl(Url.Page(null, "GraphZet")).LoadParams(new { myear = new JS("function() {return tyear; }"), compid = new JS("function() {return mcompid; }") }))
+                                )
+                                    </div>
+
+
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                    </div>
+
+
+                    <div class="col-12">
+
+                        <div class="card">
+                            <div class="body">
+                                <div class="row">
+                                    <div class="col-12">
+
+
+                                    </div>
+
+
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                    </div>
+                </div>
+
+
+
+            </div>
+            <div class="col-md-12 col-lg-3">
+                <div class="col-md-12 col-lg-12">
+                    <div class="card">
+                        <div class="body">
+                            <div class="row">
+                                <div class="col-9">
+                                    <h6 class="margin-0">E-defter Beyan ve Vergi Ödeme Tarihleri</h6>
+
+                                </div>
+                                <div class="col-3">
+                                    <p class="m-b-20"><i class="zmdi zmdi-time-countdown zmdi-hc-3x col-blue"></i></p>
+                                </div>
+
+                            </div>
+                            <div class="row" style="max-height: 689px; min-height: 689px; overflow-y: auto; overflow-x: auto ">
+                                <div class="table-responsive">
+                                    @(Html.DevExtreme().Scheduler()
+    .ID("scheduler")
+    .DataSource(d => d.RemoteController().LoadUrl(Url.Page(null, "Shedule")).LoadParams(new { myear = new JS("function() {return tyear; }") })).OnAppointmentFormOpening("onAppointmentFormOpening")
+    .TimeZone("America/Los_Angeles")
+    .Views(new[] { SchedulerViewType.Month })
+    .CurrentView(SchedulerViewType.Month)
+    .CurrentDate(DateTime.Now) 
+    .StartDayHour(9)
+    .Resources(res => {
+        res.Add()
+.FieldExpr("PriorityId")
+.ValueExpr("Id")
+.ColorExpr("Color")
+.Label("Priority")
+.DisplayExpr("Text")
+.AllowMultiple(true)
+.DataSource(d => d.RemoteController().LoadUrl(Url.Page(null, "Prio")));
+    })
+    .Height(590)
+    .TextExpr("Text")
+    .StartDateExpr("StartDate")
+    .EndDateExpr("EndDate").DescriptionExpr("Description")
+
+)
+
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+
+
+
+    </div>
+</section>
+
+<div class="modal fade" id="largeModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="title" id="txtitle"></h4>
+            </div>
+            <div class="modal-body">
+                <b>Konu</b>
+                <div class="input-group">
+
+                    <input type="text" id="txtitle1" class="form-control date">
+                </div>
+                <b>Kapsam</b>
+                <div class="input-group">
+
+                    <input type="text" id="txtitle2" class="form-control date">
+                </div>
+                <b>Düzenleyen Kurum</b>
+                <div class="input-group">
+
+                    <input type="text" id="txtitle3" class="form-control date">
+                </div>
+                <b>Yürürlülük Tarihi</b>
+                <div class="input-group">
+
+                    <input type="text" id="txtitle4" class="form-control date">
+                </div>
+
+                <div id="textBlock"></div>
+            </div>
+            <div class="modal-footer">
+
+                <button type="button" class="btn btn-danger btn-simple btn-round waves-effect" data-dismiss="modal">Kapat</button>
+            </div>
+        </div>
+    </div>
+</div>
+@(Html.DevExtreme().LoadPanel()
+        .ID("loadPanel")
+        .ShadingColor("rgba(0,0,0,0.4)")
+        .Position(p => p.Of("#employee"))
+        .Visible(false)
+        .ShowIndicator(true)
+        .ShowPane(true)
+        .Shading(true)
+        .HideOnOutsideClick(false)
+        .OnShown("loadPanel_shown")
+    )
+
+@section Scripts{
+
+    <script  >
+        var tyear = $("#txtmyear").val();
+        var mcompid = $("#txtmcomp").val();
+    </script>
+    <script >
+        var chkwid = 2500;
+        var chkwid1 = 0;
+        var counter = 0;
+        $(".menu-sm").on("click", function () {
+            counter++;
+            chkwid1 = $(".container-fluid").css('width').replace('px', ''); 
+            if (chkwid > chkwid1) {
+                console.log(chkwid);
+                chkwid = chkwid1;
+            }
+
+
+            $("#chartzone").dxChart("instance").getDataSource().reload();
+         
+        });
+
+
+        $.fn.removeAllAttributes = function () {
+            return this.each(function () {
+
+                /*this.setAttribute("nws-csp-add-nonce", true);*/
+            
+            });
+        };
+       
+        var loaded = 0;
+        var loaded1min = 0;
+
+           
+        
+        function getLoadPanelInstance() {
+            return $("#loadPanel").dxLoadPanel("instance");
+        }
+        function loadPanel_shown(e) {
+            setTimeout(function () {
+                e.component.hide();
+            }, 7000);
+        }
+        var misready = "nok";
+        var chkReadyState = setInterval(function () {
+            if (document.readyState == "complete") {
+
+                clearInterval(chkReadyState);
+                $('script').removeAllAttributes();
+                misready = "ok";
+            }
+        }, 100);
+
+        function getselectYearInstance() {
+            return $("#slctYear").dxSelectBox("instance");
+        }
+      
+        function selectYear_Initialized() {
+            getselectYearInstance().option("value", parseInt($("#txtmyear").val()));
+            var chkco = parseInt($("#txtyearcount").val());
+
+            if (chkco < 2) {
+                getselectYearInstance().option("readOnly", true);
+            }
+
+
+        }
+
+         
+        function selectYear_valueChanged(data) {
+            var slctval = data.selectedItem.MYear;
+            var turl = '/admin/dashboard?handler=GraphYear&nyear=' + slctval;
+
+            if (misready == "ok" && tyear.toString() != slctval.toString()) {
+                getLoadPanelInstance().show();
+                $.ajax({
+                    type: "GET",
+                    url: turl,
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (response) {
+                        if (response == "ok") {
+                            location.reload();
+                        }
+                    },
+                    failure: function (response) {
+                        alert(response);
+                    }
+                });
+            }
+
+        }
+
+     
+
+        function onAppointmentFormOpening(e) {
+            const form = e.form;
+            var recurrenceEditor = form.getEditor("recurrenceRule");
+           
+
+            $('.dx-appointment-form-switch').each(function () {
+                $(this).css("display", "none");
+            });
+        }
+
+
+        function onItemDelete(data) {
+
+            var pageIndex = data.ID;
+            $.ajax({
+                url: "/JsonService/Main/GetHtml",
+                method: "POST",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(pageIndex),
+                success: function (dataz) {
+
+                    if (dataz == "nok") {
+                        swal.close();
+                        Swal.fire(
+                            'Hata!',
+                            'Bülten Yüklenemedi Bir Sorun Oluştu!',
+                            'error'
+                        )
+                    }
+                    else {
+                        var bodyText = dataz.Description;
+                        var titlea = dataz.Title;
+                        var titleb = dataz.SubTitle;
+                        var titlek = dataz.Kapsam;
+                        var titlet = dataz.DuzenleyenKurum;
+                        var titlez = dataz.YururlulukTarih;
+
+                        $("#txtitle").text(titlea);
+                        $("#txtitle1").val(titleb);
+                        $("#txtitle2").val(titlek);
+                        $("#txtitle3").val(titlet);
+                        $("#txtitle4").val(titlez);
+                        $("#textBlock").prop('innerHTML', bodyText);
+                        $("#largeModal").modal('show');
+                    }
+
+
+                }
+            });
+
+
+        }
+    </script>
+
+}

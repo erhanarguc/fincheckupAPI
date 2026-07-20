@@ -1,0 +1,441 @@
+﻿@page
+
+@model IndexModel
+
+@{
+    ViewData["Title"] = "EN Kolay Denetim";
+    Layout = "~/Pages/Shared/_LayoutMain.cshtml";
+
+}
+@using fincheckup.Models.Hvvn
+
+@functions {
+    public class IndexModel : PageModel
+    {
+
+        public string CompName { get; set; }
+
+        public void  OnGet(string sso)
+        {
+
+            CompName = "nok";
+
+
+            try
+            {
+                if (!string.IsNullOrEmpty(sso))
+                {
+
+                    HhvnUsers nuser3 = HhvnUsers.GetUserbyGuid(sso);
+                    if (nuser3 != null)
+                    {
+                        UserLogin nuser = new UserLogin();
+
+                        string userAgent = Request.Headers["User-Agent"];
+                        string remoteIpAddress = Request.HttpContext.Connection.RemoteIpAddress.ToString();
+                        nuser.UserBrowser = userAgent; nuser.UserIP = remoteIpAddress;
+                        nuser.UserID = nuser3.ID;
+                        nuser.Save_User();
+
+                        SignIn(nuser3);
+
+
+
+                        return;
+
+                    }
+
+
+
+                }
+
+
+            }
+            catch (Exception ex)
+            {
+                var chk = ex;
+                throw;
+            }
+
+
+        }
+
+        private void SignIn(HhvnUsers User)
+        {
+
+            var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme, ClaimTypes.Name, ClaimTypes.Role);
+            identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, User.ID.ToString()));
+            identity.AddClaim(new Claim(ClaimTypes.Name, User.Email));
+            identity.AddClaim(new Claim(ClaimTypes.Role, User.UserType));
+            string role = User.UserType;
+            identity.AddClaim(new Claim("RoleId", role));
+
+            var principal = new ClaimsPrincipal(identity);
+
+            HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
+ principal,
+ new AuthenticationProperties
+ {
+     IssuedUtc = DateTime.UtcNow,
+     IsPersistent = false,
+     ExpiresUtc = DateTime.UtcNow.AddMinutes(35)
+ });
+            CompName = "true";
+
+
+        }
+    }
+}
+@section Styles{
+
+}
+
+<div class="banner-one" style="background-image: url(/images/main-slider/slider1/pic2.png);">
+    <div class="container">
+        <div class="banner-inner">
+            <div class="img1"><img src="/images/main-slider/slider1/pic3.png" alt=""></div>
+            <div class="img2"><img src="/images/main-slider/slider1/pic4.png" alt=""></div>
+            <div class="row align-items-center">
+                <div class="col-md-7">
+                    <div class="banner-content">
+                        <h6 data-wow-duration="1s" data-wow-delay="0.5s" class="wow fadeInUp sub-title">Türkiye’nin Lider Risk Yönetim Platformu</h6>
+                        <p data-wow-duration="1.4s" data-wow-delay="1.5s" class="wow fadeInUp m-b30" style="font-size:large;">
+                            FinCheckup ile kurumsal kredi risk yönetimi, nakit akışı ve
+                            finansal denetim süreçlerinize çözümler sağlıyoruz.
+                        </p>
+                        <a data-wow-duration="1.6s" data-wow-delay="2s" class="wow fadeInUp btn btn-primary" href="/iletisim">Demo ve Sunum için bizimle iletişime geçin! <i class="fa fa-angle-right m-l10"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <div class="dz-media move-box wow fadeIn" data-wow-duration="1.6s" data-wow-delay="0.8s">
+                        <img class="move-1" src="/images/about/img4.png" alt="" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section>
+    <div class="mev">
+        <div class="row">
+            <div class="col-lg-6 col-sm-12">
+                <div class="mev">
+                    <video controls="controls">
+
+
+
+                        <source src="~/fincheckup.mp4" type="video/mp4" />
+
+                    </video>
+                </div>
+            </div>
+
+            <div class="col-lg-6 col-sm-12">
+                <div class="mev">
+                    <video controls="controls">
+                        <source src="~/FincheckupPromo1.mp4#t=5,300" type="video/mp4" />
+                    </video>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</section>
+<section class="content-inner-2" style="margin-top:-235px;">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-xl-6 col-lg-5 wow fadeInRight  " data-wow-duration="2s" data-wow-delay="0.4s">
+                <div class="section-head style-1">
+                    <h6 class="sub-title"></h6>
+                    <h2 class="title">Neden FinCheckup?</h2>
+                </div>
+                <div class="dlab-media cf-r-img d-lg-block d-none">
+                    <h4 class="dlab-title">FinCheckup risk Yönetim Platformu </h4>
+                    <p>
+                        Kurumun amaçlarını gerçekleştirmek üzere makul bir güvence sağlamak amacıyla potansiyel olay ve durumları belirlemek, değerlendirmek, yönetmek ve kontrol etmek süreçlerinde Teknoloji Tabanlı Denetim Teknikleri (Technology-based Audit Techniques) kullanarak ,Finans Mühendisliği ile KOBİ ve Finans kurumlarının veriye dayalı kararlar almasını, operasyonlarını kolaylaştırmayı ve müşteri deneyimlerini iyileştirme <br />  amaçlı geliştirilmiştir.
+                    </p>
+
+
+                </div>
+            </div>
+            <div class="col-xl-6 col-lg-7 wow fadeInLeft" data-wow-duration="2s" data-wow-delay="0.2s">
+
+                <div class="section-wraper-one">
+                    <div class="icon-bx-wraper style-2 left m-b30">
+                        <div class="icon-bx-md radius bg-white text-red">
+                            <a href="javascript:void(0);" class="icon-cell">
+                                <i class="flaticon-idea"></i>
+                            </a>
+                        </div>
+                        <div class="icon-content">
+                            <h5 class="dlab-title">Finansal kontrollerinizi yapmanıza imkân tanıyarak olası tüm finansal risklerin önceden tespit edilmesine yardımcı olur.</h5>
+                        </div>
+                    </div>
+                    <div class="icon-bx-wraper style-2 left m-b30">
+                        <div class="icon-bx-md radius bg-white text-yellow">
+                            <a href="javascript:void(0);" class="icon-cell">
+                                <i class="flaticon-line-graph"></i>
+                            </a>
+                        </div>
+                        <div class="icon-content">
+                            <h5 class="dlab-title"> Yaptırım ve cezalara maruz kalma olasılığını azaltır, artan riskleri minimize eder.</h5>
+
+                        </div>
+                    </div>
+                    <div class="icon-bx-wraper style-2 left m-b30">
+                        <div class="icon-bx-md radius bg-white text-green">
+                            <a href="javascript:void(0);" class="icon-cell">
+                                <i class="flaticon-rocket"></i>
+                            </a>
+                        </div>
+                        <div class="icon-content">
+
+                            <h5 class="dlab-title">Fincheckup  hizmeti ile muhasebe denetimi , İç Denetim& Vergi  analiz gibi detaylı finansal kontrollerinizi gerçekleştirmenizi sağlar.  </h5>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<section class="content-inner" style="background-image: url(/images/background/bg19.png); background-size: 100%;">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-6 m-b30 wow fadeInLeft" data-wow-duration="2s" data-wow-delay="0.2s">
+                <div class="dz-media">
+                    <img src="/images/guvenlik.png" class="move-1" alt="">
+                </div>
+            </div>
+            <div class="col-md-6 m-b30 wow fadeInRight" data-wow-duration="2s" data-wow-delay="0.4s">
+                <div class="section-head style-1 mb-4">
+                    <h6 class="sub-title">Güvenlik</h6>
+                    <h2 class="title">Uluslararası Güvenlik Sertifikaları</h2>
+                </div>
+                <p class="m-b20">KVKK, GDPR, BDDK, TSE, PCI DSS, ISO 27001 standartları ile gerçekleştirilen penetrasyon ve güvenlik testlerinden başarıyla geçmiştir..</p>
+                <img src="/images/sign.png" alt="">
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Counter -->
+<section class="counter-wraper bg-white half-bg">
+    <div class="container">
+        <div class="row counter-inner">
+            <div class="col-lg-3 col-sm-6 wow fadeInUp" data-wow-duration="2s" data-wow-delay="0.2s">
+                <div class="icon-bx-wraper style-4 text-center m-b30">
+                    <div class="icon-bx-sm radius bg-green m-b20">
+                        <a href="javascript:void(0);" class="icon-cell">
+                            <i class="flaticon-smile"></i>
+                        </a>
+                    </div>
+                    <div class="icon-content">
+                        <span class="title">E-Defter Kullanıcı</span>
+                        <h2 class="counter-title m-b0 text-primary"><span class="counter">285268</span></h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-sm-6 wow fadeInUp" data-wow-duration="2s" data-wow-delay="0.4s">
+                <div class="icon-bx-wraper style-4 text-center m-b30">
+                    <div class="icon-bx-sm radius bg-yellow m-b20">
+                        <a href="javascript:void(0);" class="icon-cell">
+                            <i class="flaticon-line-graph"></i>
+                        </a>
+                    </div>
+                    <div class="icon-content">
+                        <span class="title">SM,SMMM</span>
+                        <h2 class="counter-title m-b0 text-primary"><span class="counter">105949</span></h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-sm-6 wow fadeInUp" data-wow-duration="2s" data-wow-delay="0.6s">
+                <div class="icon-bx-wraper style-4 text-center m-b30">
+                    <div class="icon-bx-sm radius bg-blue m-b20">
+                        <a href="javascript:void(0);" class="icon-cell">
+                            <i class="flaticon-startup"></i>
+                        </a>
+                    </div>
+                    <div class="icon-content">
+                        <span class="title">YMM</span>
+                        <h2 class="counter-title m-b0 text-primary"><span class="counter">4771</span></h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-sm-6 wow fadeInUp" data-wow-duration="2s" data-wow-delay="0.8s">
+                <div class="icon-bx-wraper style-4 text-center m-b30">
+                    <div class="icon-bx-sm radius bg-red m-b20">
+                        <a href="javascript:void(0);" class="icon-cell">
+                            <i class="flaticon-confetti"></i>
+                        </a>
+                    </div>
+                    <div class="icon-content">
+                        <span class="title">DENETÇİ</span>
+                        <h2 class="counter-title m-b0 text-primary"><span class="counter">347</span></h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+
+<!-- Projects -->
+<!-- Testimonials -->
+<section class="content-inner bgl-primary">
+</section>
+
+<section class="content-inner bg-white">
+    <div class="container">
+        <div class="section-head style-3 text-center">
+            <h3 class="title">Cloud ve lokal kullanım seçenekleri ile hizmet vermekteyiz.</h3>
+        </div>
+        <div class="row">
+            <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-duration="2s" data-wow-delay="0.2s">
+                <div class="icon-bx-wraper style-5 box-hover text-center m-b30">
+                    <div class="icon-bx">
+                        <span class="icon-cell"><i class="flaticon-office"></i></span>
+                    </div>
+                    <div class="icon-content">
+                        <h4 class="dlab-title m-b15">Güvenlik</h4>
+                        <p class="m-b20">
+                            ISO 27001 sertifikalı veri merkezi, SSL sertifikalı iletişim
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-duration="2s" data-wow-delay="0.4s">
+                <div class="icon-bx-wraper style-5 box-hover active text-center m-b30">
+                    <div class="icon-bx">
+                        <span class="icon-cell"><i class="flaticon-coding"></i></span>
+                    </div>
+                    <div class="icon-content">
+                        <h4 class="dlab-title m-b15">
+                            Kurulum
+                        </h4>
+                        <p class="m-b20">
+                            Kurulum gerektirmeden,
+                            Kullanım imkanı ve lokal kurulum hizmeti
+                            .
+                        </p>
+
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 offset-lg-0 offset-md-3 wow fadeInUp" data-wow-duration="2s" data-wow-delay="0.6s">
+                <div class="icon-bx-wraper style-5 box-hover text-center m-b30">
+                    <div class="icon-bx">
+                        <span class="icon-cell"><i class="flaticon-laptop"></i></span>
+                    </div>
+                    <div class="icon-content">
+                        <h4 class="dlab-title m-b15">
+                            Geliştirme
+                        </h4>
+                        <p class="m-b20">
+                            Uygulama geliştirme ekibi, teknik uyum, usul ve vergi mevzuatına dayalı kuralları, kullanıcı geri bildirimlerine ve yenilenen yasal çerçeveye göre, güncelleştirir.
+                            .
+                        </p>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+
+<!-- Get A Quote -->
+<section class="content-inner" style="background-image: url(images/background/bg19.png); background-size:100%; background-position:center; background-repeat:no-repeat;">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-xl-6 col-lg-7 m-b30 wow fadeInLeft" data-wow-duration="2s" data-wow-delay="0.2s">
+                <div class="section-head style-1">
+                    <h6 class="sub-title">Risklerinizi Minimize Etmek İçin</h6>
+                    <h2 class="title">TEKLİF ALIN</h2>
+                </div>
+                <form class="dlab-form dzForm">
+                    <div class="dzFormMsg"></div>
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" class="form-control" name="dzToDo" value="Contact">
+                    <input type="hidden" class="form-control" name="reCaptchaEnable" value="0">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="la la-user"></i></span>
+                                </div>
+                                <input type="text" id="txname" required class="form-control" placeholder="Şirket İsmi">
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="la la-user"></i></span>
+                                </div>
+                                <input type="text" id="txlastname" class="form-control" required placeholder="Ad Soyad">
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="la la-envelope"></i></span>
+                                </div>
+                                <input type="text" id="txemail" required class="form-control" placeholder="Email Adresi">
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="la la-phone"></i></span>
+                                </div>
+                                <input type="text" id="txphone" required class="form-control" placeholder="Telefon.">
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <button name="submit" type="submit" value="Submit" class="btn btn-primary lblbilledittto">Teklif AL<i class="fa fa-angle-right m-l10"></i></button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="col-xl-6 col-lg-5 m-b30 wow fadeInRight" data-wow-duration="2s" data-wow-delay="0.4s">
+                <div class="dlab-media cf-r-img">
+                    <img src="/images/about/pic2.png" class="move-1" alt="">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="overlay-secondary-middle bg-img-fix" style="background-image: url(images/background/bg5.jpg); background-size: cover;">
+    <div class="container">
+
+    </div>
+</section>
+@section Scripts{
+
+    <script src="~/js/custommain.js"></script>
+    <script>
+
+        $(document).ready(function () {
+            var chk = "@Model.CompName";
+
+            if (chk == "true") {
+                location.href = "/Admin/consult/index";
+            }
+            else {
+                location.href = "/index";
+            }
+
+
+        });
+    </script>
+
+}

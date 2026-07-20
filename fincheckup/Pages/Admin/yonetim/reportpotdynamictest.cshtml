@@ -1,0 +1,1163 @@
+﻿@page
+
+@using fincheckup.Helper.Report
+@using fincheckup.Models.Hvvn
+@using fincheckup.Models.NKolay
+@using fincheckup.Models.NKolay.ViewM
+@using System.Drawing;
+@model IndexModel
+@{ ViewData["Title"] = "Report";
+    Layout = "~/Pages/Shared/_LayoutReport.cshtml";
+}
+@using fincheckup.Models.NKolay.json
+@using fincheckup.ENTITY
+@using fincheckup.Models.ViewM
+@using fincheckup.Report
+@using DevExpress.AspNetCore
+@using DevExpress.DataAccess.ObjectBinding;
+@using DevExpress.XtraReports.UI
+@using DevExpress.XtraCharts
+
+
+@functions {
+    public class IndexModel : PageModel
+    {
+        public RiskDataColor rdColor;
+        public RiskData riskdatachk;
+        public RiskData riskdata;
+        public long UserID; 
+        public int YearCount;
+        public static LineSeriesView checkSeries { get; set; }
+        public List<ReportMainItem> ncheck;
+        public List<ReportMainItem> nchecklast;
+        public List<ReportMainItem> nchecka;
+        public List<ReportMainItem> ncheck1;
+        public List<ReportMainItem> ncheck1a;
+        public int MainCount;
+        public List<ReportMainItem> ncheckb;
+        public List<ReportMainItem> ncheckc;
+        public List<ReportMainItem> ncheckd;
+        public List<ReportMainItem> nchecke;
+        public List<ReportMainItem> ncheckf;
+        public List<ReportMainItem> ncheckg;
+        public List<ReportMainItem> ncheck1_;
+        public List<ReportMainItem> ncheck2;
+        public List<ReportMainItem> ncheck3;
+        public List<ReportMainItem> ncheck4;
+        public List<ReportMainItem> ncheck5;
+        public List<ReportMainItem> ncheck6;
+        public List<ReportMainItem> ncheck7;
+        public List<ReportMainItem> ncheck8;
+        public List<ReportMainItem> ncheck9;
+        public List<ReportMainItem> ncheck10;
+        public List<ReportMainItem> ncheck11;
+        public List<ReportMainItem> ncheck12;
+        public ReportKapak ncheckKapak;
+        public Color shape1;
+        public Color shape2;
+        public Color shape3;
+        public Color shape4;
+        public Color shape5;
+        public Color shape6;
+        public Color shape7;
+        public Color shape8;
+        public Color shape9;
+        public List<ReportMainChart> ncheckchart;
+        public List<ReportMainChart> ncheckchartb;
+        public List<ReportMainChart> ncheckchart1;
+        public List<ReportMainChart> ncheckchart2;
+        public List<ReportMainChart> ncheckchart3;
+        public List<ReportMainChart> ncheckchart4;
+        public List<ReportMainChart> ncheckchart5;
+        public List<ReportMainChart> ncheckchart6;
+        public List<ReportMainChart> ncheckchart7;
+        public List<ReportMainChart> ncheckchart8;
+        public List<ReportMainChart> ncheckchart9;
+        public List<ReportMainChart> ncheckchart10;
+        public List<ReportMainChart> ncheckchart11;
+        public List<ReportMainChart> ncheckchart12;
+        public IEnumerable<Companies> mreqListCompany;
+        public HhvnUsers CurrentUser;
+        public Companies CCompanies;
+        public int compnacecode;
+        public long companyID;
+        public bool Isfailed;
+        public string repchakec;
+        public string header;
+        public string nccode;
+        public List<string> fields;
+        public List<string> fieldsHeader;
+        public void OnGet(string nyeara = "2022")
+        {
+            List<string> result = nyeara.Split(',').ToList();
+            List<int> resultint = result.Select(int.Parse).ToList();
+            MainCount = resultint.Count;
+            int[] resultintList = resultint.ToArray();
+            int nyear = resultint.Max();
+            YearCount = resultint.Count;
+            fields = new List<string>() {
+                "GroupName"
+            };
+            fields.AddRange(result);
+            fieldsHeader = new List<string>() {
+                "  "
+            };
+            fieldsHeader.AddRange(result);
+
+            Isfailed = false;
+            //Color.FromArgb(182,33,45) red
+            //Color.FromArgb(23, 127, 117) greeen
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            mreqListCompany = Companies.Getby_User(UserID);
+            CCompanies = mreqListCompany.Where(x => x.IsDefault == 1).FirstOrDefault();
+
+            companyID = CCompanies.ID;
+            compnacecode = 2790;
+            if (!string.IsNullOrEmpty(CCompanies.NaceCode) && !string.IsNullOrWhiteSpace(CCompanies.NaceCode))
+            {
+                compnacecode = Convert.ToInt32(CCompanies.NaceCode.Replace(".", "").Substring(0, 4));
+            }
+
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+            repchakec = "Kayıtlarda Bir Sorunla Karşılaşıldı";
+            header = CCompanies.CompanyName;
+            nccode = CCompanies.NaceCode;
+            try
+            {
+                var checkedData = MainDash.DataReportMainKapakDynamic(nyear, companyID);
+                riskdatachk = RiskData.getListedPoint(checkedData);
+                riskdata = RiskData.getPoint(riskdatachk);
+                ncheckKapak = ReportKapak.setKapak(checkedData);
+                if (ncheckKapak == null)
+                {
+                    ncheckKapak = new ReportKapak();
+                }
+                if (ncheckKapak.nitemAltmanz.TumYil > 7)
+                {
+                    ncheckKapak.nitemAltmanz.TumYil = 7;
+                }
+                if (ncheckKapak.nitemCariOran.IsFailed > 0) { shape1 = Color.FromArgb(182, 33, 45); } else { shape1 = Color.FromArgb(23, 127, 117); };
+                if (ncheckKapak.nitemLikitideOran.IsFailed > 0) { shape2 = Color.FromArgb(182, 33, 45); } else { shape2 = Color.FromArgb(23, 127, 117); };
+                if (ncheckKapak.nitemNakitOran.IsFailed > 0) { shape3 = Color.FromArgb(182, 33, 45); } else { shape3 = Color.FromArgb(23, 127, 117); };
+                if (ncheckKapak.nitemAlacakDevir.IsFailed > 0) { shape4 = Color.FromArgb(182, 33, 45); } else { shape4 = Color.FromArgb(23, 127, 117); };
+                if (ncheckKapak.nitemTicariBorcDevir.IsFailed > 0) { shape5 = Color.FromArgb(182, 33, 45); } else { shape5 = Color.FromArgb(23, 127, 117); };
+                if (ncheckKapak.nitemStokDevir.IsFailed > 0) { shape6 = Color.FromArgb(182, 33, 45); } else { shape6 = Color.FromArgb(23, 127, 117); };
+                if (ncheckKapak.nitemBorcOzsermaye.IsFailed > 0) { shape7 = Color.FromArgb(182, 33, 45); } else { shape7 = Color.FromArgb(23, 127, 117); };
+                if (ncheckKapak.nitemTpolamBankaBorc.IsFailed > 0) { shape8 = Color.FromArgb(182, 33, 45); } else { shape8 = Color.FromArgb(23, 127, 117); };
+                if (ncheckKapak.nitemOzkaynakAktif.IsFailed > 0) { shape9 = Color.FromArgb(182, 33, 45); } else { shape9 = Color.FromArgb(23, 127, 117); };
+                ncheck = MainDash.DataReportMainDynamic(resultintList, companyID);
+                nchecka = MainDash.DataReportMainADynamic(resultintList, companyID);
+
+                ncheck1 = MainDash.DataReportMainBDynamic(resultintList, companyID);
+                ncheck1a = MainDash.DataReportMainCDynamic(resultintList, companyID);
+
+                ncheckd = MainDash.DataReportMainDDynamic(resultintList, companyID);
+                nchecke = MainDash.DataReportMainEDynamic(resultintList, companyID);
+                ncheckf = MainDash.DataReportMainFDynamic(resultintList, companyID);
+                ncheckg = MainDash.DataReportMainGDynamic(resultintList, companyID);
+                nchecklast = MainDash.DataReportMainTDynamic(resultintList, companyID);
+                ncheckb = new List<ReportMainItem>();
+                //ncheckb.Add(nchecka.Where(x=>x.CounterZone==44).First());
+                ncheckb.AddRange(ncheck.Where(x => x.CounterZone == 11).ToList());
+                ncheckchart = MainDash.DataReportMainChartMainMulti(ncheckb.OrderBy(x => x.Year));
+                ncheckc = new List<ReportMainItem>();
+                ncheckc.AddRange(ncheck.Where(x => x.CounterZone == 1011).ToList());
+                ncheckchartb = MainDash.DataReportMainChartMainMulti(ncheckc.OrderBy(x => x.Year));
+                  rdColor = new RiskDataColor();
+                ncheck1_ = MainDash.DataReportMain1Dynamic(resultintList, companyID, compnacecode);
+                ncheck2 = MainDash.DataReportMain2Dynamic(resultintList, companyID, compnacecode);
+                ncheck3 = MainDash.DataReportMain3Dynamic(resultintList, companyID, compnacecode);
+                ncheck4 = MainDash.DataReportMain4Dynamic(resultintList, companyID, compnacecode);
+                ncheck5 = MainDash.DataReportMain5Dynamic(resultintList, companyID, compnacecode);
+                ncheck6 = MainDash.DataReportMain6Dynamic(resultintList, companyID, compnacecode);
+                ncheck7 = MainDash.DataReportMain7Dynamic(resultintList, companyID, compnacecode);
+                ncheck8 = MainDash.DataReportMain8Dynamic(resultintList, companyID, compnacecode);
+                ncheck9 = MainDash.DataReportMain9Dynamic(resultintList, companyID, compnacecode);
+                ncheck10 = MainDash.DataReportMain10Dynamic(resultintList, companyID, compnacecode);
+                ncheck11 = MainDash.DataReportMain11Dynamic(resultintList, companyID, compnacecode);
+                ncheck12 = MainDash.DataReportMain12Dynamic(resultintList, companyID, compnacecode);
+
+                RiskDataColor.getListedPoint(ncheck1_, 1, false, rdColor);
+                RiskDataColor.getListedPoint(ncheck2,2,false,rdColor);
+                 RiskDataColor.getListedPoint(ncheck3, 3, false, rdColor);
+                RiskDataColor.getListedPoint(ncheck4,4,false,rdColor);
+                 RiskDataColor.getListedPoint(ncheck5,5,false,rdColor);
+                 RiskDataColor.getListedPoint(ncheck6, 6, false, rdColor);
+                RiskDataColor.getListedPoint(ncheck7,7,false,rdColor);
+                 RiskDataColor.getListedPoint(ncheck8,8,false,rdColor);
+                 RiskDataColor.getListedPoint(ncheck9, 9, false, rdColor);
+                RiskDataColor.getListedPoint(ncheck10,10,false,rdColor);
+                 RiskDataColor.getListedPoint(ncheck11,11,false,rdColor);
+                 RiskDataColor.getListedPoint(ncheck12, 12, false, rdColor); 
+                ncheckchart1 = MainDash.DataReportMainChartMainMulti(ncheck1_.OrderBy(x => x.Year));
+                ncheckchart2 = MainDash.DataReportMainChartMainMulti(ncheck2.OrderBy(x => x.Year));
+                ncheckchart3 = MainDash.DataReportMainChartMainMulti(ncheck3.OrderBy(x => x.Year));
+                ncheckchart4 = MainDash.DataReportMainChartMainMulti(ncheck4.OrderBy(x => x.Year));
+                ncheckchart5 = MainDash.DataReportMainChartMainMulti(ncheck5.OrderBy(x => x.Year));
+                ncheckchart6 = MainDash.DataReportMainChartMainMulti(ncheck6.OrderBy(x => x.Year));
+                ncheckchart7 = MainDash.DataReportMainChartMainMulti(ncheck7.OrderBy(x => x.Year));
+                ncheckchart8 = MainDash.DataReportMainChartMainMulti(ncheck8.OrderBy(x => x.Year));
+                ncheckchart9 = MainDash.DataReportMainChartMainMulti(ncheck9.OrderBy(x => x.Year));
+                ncheckchart10 = MainDash.DataReportMainChartMainMulti(ncheck10.OrderBy(x => x.Year));
+                ncheckchart11 = MainDash.DataReportMainChartMainMulti(ncheck11.OrderBy(x => x.Year));
+                ncheckchart12 = MainDash.DataReportMainChartMainMulti(ncheck12.OrderBy(x => x.Year));
+
+            }
+            catch
+            {
+
+                Isfailed = true;
+
+            }
+            //repchakec = "";
+
+
+
+
+
+
+            // 2790
+        }
+
+
+    } 
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/viewer.part.bundle.css" />
+
+    <script src="~/js/viewer.part.bundle.js"></script>
+    <style>
+        .dxrd-toolbar-item-3 {
+            display: none !important;
+        }
+
+        .dxrd-toolbar-item-4 {
+            display: none !important;
+        }
+
+        .dxrd-preview.dxrd-designer-wrapper .dxrd-toolbar-wrapper .dxrd-preview-pager.dxrd-toolbar-item {
+            display: none !important;
+        }
+
+        dxrd-toolbar-item-0 {
+            display: none !important;
+        }
+
+        .dx-shadow-right {
+            display: none;
+        }
+    </style>
+
+}
+
+@{
+
+
+    if (Model.YearCount == 2)
+    {
+        DynamicReport report = new DynamicReport(Model.riskdata,Model.rdColor);
+ 
+        LineSeriesView checkSeries = new LineSeriesView();
+        try
+        {
+            //report.testlist.AddRange(Model.fields);
+            //report.testlistHeader.AddRange(Model.fieldsHeader);
+            report.CheckSize = Model.MainCount;
+
+            ObjectDataSource objectDataSource = new ObjectDataSource();
+            objectDataSource.Name = "DataViewer";
+            objectDataSource.DataSource = Model.ncheck;
+
+            objectDataSource.Fill();
+
+            ObjectDataSource objectDataSourceA = new ObjectDataSource();
+            objectDataSourceA.Name = "DataViewerA";
+            objectDataSourceA.DataSource = Model.nchecka;
+
+            objectDataSourceA.Fill();
+
+            ObjectDataSource objectDataSourceB = new ObjectDataSource();
+            objectDataSourceB.Name = "DataViewerB";
+            objectDataSourceB.DataSource = Model.ncheck1;
+
+            objectDataSourceB.Fill();
+
+            ObjectDataSource objectDataSourceC = new ObjectDataSource();
+            objectDataSourceC.Name = "DataViewerC";
+            objectDataSourceC.DataSource = Model.ncheck1a;
+
+            objectDataSourceC.Fill();
+
+
+            ObjectDataSource objectDataSourceD = new ObjectDataSource();
+            objectDataSourceD.Name = "DataViewerD";
+            objectDataSourceD.DataSource = Model.ncheckd;
+
+            objectDataSourceD.Fill();
+
+            ObjectDataSource objectDataSourceE = new ObjectDataSource();
+            objectDataSourceE.Name = "DataViewerE";
+            objectDataSourceE.DataSource = Model.nchecke;
+
+            objectDataSourceE.Fill();
+
+            ObjectDataSource objectDataSourceF = new ObjectDataSource();
+            objectDataSourceF.Name = "DataViewerF";
+            objectDataSourceF.DataSource = Model.ncheckf;
+
+            objectDataSourceF.Fill();
+
+
+
+            ObjectDataSource objectDataSourceG = new ObjectDataSource();
+            objectDataSourceG.Name = "DataViewerG";
+            objectDataSourceG.DataSource = Model.ncheckg;
+            objectDataSourceG.Fill();
+
+            ObjectDataSource objectDataSourceT = new ObjectDataSource();
+            objectDataSourceT.Name = "DataViewerT";
+            objectDataSourceT.DataSource = Model.nchecklast;
+            objectDataSourceT.Fill();
+ 
+     
+
+            report.xrCrossTab1.DataSource = objectDataSource;
+            report.xrCrossTab2.DataSource = objectDataSourceA;
+            report.xrCrossTabBilancoGenel.DataSource = objectDataSourceB;
+            report.xrCrossTabYukumluuk.DataSource = objectDataSourceC;
+            report.xrCrossTabKarlk.DataSource = objectDataSourceD;
+            report.xrCrossTabBorcOdeme.DataSource = objectDataSourceE;
+            report.xrCrossTabLikidite.DataSource = objectDataSourceF;
+            report.xrCrossTabSermaye.DataSource = objectDataSourceG;
+             report.xrCrossTabRasio.DataSource = objectDataSourceT;
+
+            report.xrCrossTabBnkYabKynk.DataSource = Model.ncheck1_;
+            report.xrCrossTabBnkAktif.DataSource = Model.ncheck2;
+            report.xrCrossTabDuranOkynk.DataSource = Model.ncheck3;
+            report.xrCrossTabDonenAktif.DataSource = Model.ncheck4;
+            report.xrCrossTabKVAktif.DataSource = Model.ncheck5;
+            report.xrCrossTabKVDonen.DataSource = Model.ncheck6;
+
+            report.xrCrossTabKVPasif.DataSource = Model.ncheck7;
+            report.xrCrossTabMaddiOzkaynak.DataSource = Model.ncheck8;
+            report.xrCrossTabStokAktif.DataSource = Model.ncheck9;
+            report.xrCrossTabUVadePasif.DataSource = Model.ncheck10;
+            report.xrCrossTabOKynkYbKyn.DataSource = Model.ncheck11;
+            report.xrCrossTabOKynkAktif.DataSource = Model.ncheck12;
+
+            
+
+        
+
+            var chart = (XRChart)report.FindControl("xrChart1", false);
+            chart.Series.Clear();
+            chart.DataSource = Model.ncheckchart;//Method from documentation you reffered
+            chart.SeriesTemplate.SeriesDataMember = "GroupName";
+            chart.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            chart.SeriesTemplate.ArgumentDataMember = "GroupText";
+            chart.SeriesTemplate.ValueDataMembers.AddRange("Value");
+          
+
+
+            var chart1 = (XRChart)report.FindControl("xrChart2", false);
+            chart1.Series.Clear();
+            chart1.DataSource = Model.ncheckchartb;//Method from documentation you reffered
+            chart1.SeriesTemplate.SeriesDataMember = "GroupName";
+            chart1.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            chart1.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            chart1.SeriesTemplate.ArgumentDataMember = "GroupText";
+            chart1.SeriesTemplate.ValueDataMembers.AddRange("Value");
+
+            report.xrChartBnkYabKynk.SeriesTemplate.View = checkSeries;
+            report.xrChartBnkYabKynk.DataSource = Model.ncheckchart1;//Method from documentation you reffered
+            report.xrChartBnkYabKynk.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartBnkYabKynk.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartBnkYabKynk.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartBnkYabKynk.SeriesTemplate.ValueDataMembers.AddRange("Value");report.xrChartBnkYabKynk.PaletteName = "PaletteDyn";
+            report.xrChartBnkYabKynk.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+
+
+            report.xrChartBnkAktif.SeriesTemplate.View = checkSeries;
+            report.xrChartBnkAktif.DataSource = Model.ncheckchart2;//Method from documentation you reffered
+            report.xrChartBnkAktif.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartBnkAktif.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartBnkAktif.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartBnkAktif.SeriesTemplate.ValueDataMembers.AddRange("Value"); report.xrChartBnkAktif.PaletteName = "PaletteDyn";
+            report.xrChartBnkAktif.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+
+
+            report.xrChartDuranOkynk.SeriesTemplate.View = checkSeries;
+            report.xrChartDuranOkynk.DataSource = Model.ncheckchart3;//Method from documentation you reffered
+            report.xrChartDuranOkynk.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartDuranOkynk.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartDuranOkynk.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartDuranOkynk.SeriesTemplate.ValueDataMembers.AddRange("Value"); 
+            report.xrChartBnkYabKynk.PaletteName = "PaletteDyn";
+            report.xrChartDuranOkynk.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+
+
+            report.xrChartDonenAktif.SeriesTemplate.View = checkSeries;
+            report.xrChartDonenAktif.DataSource = Model.ncheckchart4;//Method from documentation you reffered
+            report.xrChartDonenAktif.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartDonenAktif.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartDonenAktif.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartDonenAktif.SeriesTemplate.ValueDataMembers.AddRange("Value"); 
+            report.xrChartDonenAktif.PaletteName = "PaletteDyn";
+            report.xrChartDonenAktif.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+             
+            report.xrChartKVAktif.SeriesTemplate.View = checkSeries;
+            report.xrChartKVAktif.DataSource = Model.ncheckchart5;//Method from documentation you reffered
+            report.xrChartKVAktif.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartKVAktif.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartKVAktif.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartKVAktif.SeriesTemplate.ValueDataMembers.AddRange("Value"); 
+            report.xrChartKVAktif.PaletteName = "PaletteDyn";
+            report.xrChartKVAktif.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+
+            report.xrChartKVDonen.SeriesTemplate.View = checkSeries;
+            report.xrChartKVDonen.DataSource = Model.ncheckchart6;//Method from documentation you reffered
+            report.xrChartKVDonen.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartKVDonen.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartKVDonen.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartKVDonen.SeriesTemplate.ValueDataMembers.AddRange("Value"); 
+            report.xrChartKVDonen.PaletteName = "PaletteDyn";
+            report.xrChartKVDonen.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+
+            //////
+            report.xrChartKVPasif.SeriesTemplate.View = checkSeries;
+            report.xrChartKVPasif.DataSource = Model.ncheckchart7;//Method from documentation you reffered
+            report.xrChartKVPasif.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartKVPasif.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartKVPasif.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartKVPasif.SeriesTemplate.ValueDataMembers.AddRange("Value");
+            report.xrChartKVPasif.PaletteName = "PaletteDyn";
+            report.xrChartKVPasif.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+
+            report.xrChartMaddiOzkaynak.SeriesTemplate.View = checkSeries;
+            report.xrChartMaddiOzkaynak.DataSource = Model.ncheckchart8;//Method from documentation you reffered
+            report.xrChartMaddiOzkaynak.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartMaddiOzkaynak.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartMaddiOzkaynak.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartMaddiOzkaynak.SeriesTemplate.ValueDataMembers.AddRange("Value"); 
+            report.xrChartMaddiOzkaynak.PaletteName = "PaletteDyn";
+            report.xrChartMaddiOzkaynak.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+
+
+            report.xrChartStokAktif.SeriesTemplate.View = checkSeries;
+            report.xrChartStokAktif.DataSource = Model.ncheckchart9;//Method from documentation you reffered
+            report.xrChartStokAktif.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartStokAktif.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartStokAktif.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartStokAktif.SeriesTemplate.ValueDataMembers.AddRange("Value"); 
+            report.xrChartStokAktif.PaletteName = "PaletteDyn";
+            report.xrChartStokAktif.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+
+
+            report.xrChartUVadePasif.SeriesTemplate.View = checkSeries;
+            report.xrChartUVadePasif.DataSource = Model.ncheckchart10;//Method from documentation you reffered
+            report.xrChartUVadePasif.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartUVadePasif.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartUVadePasif.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartUVadePasif.SeriesTemplate.ValueDataMembers.AddRange("Value");
+            report.xrChartUVadePasif.PaletteName = "PaletteDyn";
+            report.xrChartUVadePasif.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+
+
+            report.xrChartOKynkYbKyn.SeriesTemplate.View = checkSeries;
+            report.xrChartOKynkYbKyn.DataSource = Model.ncheckchart11;//Method from documentation you reffered
+            report.xrChartOKynkYbKyn.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartOKynkYbKyn.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartOKynkYbKyn.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartOKynkYbKyn.SeriesTemplate.ValueDataMembers.AddRange("Value");
+            report.xrChartOKynkYbKyn.PaletteName = "PaletteDyn";
+            report.xrChartOKynkYbKyn.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+
+            report.xrChartOKynkAktif.SeriesTemplate.View = checkSeries;
+            report.xrChartOKynkAktif.DataSource = Model.ncheckchart12;//Method from documentation you reffered
+            report.xrChartOKynkAktif.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartOKynkAktif.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartOKynkAktif.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartOKynkAktif.SeriesTemplate.ValueDataMembers.AddRange("Value");
+            report.xrChartOKynkAktif.PaletteName = "PaletteDyn";
+            report.xrChartOKynkAktif.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+            
+           
+
+            var xrlbl1 = (XRLabel)report.FindControl("xrLblOzkaynak", false);
+            xrlbl1.Text = Model.ncheckKapak.nitemOzkaynakAktif.TumYil.ToString("N2");
+
+            var xrlbl2 = (XRLabel)report.FindControl("xrlblCarioran", false);
+            xrlbl2.Text = Model.ncheckKapak.nitemCariOran.TumYil.ToString("N2");
+
+
+            var xrlbl3 = (XRLabel)report.FindControl("xrlblROA", false);
+            xrlbl3.Text = (Model.ncheckKapak.nitemROAAktifKarlilik.TumYil * 100).ToString("N2") + "%";
+
+
+
+            var xrlbl5 = (XRLabel)report.FindControl("xrlblAltmanZ", false);
+            xrlbl5.Text = Model.ncheckKapak.nitemAltmanz.TumYil.ToString("N2");
+
+
+            var xrlbl6 = (XRLabel)report.FindControl("xrlblNetIsletmeSerm", false);
+            xrlbl6.Text = Model.ncheckKapak.nitemNetIsletmeSermaye.TumYil.ToString("N0");
+
+
+            var xrlbl7 = (XRLabel)report.FindControl("xrlblFaizVeVergi", false);
+            xrlbl7.Text = Model.ncheckKapak.nitemFaizVergiOncesiKarZarar.TumYil.ToString("N2");
+
+
+ 
+
+             
+            report.PrintingSystem.Document.Name = "Balance_raporlar";
+            @Html.DevExpress().WebDocumentViewer("DocumentViewer").Height("1000px").Bind(report)
+        }
+        catch (Exception ex)
+        {
+            var tt = ex;
+            Model.Isfailed = true;
+
+        }
+    }
+    else if (Model.YearCount == 3)
+    {
+        DynamicReport report = new DynamicReport(Model.riskdata, Model.rdColor);
+        try
+        {
+            LineSeriesView checkSeries = new LineSeriesView();
+            report.CheckSize = Model.MainCount;
+
+            ObjectDataSource objectDataSource = new ObjectDataSource();
+            objectDataSource.Name = "DataViewer";
+            objectDataSource.DataSource = Model.ncheck;
+
+            objectDataSource.Fill();
+
+            ObjectDataSource objectDataSourceA = new ObjectDataSource();
+            objectDataSourceA.Name = "DataViewerA";
+            objectDataSourceA.DataSource = Model.nchecka;
+
+            objectDataSourceA.Fill();
+
+            ObjectDataSource objectDataSourceB = new ObjectDataSource();
+            objectDataSourceB.Name = "DataViewerB";
+            objectDataSourceB.DataSource = Model.ncheck1;
+
+            objectDataSourceB.Fill();
+
+            ObjectDataSource objectDataSourceC = new ObjectDataSource();
+            objectDataSourceC.Name = "DataViewerC";
+            objectDataSourceC.DataSource = Model.ncheck1a;
+
+            objectDataSourceC.Fill();
+
+
+            ObjectDataSource objectDataSourceD = new ObjectDataSource();
+            objectDataSourceD.Name = "DataViewerD";
+            objectDataSourceD.DataSource = Model.ncheckd;
+
+            objectDataSourceD.Fill();
+
+            ObjectDataSource objectDataSourceE = new ObjectDataSource();
+            objectDataSourceE.Name = "DataViewerE";
+            objectDataSourceE.DataSource = Model.nchecke;
+
+            objectDataSourceE.Fill();
+
+            ObjectDataSource objectDataSourceF = new ObjectDataSource();
+            objectDataSourceF.Name = "DataViewerF";
+            objectDataSourceF.DataSource = Model.ncheckf;
+
+            objectDataSourceF.Fill();
+
+
+
+            ObjectDataSource objectDataSourceG = new ObjectDataSource();
+            objectDataSourceG.Name = "DataViewerG";
+            objectDataSourceG.DataSource = Model.ncheckg;
+            objectDataSourceG.Fill();
+
+            ObjectDataSource objectDataSourceT = new ObjectDataSource();
+            objectDataSourceT.Name = "DataViewerT";
+            objectDataSourceT.DataSource = Model.nchecklast;
+            objectDataSourceT.Fill();
+
+         
+
+
+     
+            report.xrCrossTab1.DataSource = objectDataSource;
+            report.xrCrossTab2.DataSource = objectDataSourceA;
+
+            report.xrCrossTabBilancoGenel.DataSource = objectDataSourceB;
+            report.xrCrossTabYukumluuk.DataSource = objectDataSourceC;
+            report.xrCrossTabKarlk.DataSource = objectDataSourceD;
+            report.xrCrossTabBorcOdeme.DataSource = objectDataSourceE;
+            report.xrCrossTabLikidite.DataSource = objectDataSourceF;
+            report.xrCrossTabSermaye.DataSource = objectDataSourceG;
+            report.xrCrossTabRasio.DataSource = objectDataSourceT;
+
+            report.xrCrossTabBnkYabKynk.DataSource = Model.ncheck1_; 
+            report.xrCrossTabBnkAktif.DataSource = Model.ncheck2;
+            report.xrCrossTabDuranOkynk.DataSource = Model.ncheck3;
+            report.xrCrossTabDonenAktif.DataSource = Model.ncheck4;
+            report.xrCrossTabKVAktif.DataSource = Model.ncheck5;
+            report.xrCrossTabKVDonen.DataSource = Model.ncheck6;
+
+            report.xrCrossTabKVPasif.DataSource = Model.ncheck7;
+            report.xrCrossTabMaddiOzkaynak.DataSource = Model.ncheck8;
+            report.xrCrossTabStokAktif.DataSource = Model.ncheck9;
+            report.xrCrossTabUVadePasif.DataSource = Model.ncheck10;
+            report.xrCrossTabOKynkYbKyn.DataSource = Model.ncheck11;
+            report.xrCrossTabOKynkAktif.DataSource = Model.ncheck12;
+       
+
+            var chart = (XRChart)report.FindControl("xrChart1", false);
+            chart.Series.Clear();
+            chart.DataSource = Model.ncheckchart;//Method from documentation you reffered
+            chart.SeriesTemplate.SeriesDataMember = "GroupName";
+            chart.SeriesTemplate.ArgumentDataMember = "GroupText";
+            chart.SeriesTemplate.ValueDataMembers.AddRange("Value");
+
+            var chart1 = (XRChart)report.FindControl("xrChart2", false);
+            chart1.Series.Clear();
+            chart1.DataSource = Model.ncheckchartb;//Method from documentation you reffered
+            chart1.SeriesTemplate.SeriesDataMember = "GroupName";
+            chart1.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            chart1.SeriesTemplate.ArgumentDataMember = "GroupText";
+            chart1.SeriesTemplate.ValueDataMembers.AddRange("Value");
+
+            report.xrChartBnkYabKynk.SeriesTemplate.View = checkSeries;
+            report.xrChartBnkYabKynk.DataSource = Model.ncheckchart1;//Method from documentation you reffered
+            report.xrChartBnkYabKynk.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartBnkYabKynk.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartBnkYabKynk.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartBnkYabKynk.SeriesTemplate.ValueDataMembers.AddRange("Value");
+            report.xrChartBnkYabKynk.PaletteName = "PaletteDyn";
+            report.xrChartBnkYabKynk.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+    
+
+            report.xrChartBnkAktif.SeriesTemplate.View = checkSeries;
+            report.xrChartBnkAktif.DataSource = Model.ncheckchart2;//Method from documentation you reffered
+            report.xrChartBnkAktif.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartBnkAktif.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartBnkAktif.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartBnkAktif.SeriesTemplate.ValueDataMembers.AddRange("Value");
+            report.xrChartBnkAktif.PaletteName = "PaletteDyn";
+            report.xrChartBnkAktif.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+
+
+
+            report.xrChartDuranOkynk.SeriesTemplate.View = checkSeries;
+            report.xrChartDuranOkynk.DataSource = Model.ncheckchart3;//Method from documentation you reffered
+            report.xrChartDuranOkynk.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartDuranOkynk.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartDuranOkynk.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartDuranOkynk.SeriesTemplate.ValueDataMembers.AddRange("Value"); report.xrChartBnkYabKynk.PaletteName = "PaletteDyn";
+            report.xrChartDuranOkynk.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+
+
+            report.xrChartDonenAktif.SeriesTemplate.View = checkSeries;
+            report.xrChartDonenAktif.DataSource = Model.ncheckchart4;//Method from documentation you reffered
+            report.xrChartDonenAktif.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartDonenAktif.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartDonenAktif.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartDonenAktif.SeriesTemplate.ValueDataMembers.AddRange("Value"); report.xrChartBnkAktif.PaletteName = "PaletteDyn";
+            report.xrChartDonenAktif.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+
+
+            report.xrChartKVAktif.SeriesTemplate.View = checkSeries;
+            report.xrChartKVAktif.DataSource = Model.ncheckchart5;//Method from documentation you reffered
+            report.xrChartKVAktif.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartKVAktif.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartKVAktif.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartKVAktif.SeriesTemplate.ValueDataMembers.AddRange("Value");
+            report.xrChartKVAktif.PaletteName = "PaletteDyn";
+            report.xrChartKVAktif.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+
+            report.xrChartKVDonen.SeriesTemplate.View = checkSeries;
+            report.xrChartKVDonen.DataSource = Model.ncheckchart6;//Method from documentation you reffered
+            report.xrChartKVDonen.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartKVDonen.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartKVDonen.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartKVDonen.SeriesTemplate.ValueDataMembers.AddRange("Value");
+            report.xrChartKVDonen.PaletteName = "PaletteDyn";
+            report.xrChartKVDonen.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+
+            //////
+            report.xrChartKVPasif.SeriesTemplate.View = checkSeries;
+            report.xrChartKVPasif.DataSource = Model.ncheckchart7;//Method from documentation you reffered
+            report.xrChartKVPasif.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartKVPasif.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartKVPasif.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartKVPasif.SeriesTemplate.ValueDataMembers.AddRange("Value");
+            report.xrChartKVPasif.PaletteName = "PaletteDyn";
+            report.xrChartKVPasif.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+
+            report.xrChartMaddiOzkaynak.SeriesTemplate.View = checkSeries;
+            report.xrChartMaddiOzkaynak.DataSource = Model.ncheckchart8;//Method from documentation you reffered
+            report.xrChartMaddiOzkaynak.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartMaddiOzkaynak.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartMaddiOzkaynak.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartMaddiOzkaynak.SeriesTemplate.ValueDataMembers.AddRange("Value");
+            report.xrChartMaddiOzkaynak.PaletteName = "PaletteDyn";
+            report.xrChartMaddiOzkaynak.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+
+
+            report.xrChartStokAktif.SeriesTemplate.View = checkSeries;
+            report.xrChartStokAktif.DataSource = Model.ncheckchart9;//Method from documentation you reffered
+            report.xrChartStokAktif.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartStokAktif.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartStokAktif.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartStokAktif.SeriesTemplate.ValueDataMembers.AddRange("Value");
+            report.xrChartStokAktif.PaletteName = "PaletteDyn";
+            report.xrChartStokAktif.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+
+
+            report.xrChartUVadePasif.SeriesTemplate.View = checkSeries;
+            report.xrChartUVadePasif.DataSource = Model.ncheckchart10;//Method from documentation you reffered
+            report.xrChartUVadePasif.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartUVadePasif.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartUVadePasif.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartUVadePasif.SeriesTemplate.ValueDataMembers.AddRange("Value");
+            report.xrChartUVadePasif.PaletteName = "PaletteDyn";
+            report.xrChartUVadePasif.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+
+
+            report.xrChartOKynkYbKyn.SeriesTemplate.View = checkSeries;
+            report.xrChartOKynkYbKyn.DataSource = Model.ncheckchart11;//Method from documentation you reffered
+            report.xrChartOKynkYbKyn.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartOKynkYbKyn.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartOKynkYbKyn.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartOKynkYbKyn.SeriesTemplate.ValueDataMembers.AddRange("Value");
+            report.xrChartOKynkYbKyn.PaletteName = "PaletteDyn";
+            report.xrChartOKynkYbKyn.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+
+            report.xrChartOKynkAktif.SeriesTemplate.View = checkSeries;
+            report.xrChartOKynkAktif.DataSource = Model.ncheckchart12;//Method from documentation you reffered
+            report.xrChartOKynkAktif.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartOKynkAktif.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartOKynkAktif.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartOKynkAktif.SeriesTemplate.ValueDataMembers.AddRange("Value");
+            report.xrChartOKynkAktif.PaletteName = "PaletteDyn";
+            report.xrChartOKynkAktif.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+         
+
+            // var xrlbl1 = (XRLabel)report.FindControl("xrLblOzkaynak", false);
+            // xrlbl1.Text = Model.ncheckKapak.nitemOzkaynakAktif.TumYil.ToString("N2");
+
+            // var xrlbl2 = (XRLabel)report.FindControl("xrlblCarioran", false);
+            // xrlbl2.Text = Model.ncheckKapak.nitemCariOran.TumYil.ToString("N2");
+
+
+            // var xrlbl3 = (XRLabel)report.FindControl("xrlblROA", false);
+            // xrlbl3.Text = (Model.ncheckKapak.nitemROAAktifKarlilik.TumYil * 100).ToString("N2") + "%";
+
+
+
+            // var xrlbl5 = (XRLabel)report.FindControl("xrlblAltmanZ", false);
+            // xrlbl5.Text = Model.ncheckKapak.nitemAltmanz.TumYil.ToString("N2");
+
+
+            // var xrlbl6 = (XRLabel)report.FindControl("xrlblNetIsletmeSerm", false);
+            // xrlbl6.Text = Model.ncheckKapak.nitemNetIsletmeSermaye.TumYil.ToString("N0");
+
+
+            // var xrlbl7 = (XRLabel)report.FindControl("xrlblFaizVeVergi", false);
+            // xrlbl7.Text = Model.ncheckKapak.nitemFaizVergiOncesiKarZarar.TumYil.ToString("N2");
+
+
+
+            // var xrlbl8 = (XRLabel)report.FindControl("xrCaritablo", false);
+            // xrlbl8.Text = Model.ncheckKapak.nitemCariOran.TumYil.ToString("N2");
+
+
+            // var xrlbl9 = (XRLabel)report.FindControl("xrLikiditetablo", false);
+            // xrlbl9.Text = Model.ncheckKapak.nitemLikitideOran.TumYil.ToString("N2");
+
+            // var xrlbl10 = (XRLabel)report.FindControl("xrNakittablo", false);
+            // xrlbl10.Text = Model.ncheckKapak.nitemNakitOran.TumYil.ToString("N2");
+
+
+
+            // var xrlbl14 = (XRLabel)report.FindControl("xrtoplamborcsermtablo", false);
+            // xrlbl14.Text = Model.ncheckKapak.nitemBorcOzsermaye.TumYil.ToString("N2");
+
+            // var xrlbl15 = (XRLabel)report.FindControl("xrtoplambankaborcdevirtablo", false);
+            // xrlbl15.Text = Model.ncheckKapak.nitemTpolamBankaBorc.TumYil.ToString("N2");
+
+            // var xrlbl16 = (XRLabel)report.FindControl("xrOzaynakaktifktablo", false);
+            // xrlbl16.Text = Model.ncheckKapak.nitemOzkaynakAktif.TumYil.ToString("N2");
+
+            // //////////var gauget = (XRGauge)report.FindControl("xrGauge1", false);
+            // //////////gauget.TargetValue = Model.ncheckKapak.nitemAltmanz.TumYil;
+
+            // var rShape1 = (XRShape)report.FindControl("xrShape1", false);
+            // rShape1.BackColor = Model.shape1;
+
+            // var rShape2 = (XRShape)report.FindControl("xrShape2", false);
+            // rShape2.BackColor = Model.shape2;
+
+            // var rShape3 = (XRShape)report.FindControl("xrShape3", false);
+            // rShape3.BackColor = Model.shape3;
+
+
+
+            // var rShape7 = (XRShape)report.FindControl("xrShape7", false);
+            // rShape7.BackColor = Model.shape7;
+
+            // var rShape8 = (XRShape)report.FindControl("xrShape8", false);
+            // rShape8.BackColor = Model.shape8;
+
+            // var rShape9 = (XRShape)report.FindControl("xrShape9", false);
+            // rShape9.BackColor = Model.shape9;
+
+            var xrlbl1 = (XRLabel)report.FindControl("xrLblOzkaynak", false);
+            xrlbl1.Text = Model.ncheckKapak.nitemOzkaynakAktif.TumYil.ToString("N2");
+
+            var xrlbl2 = (XRLabel)report.FindControl("xrlblCarioran", false);
+            xrlbl2.Text = Model.ncheckKapak.nitemCariOran.TumYil.ToString("N2");
+
+
+            var xrlbl3 = (XRLabel)report.FindControl("xrlblROA", false);
+            xrlbl3.Text = (Model.ncheckKapak.nitemROAAktifKarlilik.TumYil * 100).ToString("N2") + "%";
+
+
+
+            var xrlbl5 = (XRLabel)report.FindControl("xrlblAltmanZ", false);
+            xrlbl5.Text = Model.ncheckKapak.nitemAltmanz.TumYil.ToString("N2");
+
+
+            var xrlbl6 = (XRLabel)report.FindControl("xrlblNetIsletmeSerm", false);
+            xrlbl6.Text = Model.ncheckKapak.nitemNetIsletmeSermaye.TumYil.ToString("N0");
+
+
+            var xrlbl7 = (XRLabel)report.FindControl("xrlblFaizVeVergi", false);
+            xrlbl7.Text = Model.ncheckKapak.nitemFaizVergiOncesiKarZarar.TumYil.ToString("N2");
+
+
+
+            report.PrintingSystem.Document.Name = "Balance_raporlar";
+            @Html.DevExpress().WebDocumentViewer("DocumentViewer").Height("1000px").Bind(report)
+        }
+        catch (Exception ex)
+        {
+            var tt = ex;
+            Model.Isfailed = true;
+
+        }
+    }
+    else if (Model.YearCount >= 4)
+    {
+        DynamicReport report = new DynamicReport(Model.riskdata, Model.rdColor);
+        try
+        {
+            LineSeriesView checkSeries = new LineSeriesView();
+            report.CheckSize = Model.MainCount;
+
+
+            ObjectDataSource objectDataSource = new ObjectDataSource();
+            objectDataSource.Name = "DataViewer";
+            objectDataSource.DataSource = Model.ncheck;
+
+            objectDataSource.Fill();
+
+            ObjectDataSource objectDataSourceA = new ObjectDataSource();
+            objectDataSourceA.Name = "DataViewerA";
+            objectDataSourceA.DataSource = Model.nchecka;
+
+            objectDataSourceA.Fill();
+
+            ObjectDataSource objectDataSourceB = new ObjectDataSource();
+            objectDataSourceB.Name = "DataViewerB";
+            objectDataSourceB.DataSource = Model.ncheck1;
+
+            objectDataSourceB.Fill();
+
+            ObjectDataSource objectDataSourceC = new ObjectDataSource();
+            objectDataSourceC.Name = "DataViewerC";
+            objectDataSourceC.DataSource = Model.ncheck1a;
+
+            objectDataSourceC.Fill();
+
+
+            ObjectDataSource objectDataSourceD = new ObjectDataSource();
+            objectDataSourceD.Name = "DataViewerD";
+            objectDataSourceD.DataSource = Model.ncheckd;
+
+            objectDataSourceD.Fill();
+
+            ObjectDataSource objectDataSourceE = new ObjectDataSource();
+            objectDataSourceE.Name = "DataViewerE";
+            objectDataSourceE.DataSource = Model.nchecke;
+
+            objectDataSourceE.Fill();
+
+            ObjectDataSource objectDataSourceF = new ObjectDataSource();
+            objectDataSourceF.Name = "DataViewerF";
+            objectDataSourceF.DataSource = Model.ncheckf;
+
+            objectDataSourceF.Fill();
+
+
+
+            ObjectDataSource objectDataSourceG = new ObjectDataSource();
+            objectDataSourceG.Name = "DataViewerG";
+            objectDataSourceG.DataSource = Model.ncheckg;
+            objectDataSourceG.Fill();
+
+            ObjectDataSource objectDataSourceT = new ObjectDataSource();
+            objectDataSourceT.Name = "DataViewerT";
+            objectDataSourceT.DataSource = Model.nchecklast;
+            objectDataSourceT.Fill();
+
+        
+            report.xrCrossTab1.DataSource = objectDataSource;
+            report.xrCrossTab2.DataSource = objectDataSourceA; 
+            report.xrCrossTabBilancoGenel.DataSource = objectDataSourceB;
+            report.xrCrossTabYukumluuk.DataSource = objectDataSourceC;
+            report.xrCrossTabKarlk.DataSource = objectDataSourceD;
+            report.xrCrossTabBorcOdeme.DataSource = objectDataSourceE;
+            report.xrCrossTabLikidite.DataSource = objectDataSourceF;
+            report.xrCrossTabSermaye.DataSource = objectDataSourceG;
+            report.xrCrossTabRasio.DataSource = objectDataSourceT;
+            report.xrCrossTabBnkYabKynk.DataSource = Model.ncheckchart1;
+            report.xrCrossTabBnkAktif.DataSource = Model.ncheck2;
+            report.xrCrossTabDuranOkynk.DataSource = Model.ncheck3;
+            report.xrCrossTabDonenAktif.DataSource = Model.ncheck4;
+            report.xrCrossTabKVAktif.DataSource = Model.ncheck5;
+            report.xrCrossTabKVDonen.DataSource = Model.ncheck6;
+
+            report.xrCrossTabKVPasif.DataSource = Model.ncheck7;
+            report.xrCrossTabMaddiOzkaynak.DataSource = Model.ncheck8;
+            report.xrCrossTabStokAktif.DataSource = Model.ncheck9;
+            report.xrCrossTabUVadePasif.DataSource = Model.ncheck10;
+            report.xrCrossTabOKynkYbKyn.DataSource = Model.ncheck11;
+            report.xrCrossTabOKynkAktif.DataSource = Model.ncheck12;
+         
+
+            var chart = (XRChart)report.FindControl("xrChart1", false);
+            chart.Series.Clear();
+            chart.DataSource = Model.ncheckchart;//Method from documentation you reffered
+            chart.SeriesTemplate.SeriesDataMember = "GroupName";
+            chart.SeriesTemplate.ArgumentDataMember = "GroupText";
+            chart.SeriesTemplate.ValueDataMembers.AddRange("Value");
+
+            var chart1 = (XRChart)report.FindControl("xrChart2", false);
+            chart1.Series.Clear();
+            chart1.DataSource = Model.ncheckchartb;//Method from documentation you reffered
+            chart1.SeriesTemplate.SeriesDataMember = "GroupName";
+            chart1.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            chart1.SeriesTemplate.ArgumentDataMember = "GroupText";
+            chart1.SeriesTemplate.ValueDataMembers.AddRange("Value");
+
+            report.xrChartBnkYabKynk.SeriesTemplate.View = checkSeries;
+            report.xrChartBnkYabKynk.DataSource = Model.ncheckchart1;//Method from documentation you reffered
+            report.xrChartBnkYabKynk.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartBnkYabKynk.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartBnkYabKynk.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartBnkYabKynk.SeriesTemplate.ValueDataMembers.AddRange("Value"); report.xrChartBnkYabKynk.PaletteName = "PaletteDyn";
+            report.xrChartBnkYabKynk.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+
+            report.xrChartBnkAktif.SeriesTemplate.View = checkSeries;
+            report.xrChartBnkAktif.DataSource = Model.ncheckchart2;//Method from documentation you reffered
+            report.xrChartBnkAktif.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartBnkAktif.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartBnkAktif.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartBnkAktif.SeriesTemplate.ValueDataMembers.AddRange("Value"); report.xrChartBnkAktif.PaletteName = "PaletteDyn";
+            report.xrChartBnkAktif.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+
+
+
+            report.xrChartDuranOkynk.SeriesTemplate.View = checkSeries;
+            report.xrChartDuranOkynk.DataSource = Model.ncheckchart3;//Method from documentation you reffered
+            report.xrChartDuranOkynk.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartDuranOkynk.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartDuranOkynk.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartDuranOkynk.SeriesTemplate.ValueDataMembers.AddRange("Value"); report.xrChartBnkYabKynk.PaletteName = "PaletteDyn";
+            report.xrChartDuranOkynk.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+
+
+            report.xrChartDonenAktif.SeriesTemplate.View = checkSeries;
+            report.xrChartDonenAktif.DataSource = Model.ncheckchart4;//Method from documentation you reffered
+            report.xrChartDonenAktif.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartDonenAktif.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartDonenAktif.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartDonenAktif.SeriesTemplate.ValueDataMembers.AddRange("Value"); report.xrChartBnkAktif.PaletteName = "PaletteDyn";
+            report.xrChartDonenAktif.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+
+
+            report.xrChartKVAktif.SeriesTemplate.View = checkSeries;
+            report.xrChartKVAktif.DataSource = Model.ncheckchart5;//Method from documentation you reffered
+            report.xrChartKVAktif.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartKVAktif.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartKVAktif.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartKVAktif.SeriesTemplate.ValueDataMembers.AddRange("Value");
+            report.xrChartKVAktif.PaletteName = "PaletteDyn";
+            report.xrChartKVAktif.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+
+            report.xrChartKVDonen.SeriesTemplate.View = checkSeries;
+            report.xrChartKVDonen.DataSource = Model.ncheckchart6;//Method from documentation you reffered
+            report.xrChartKVDonen.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartKVDonen.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartKVDonen.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartKVDonen.SeriesTemplate.ValueDataMembers.AddRange("Value");
+            report.xrChartKVDonen.PaletteName = "PaletteDyn";
+            report.xrChartKVDonen.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+
+            //////
+            report.xrChartKVPasif.SeriesTemplate.View = checkSeries;
+            report.xrChartKVPasif.DataSource = Model.ncheckchart7;//Method from documentation you reffered
+            report.xrChartKVPasif.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartKVPasif.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartKVPasif.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartKVPasif.SeriesTemplate.ValueDataMembers.AddRange("Value");
+            report.xrChartKVPasif.PaletteName = "PaletteDyn";
+            report.xrChartKVPasif.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+
+            report.xrChartMaddiOzkaynak.SeriesTemplate.View = checkSeries;
+            report.xrChartMaddiOzkaynak.DataSource = Model.ncheckchart8;//Method from documentation you reffered
+            report.xrChartMaddiOzkaynak.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartMaddiOzkaynak.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartMaddiOzkaynak.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartMaddiOzkaynak.SeriesTemplate.ValueDataMembers.AddRange("Value");
+            report.xrChartMaddiOzkaynak.PaletteName = "PaletteDyn";
+            report.xrChartMaddiOzkaynak.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+
+
+            report.xrChartStokAktif.SeriesTemplate.View = checkSeries;
+            report.xrChartStokAktif.DataSource = Model.ncheckchart9;//Method from documentation you reffered
+            report.xrChartStokAktif.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartStokAktif.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartStokAktif.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartStokAktif.SeriesTemplate.ValueDataMembers.AddRange("Value");
+            report.xrChartStokAktif.PaletteName = "PaletteDyn";
+            report.xrChartStokAktif.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+
+
+            report.xrChartUVadePasif.SeriesTemplate.View = checkSeries;
+            report.xrChartUVadePasif.DataSource = Model.ncheckchart10;//Method from documentation you reffered
+            report.xrChartUVadePasif.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartUVadePasif.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartUVadePasif.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartUVadePasif.SeriesTemplate.ValueDataMembers.AddRange("Value");
+            report.xrChartUVadePasif.PaletteName = "PaletteDyn";
+            report.xrChartUVadePasif.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+
+
+            report.xrChartOKynkYbKyn.SeriesTemplate.View = checkSeries;
+            report.xrChartOKynkYbKyn.DataSource = Model.ncheckchart11;//Method from documentation you reffered
+            report.xrChartOKynkYbKyn.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartOKynkYbKyn.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartOKynkYbKyn.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartOKynkYbKyn.SeriesTemplate.ValueDataMembers.AddRange("Value");
+            report.xrChartOKynkYbKyn.PaletteName = "PaletteDyn";
+            report.xrChartOKynkYbKyn.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+
+            report.xrChartOKynkAktif.SeriesTemplate.View = checkSeries;
+            report.xrChartOKynkAktif.DataSource = Model.ncheckchart12;//Method from documentation you reffered
+            report.xrChartOKynkAktif.SeriesTemplate.SeriesDataMember = "GroupName";
+            report.xrChartOKynkAktif.SeriesTemplate.Label.TextPattern = "{V:n2}";
+            report.xrChartOKynkAktif.SeriesTemplate.ArgumentDataMember = "GroupText";
+            report.xrChartOKynkAktif.SeriesTemplate.ValueDataMembers.AddRange("Value");
+            report.xrChartOKynkAktif.PaletteName = "PaletteDyn";
+            report.xrChartOKynkAktif.SeriesTemplate.LabelsVisibility = DevExpress.Utils.DefaultBoolean.False;
+         
+
+            // var xrlbl1 = (XRLabel)report.FindControl("xrLblOzkaynak", false);
+            // xrlbl1.Text = Model.ncheckKapak.nitemOzkaynakAktif.TumYil.ToString("N2");
+
+            // var xrlbl2 = (XRLabel)report.FindControl("xrlblCarioran", false);
+            // xrlbl2.Text = Model.ncheckKapak.nitemCariOran.TumYil.ToString("N2");
+
+
+            // var xrlbl3 = (XRLabel)report.FindControl("xrlblROA", false);
+            // xrlbl3.Text = (Model.ncheckKapak.nitemROAAktifKarlilik.TumYil * 100).ToString("N2") + "%";
+
+
+
+            // var xrlbl5 = (XRLabel)report.FindControl("xrlblAltmanZ", false);
+            // xrlbl5.Text = Model.ncheckKapak.nitemAltmanz.TumYil.ToString("N2");
+
+
+            // var xrlbl6 = (XRLabel)report.FindControl("xrlblNetIsletmeSerm", false);
+            // xrlbl6.Text = Model.ncheckKapak.nitemNetIsletmeSermaye.TumYil.ToString("N0");
+
+
+            // var xrlbl7 = (XRLabel)report.FindControl("xrlblFaizVeVergi", false);
+            // xrlbl7.Text = Model.ncheckKapak.nitemFaizVergiOncesiKarZarar.TumYil.ToString("N2");
+
+
+
+            // var xrlbl8 = (XRLabel)report.FindControl("xrCaritablo", false);
+            // xrlbl8.Text = Model.ncheckKapak.nitemCariOran.TumYil.ToString("N2");
+
+
+            // var xrlbl9 = (XRLabel)report.FindControl("xrLikiditetablo", false);
+            // xrlbl9.Text = Model.ncheckKapak.nitemLikitideOran.TumYil.ToString("N2");
+
+            // var xrlbl10 = (XRLabel)report.FindControl("xrNakittablo", false);
+            // xrlbl10.Text = Model.ncheckKapak.nitemNakitOran.TumYil.ToString("N2");
+
+
+
+            // var xrlbl14 = (XRLabel)report.FindControl("xrtoplamborcsermtablo", false);
+            // xrlbl14.Text = Model.ncheckKapak.nitemBorcOzsermaye.TumYil.ToString("N2");
+
+            // var xrlbl15 = (XRLabel)report.FindControl("xrtoplambankaborcdevirtablo", false);
+            // xrlbl15.Text = Model.ncheckKapak.nitemTpolamBankaBorc.TumYil.ToString("N2");
+
+            // var xrlbl16 = (XRLabel)report.FindControl("xrOzaynakaktifktablo", false);
+            // xrlbl16.Text = Model.ncheckKapak.nitemOzkaynakAktif.TumYil.ToString("N2");
+
+
+            var xrlbl1 = (XRLabel)report.FindControl("xrLblOzkaynak", false);
+            xrlbl1.Text = Model.ncheckKapak.nitemOzkaynakAktif.TumYil.ToString("N2");
+
+            var xrlbl2 = (XRLabel)report.FindControl("xrlblCarioran", false);
+            xrlbl2.Text = Model.ncheckKapak.nitemCariOran.TumYil.ToString("N2");
+
+
+            var xrlbl3 = (XRLabel)report.FindControl("xrlblROA", false);
+            xrlbl3.Text = (Model.ncheckKapak.nitemROAAktifKarlilik.TumYil * 100).ToString("N2") + "%";
+
+
+
+            var xrlbl5 = (XRLabel)report.FindControl("xrlblAltmanZ", false);
+            xrlbl5.Text = Model.ncheckKapak.nitemAltmanz.TumYil.ToString("N2");
+
+
+            var xrlbl6 = (XRLabel)report.FindControl("xrlblNetIsletmeSerm", false);
+            xrlbl6.Text = Model.ncheckKapak.nitemNetIsletmeSermaye.TumYil.ToString("N0");
+
+
+            var xrlbl7 = (XRLabel)report.FindControl("xrlblFaizVeVergi", false);
+            xrlbl7.Text = Model.ncheckKapak.nitemFaizVergiOncesiKarZarar.TumYil.ToString("N2");
+
+
+
+
+            report.PrintingSystem.Document.Name = "Balance_raporlar";
+            @Html.DevExpress().WebDocumentViewer("DocumentViewer").Height("1000px").Bind(report)
+        }
+        catch (Exception ex)
+        {
+            var tt = ex;
+            Model.Isfailed = true;
+
+        }
+    }
+ 
+
+}
+
+
+@if (Model.Isfailed)
+{
+    <h1>@Model.repchakec</h1>
+}
+@section Scripts{
+
+} 

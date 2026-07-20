@@ -1,0 +1,278 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <StartupObject>
+    </StartupObject>
+    <AspNetCoreHostingModel>OutOfProcess</AspNetCoreHostingModel>
+    <AssemblyName>fincheckupAPI</AssemblyName>
+    <RootNamespace>fincheckup</RootNamespace>
+    <UserSecretsId>c48cac01-2c2a-4063-93f1-56116feec571</UserSecretsId>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="wwwroot\assets\js\pages\pages\**" />
+    <Compile Remove="wwwroot\assets\NewFolder\**" />
+    <Content Remove="wwwroot\assets\js\pages\pages\**" />
+    <Content Remove="wwwroot\assets\NewFolder\**" />
+    <EmbeddedResource Remove="wwwroot\assets\js\pages\pages\**" />
+    <EmbeddedResource Remove="wwwroot\assets\NewFolder\**" />
+    <None Remove="wwwroot\assets\js\pages\pages\**" />
+    <None Remove="wwwroot\assets\NewFolder\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Remove="bundleconfig.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Azure.Identity" Version="1.11.4" />
+    <PackageReference Include="BuildBundlerMinifier" Version="3.2.449" />
+    <PackageReference Include="ChatGptNet" Version="3.2.17" />
+    <PackageReference Include="CsvHelper" Version="32.0.3" />
+    <PackageReference Include="Dapper.Contrib" Version="2.0.78" />
+    <PackageReference Include="DevExpress.AspNetCore.Reporting" Version="24.1.7" />
+    <PackageReference Include="DevExpress.AspNetCore.Spreadsheet" Version="24.1.7"> 
+    </PackageReference>
+    <PackageReference Include="DevExpress.DataAccess" Version="24.1.7" />
+    <PackageReference Include="DevExpress.Document.Processor" Version="24.1.7"> 
+    </PackageReference>
+    <PackageReference Include="DevExpress.Office.Core" Version="24.1.7"> 
+    </PackageReference>
+    <PackageReference Include="EntityFrameworkCore.Extensions" Version="5.0.0" />
+    <PackageReference Include="iTextSharp.NetCore" Version="5.5.13.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Certificate" Version="8.0.5" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="2.2.0"> 
+    </PackageReference>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.5" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="8.0.5" />
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="4.8.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.0"> 
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.5" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="8.6.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.2" />
+    <PackageReference Include="NWebsec.AspNetCore.Core" Version="3.0.1"> 
+    </PackageReference>
+    <PackageReference Include="NWebsec.AspNetCore.Middleware" Version="3.0.0" />
+    <PackageReference Include="NWebsec.AspNetCore.Mvc" Version="3.0.0" />
+    <PackageReference Include="NWebsec.AspNetCore.Mvc.TagHelpers" Version="3.0.0" />
+    <PackageReference Include="Polly" Version="8.6.4" />
+    <PackageReference Include="Polly.Extensions" Version="8.4.1" />
+    <PackageReference Include="Refit" Version="8.0.0" />
+    <PackageReference Include="Refit.HttpClientFactory" Version="8.0.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
+    <PackageReference Include="Serilog.Enrichers.Environment" Version="2.3.0" />
+    <PackageReference Include="Serilog.Enrichers.Process" Version="2.0.2" />
+    <PackageReference Include="Serilog.Enrichers.Thread" Version="3.1.0" />
+    <PackageReference Include="Serilog.Extensions.Hosting" Version="8.0.0" />
+    <PackageReference Include="Serilog.Settings.Configuration" Version="8.0.0"> 
+    </PackageReference>
+    <PackageReference Include="SSH.NET" Version="2024.0.0" />
+    <PackageReference Include="System.Data.OleDb" Version="8.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="bundleconfig.json" />
+    <None Include="Views\Shared\Error.cshtml" />
+    <None Include="Views\Shared\_Layout.cshtml" />
+    <None Include="Views\Shared\_resultPartial.cshtml" />
+    <None Include="Views\Shared\_ValidationScriptsPartial.cshtml" />
+    <None Include="Views\Transaction\BrandedCancelUrl.cshtml" />
+    <None Include="Views\Transaction\BrandedSuccessUrl.cshtml" />
+    <None Include="Views\Transaction\CancelUrl.cshtml" />
+    <None Include="Views\Transaction\PaySmart.cshtml" />
+    <None Include="Views\Transaction\PayWithQNBpay.cshtml" />
+    <None Include="Views\Transaction\Refund.cshtml" />
+    <None Include="Views\Transaction\Request3D.cshtml" />
+    <None Include="Views\Transaction\SuccessUrl.cshtml" />
+    <None Include="wwwroot\assets\js\pages\blog\blog.js" />
+    <None Include="wwwroot\assets\js\pages\calendar\calendar.js" />
+    <None Include="wwwroot\assets\js\pages\charts\chart-widgets.js" />
+    <None Include="wwwroot\assets\js\pages\charts\chartjs.js" />
+    <None Include="wwwroot\assets\js\pages\charts\echart.js" />
+    <None Include="wwwroot\assets\js\pages\charts\flot.js" />
+    <None Include="wwwroot\assets\js\pages\charts\jquery-knob.js" />
+    <None Include="wwwroot\assets\js\pages\charts\jquery-knob.min.js" />
+    <None Include="wwwroot\assets\js\pages\charts\morris.js" />
+    <None Include="wwwroot\assets\js\pages\charts\polar_area_chart.js" />
+    <None Include="wwwroot\assets\js\pages\charts\sparkline.js" />
+    <None Include="wwwroot\assets\js\pages\file\filemanager.js" />
+    <None Include="wwwroot\assets\js\pages\forms\advanced-form-elements.js" />
+    <None Include="wwwroot\assets\js\pages\forms\basic-form-elements.js" />
+    <None Include="wwwroot\assets\js\pages\forms\editors.js" />
+    <None Include="wwwroot\assets\js\pages\forms\form-validation.js" />
+    <None Include="wwwroot\assets\js\pages\forms\form-wizard.js" />
+    <None Include="wwwroot\assets\js\pages\index.js" />
+    <None Include="wwwroot\assets\js\pages\maps\google.js" />
+    <None Include="wwwroot\assets\js\pages\maps\jvectormap.js" />
+    <None Include="wwwroot\assets\js\pages\maps\jvectormap.min.js" />
+    <None Include="wwwroot\assets\js\pages\medias\image-gallery.js" />
+    <None Include="wwwroot\assets\js\pages\profile.js" />
+    <None Include="wwwroot\assets\js\pages\tables\editable-table.js" />
+    <None Include="wwwroot\assets\js\pages\tables\footable.js" />
+    <None Include="wwwroot\assets\js\pages\tables\jquery-datatable.js" />
+    <None Include="wwwroot\assets\js\pages\ui\animations.js" />
+    <None Include="wwwroot\assets\js\pages\ui\dialogs.js" />
+    <None Include="wwwroot\assets\js\pages\ui\modals.js" />
+    <None Include="wwwroot\assets\js\pages\ui\notifications.js" />
+    <None Include="wwwroot\assets\js\pages\ui\range-sliders.js" />
+    <None Include="wwwroot\assets\js\pages\ui\sortable-nestable.js" />
+    <None Include="wwwroot\assets\js\pages\ui\tooltips-popovers.js" />
+    <None Include="wwwroot\assets\js\pages\widgets\infobox\infobox-1.js" />
+    <None Include="wwwroot\assets\js\pages\widgets\infobox\infobox-2.js" />
+    <None Include="wwwroot\assets\js\pages\widgets\infobox\infobox-3.js" />
+    <None Include="wwwroot\assets\js\pages\widgets\infobox\infobox-4.js" />
+    <None Include="wwwroot\assets\js\pages\widgets\infobox\infobox-5.js" />
+    <None Include="wwwroot\assets\scss\color_skins.scss" />
+    <None Include="wwwroot\assets\scss\components\_alerts.scss" />
+    <None Include="wwwroot\assets\scss\components\_badgelistgroupitem.scss" />
+    <None Include="wwwroot\assets\scss\components\_bootstrap.scss" />
+    <None Include="wwwroot\assets\scss\components\_bootstrapnotify.scss" />
+    <None Include="wwwroot\assets\scss\components\_bootstrapselect.scss" />
+    <None Include="wwwroot\assets\scss\components\_calendar.scss" />
+    <None Include="wwwroot\assets\scss\components\_card.scss" />
+    <None Include="wwwroot\assets\scss\components\_charts.scss" />
+    <None Include="wwwroot\assets\scss\components\_checkboxradio.scss" />
+    <None Include="wwwroot\assets\scss\components\_collapse.scss" />
+    <None Include="wwwroot\assets\scss\components\_colorpicker.scss" />
+    <None Include="wwwroot\assets\scss\components\_colors.scss" />
+    <None Include="wwwroot\assets\scss\components\_dashboard.scss" />
+    <None Include="wwwroot\assets\scss\components\_datetimepicker.scss" />
+    <None Include="wwwroot\assets\scss\components\_dialogs.scss" />
+    <None Include="wwwroot\assets\scss\components\_dropdownmenu.scss" />
+    <None Include="wwwroot\assets\scss\components\_dropzone.scss" />
+    <None Include="wwwroot\assets\scss\components\_formwizard.scss" />
+    <None Include="wwwroot\assets\scss\components\_general.scss" />
+    <None Include="wwwroot\assets\scss\components\_helpers.scss" />
+    <None Include="wwwroot\assets\scss\components\_infobox.scss" />
+    <None Include="wwwroot\assets\scss\components\_ionrangeslider.scss" />
+    <None Include="wwwroot\assets\scss\components\_jquerydatatable.scss" />
+    <None Include="wwwroot\assets\scss\components\_jquerynestable.scss" />
+    <None Include="wwwroot\assets\scss\components\_leftsidebaroverlay.scss" />
+    <None Include="wwwroot\assets\scss\components\_lightgallery.scss" />
+    <None Include="wwwroot\assets\scss\components\_maps.scss" />
+    <None Include="wwwroot\assets\scss\components\_materialicons.scss" />
+    <None Include="wwwroot\assets\scss\components\_media.scss" />
+    <None Include="wwwroot\assets\scss\components\_mediaobject.scss" />
+    <None Include="wwwroot\assets\scss\components\_minileftbar.scss" />
+    <None Include="wwwroot\assets\scss\components\_mixins.scss" />
+    <None Include="wwwroot\assets\scss\components\_multiselect.scss" />
+    <None Include="wwwroot\assets\scss\components\_navbar.scss" />
+    <None Include="wwwroot\assets\scss\components\_noUISlider.scss" />
+    <None Include="wwwroot\assets\scss\components\_pageloader.scss" />
+    <None Include="wwwroot\assets\scss\components\_panels.scss" />
+    <None Include="wwwroot\assets\scss\components\_progressbars.scss" />
+    <None Include="wwwroot\assets\scss\components\_rightsidebaroverlay.scss" />
+    <None Include="wwwroot\assets\scss\components\_searchbar.scss" />
+    <None Include="wwwroot\assets\scss\components\_tagsinput.scss" />
+    <None Include="wwwroot\assets\scss\components\_waveseffect.scss" />
+    <None Include="wwwroot\assets\scss\font\_fonts.scss" />
+    <None Include="wwwroot\assets\scss\icon\_materialicons.scss" />
+    <None Include="wwwroot\assets\scss\inc\_mixins.scss" />
+    <None Include="wwwroot\assets\scss\inc\_variables.scss" />
+    <None Include="wwwroot\assets\scss\main.scss" />
+    <None Include="wwwroot\assets\scss\pages\blog.scss" />
+    <None Include="wwwroot\assets\scss\pages\chatapp.scss" />
+    <None Include="wwwroot\assets\scss\pages\inbox.scss" />
+    <None Include="wwwroot\assets\scss\pages\rtl.scss" />
+    <None Include="wwwroot\assets\scss\pages\timeline.scss" />
+    <None Include="wwwroot\assets\scss\pages\_authentication.scss" />
+    <None Include="wwwroot\assets\scss\pages\_contact.scss" />
+    <None Include="wwwroot\assets\scss\pages\_file_manager.scss" />
+    <None Include="wwwroot\assets\scss\pages\_invoice.scss" />
+    <None Include="wwwroot\assets\scss\pages\_overlay_menu.scss" />
+    <None Include="wwwroot\assets\scss\pages\_pricing.scss" />
+    <None Include="wwwroot\assets\scss\pages\_profile.scss" />
+    <None Include="wwwroot\assets\scss\pages\_widget.scss" />
+    <None Include="wwwroot\assets\scss\plugins\animate_page.scss" />
+    <None Include="wwwroot\assets\scss\plugins\_animate.scss" />
+    <None Include="wwwroot\assets\scss\plugins\_waves.scss" />
+    <None Include="wwwroot\assets\scss\skins\_black.scss" />
+    <None Include="wwwroot\assets\scss\skins\_blue.scss" />
+    <None Include="wwwroot\assets\scss\skins\_blush.scss" />
+    <None Include="wwwroot\assets\scss\skins\_cyan.scss" />
+    <None Include="wwwroot\assets\scss\skins\_green.scss" />
+    <None Include="wwwroot\assets\scss\skins\_orange.scss" />
+    <None Include="wwwroot\assets\scss\skins\_purple.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\mixins\_badges.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\mixins\_buttons.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\mixins\_datepicker.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\mixins\_dropdown.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\mixins\_inputs.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\mixins\_modals.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\mixins\_navbar.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\mixins\_pages.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\mixins\_popovers.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\mixins\_transparency.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\mixins\_vendor-prefixes.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\plugins\_plugin-bootstrap-switch.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\plugins\_plugin-datepicker.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\plugins\_plugin-nouislider.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\_alerts.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\_badges.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\_buttons.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\_cards.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\_carousel.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\_checkboxes-radio.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\_dropdown.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\_example-pages.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\_footers.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\_images.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\_inputs.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\_misc.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\_mixins.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\_modals.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\_navbar.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\_nucleo-outline.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\_pagination.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\_pills.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\_popups.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\_progress.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\_responsive.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\_sections.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\_social-buttons.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\_tabs.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\_typography.scss" />
+    <None Include="wwwroot\assets\scss\ui-kit\_variables.scss" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-grid.min.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.min.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\css\bootstrap.min.css.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.js" />
+    <None Include="wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.js.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.min.js" />
+    <None Include="wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.min.js.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\js\bootstrap.js" />
+    <None Include="wwwroot\lib\bootstrap\dist\js\bootstrap.js.map" />
+    <None Include="wwwroot\lib\bootstrap\dist\js\bootstrap.min.js" />
+    <None Include="wwwroot\lib\bootstrap\dist\js\bootstrap.min.js.map" />
+    <None Include="wwwroot\lib\bootstrap\LICENSE" />
+    <None Include="wwwroot\lib\jquery-validation-unobtrusive\jquery.validate.unobtrusive.js" />
+    <None Include="wwwroot\lib\jquery-validation-unobtrusive\jquery.validate.unobtrusive.min.js" />
+    <None Include="wwwroot\lib\jquery-validation\dist\additional-methods.js" />
+    <None Include="wwwroot\lib\jquery-validation\dist\additional-methods.min.js" />
+    <None Include="wwwroot\lib\jquery-validation\dist\jquery.validate.js" />
+    <None Include="wwwroot\lib\jquery-validation\dist\jquery.validate.min.js" />
+    <None Include="wwwroot\lib\jquery-validation\LICENSE.md" />
+    <None Include="wwwroot\lib\jquery\dist\jquery.js" />
+    <None Include="wwwroot\lib\jquery\dist\jquery.min.js" />
+    <None Include="wwwroot\lib\jquery\dist\jquery.min.map" />
+    <PackageReference Include="DevExtreme.AspNet.Core" Version="24.1.7" />
+    <PackageReference Include="DevExtreme.AspNet.Data" Version="4.0.2">
+      <TreatAsUsed>true</TreatAsUsed>
+    </PackageReference>
+    <PackageReference Include="System.ServiceModel.Duplex" Version="6.0.0" />
+    <PackageReference Include="System.ServiceModel.Http" Version="8.0.0" />
+    <PackageReference Include="System.ServiceModel.NetTcp" Version="8.0.0" />
+    <PackageReference Include="System.ServiceModel.Security" Version="6.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Pages\Admin\mizan\jrnl - Copy\" />
+    <Folder Include="wwwroot\FileContent\" />
+    <Folder Include="wwwroot\uploads\" />
+  </ItemGroup>
+</Project>

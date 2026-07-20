@@ -1,0 +1,208 @@
+﻿@page
+
+@using fincheckup.Models.Hvvn
+@using fincheckup.Models.NKolay
+
+@model IndexModel
+@{
+    ViewData["Title"] = "Giriş Ekranı";
+    Layout = "~/Pages/Shared/_LayoutFirm.cshtml";
+}
+@using DevExtreme.AspNet.Data
+@using fincheckup.Models.NKolay.json
+@using DevExtreme.AspNet.Mvc
+@using fincheckup.Models.NKolay.ENTITY
+@using fincheckup.ENTITY
+@functions {
+    public class IndexModel : PageModel
+    {
+        public long UserID;
+        public HhvnUsers CurrentUser;
+        public Companies CurrentCompanies;
+        public IEnumerable<TBLXml> mrequest;
+
+        public int StartQuestions { get; set; }
+        public int AQuestions { get; set; }
+        public int BQuestions { get; set; }
+        public int CQuestions { get; set; }
+        public void OnGet(int id = 0)
+        {
+
+            if (id == 0)
+            {
+                mrequest = new List<TBLXml>();
+
+                UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                CurrentUser = HhvnUsers.GetRow_User(UserID);
+                if (CurrentUser.UserTypeID != 1001)
+                {
+                    Response.Redirect("/logout?handler=logout");
+                }
+
+            }
+            else
+            {
+                mrequest = TBLXml.Get_TBLXmlCompany(id.ToString());
+                CurrentCompanies = Companies.Get_Company(id);
+            }
+
+        }
+
+    
+
+        public JsonResult OnGetSalerEnteg(DataSourceLoadOptions options)
+        {
+
+
+            var mreqListCitiy = Companies.GetCompany_Entegrator();
+            return new JsonResult(DataSourceLoader.Load(mreqListCitiy, options));
+
+        }
+        public JsonResult OnGetSalerCity(DataSourceLoadOptions options)
+        {
+
+
+            var mreqListCitiy = Cities.Get_Cities();
+            return new JsonResult(DataSourceLoader.Load(mreqListCitiy, options));
+
+        }
+
+    }
+}
+@section Styles {
+    <link rel="stylesheet" href="/assets/plugins/jquery-datatable/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="/assets/plugins/morrisjs/morris.css">
+    <style>
+        .tdnormall {
+            padding-top: 0.1rem !important;
+            padding-left: 0.75rem !important;
+            padding-bottom: 0.1rem !important;
+            padding-right: 0.75rem !important;
+        }
+
+        #chartxt {
+            max-height: 255px !important;
+        }
+    </style>
+}
+<section class="content home">
+    <div class="container-fluid">
+        <div class="block-header">
+            <div class="row clearfix">
+                <div class="col-lg-5 col-md-5 col-sm-12">
+                    <h2>Bülten İçerik</h2>
+                    <ul class="breadcrumb padding-0">
+                        <li class="breadcrumb-item"><a href=""><i class="zmdi zmdi-home"></i></a></li>
+                        <li class="breadcrumb-item active"> </li>
+                    </ul>
+                </div>
+                <div class="col-lg-7 col-md-7 col-sm-12">
+                    <div class="input-group m-b-0">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="body">
+                                    <div class="row">
+                                        <div class="col-6" style="text-align:left">  </div>
+                                        <div class="col-6" style="text-align:right">
+
+                                            <h5>@Model.CurrentCompanies.CompanyName</h5>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="body">
+                        <div class="row">
+                            <div class="col-6"> </div>
+                            <div class="col-6" style="text-align:right">
+                                @(Html.DevExtreme().Button()
+        .ID("buttonz")
+        .Text("Geri Dön").OnClick((@<text>
+        function() {
+           history.back();
+        }
+    </text>))
+        .Type(ButtonType.Default)
+    )
+
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row clearfix">
+
+            <div class="col-md-12 col-lg-12">
+                <div class="card">
+                    <div class="body">
+
+ 
+
+                            @(Html.DevExtreme().DataGrid<TBLXml>()
+.ID("gridContainer").Paging(p => p.PageSize(25))
+.Pager(p => p
+.ShowPageSizeSelector(true)
+.AllowedPageSizes(new[] { 10, 25, 50, 100 })
+)
+.ShowBorders(true).FilterRow(f => f.Visible(false)).ShowRowLines(true)
+.RemoteOperations(true)
+.SearchPanel(s => s
+.Visible(true)
+.HighlightCaseSensitive(true)
+)
+.Editing(e => e.Mode(GridEditMode.Popup).UseIcons(true)
+)
+.Columns(columns => {
+
+    columns.AddFor(m => m.ID).Visible(false);
+    columns.AddFor(m => m.XmlDocName).Caption("DocName").AllowHeaderFiltering(false);
+    columns.AddFor(m => m.CreatedDate).Caption("CreatedDate").AllowHeaderFiltering(true);
+    columns.AddFor(m => m.DocumentDate).Caption("DocumentDate").AllowHeaderFiltering(false); 
+    columns.AddFor(m => m.Year).Caption("Year").AllowHeaderFiltering(false); 
+ 
+})
+        .DataSource(Model.mrequest
+        )
+    )
+                       
+
+
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+
+        </div>
+
+
+
+
+
+    </div>
+</section>
+
+
+@section Scripts{
+
+
+    <script>
+
+        var dt1 = "105";
+ 
+    </script>
+} 

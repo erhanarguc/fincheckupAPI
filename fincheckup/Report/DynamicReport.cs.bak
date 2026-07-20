@@ -1,0 +1,66 @@
+﻿using DevExpress.XtraCharts;
+using DevExpress.XtraReports.UI;
+using System;
+using System.Drawing;
+
+namespace fincheckup.Report
+{
+    public partial class DynamicReport : DevExpress.XtraReports.UI.XtraReport
+    {
+        public DynamicReport()
+        {
+            InitializeComponent();
+
+
+        }
+        public int CheckSize { get; set; }
+        private void xrCrossTab1_BeforePrint(object sender, System.Drawing.Printing.PrintEventArgs e)
+        {
+            if (CheckSize == 1)
+            {
+                crossTabHeaderCellMain.WidthF = 529;
+                xrCrossTabCell4Main.WidthF = 529;
+            }
+            else if (CheckSize == 2)
+            {
+                crossTabHeaderCellMain.WidthF = 415;
+                xrCrossTabCell4Main.WidthF = 415;
+            }
+            else if (CheckSize == 3)
+            {
+                crossTabHeaderCellMain.WidthF = 243;
+                xrCrossTabCell4Main.WidthF = 243;
+            }
+            XRCrossTab crossTab = sender as XRCrossTab;
+
+            //ctcCategoryName.ColumnAutoWidthMode = AutoSizeMode.None;
+            //ctcContactName.ColumnAutoWidthMode = AutoSizeMode.None;
+            //ctcGrandTotal.ColumnAutoWidthMode = AutoSizeMode.None;
+
+            float availableWidth = crossTab.RootReport.PageWidth - crossTab.RootReport.Margins.Left - crossTab.RootReport.Margins.Right - crossTab.LocationF.X;
+
+            //SqlDataSource ds = crossTab.DataSource as SqlDataSource;
+            //int columnsCount = ds.Result[crossTab.DataMember].GroupBy(t => t["CategoryName"]).Count();
+
+            //ctcCategoryName.WidthF = (availableWidth - ctcContactName.WidthF - ctcGrandTotal.WidthF) / columnsCount;
+        }
+
+        private void xrChart3_BoundDataChanged(object sender, EventArgs e)
+        {
+            var chart = (DevExpress.XtraReports.UI.XRChart)sender;
+            Series series = chart.Series[0];
+            ;
+            PointSeriesView seriesView = (PointSeriesView)series.View;
+            // Assign Cyan color  
+
+            seriesView.PointMarkerOptions.Kind = MarkerKind.Circle;
+            seriesView.PointMarkerOptions.BorderColor = Color.White;
+
+            seriesView.PointMarkerOptions.BorderVisible = true;
+            seriesView.PointMarkerOptions.FillStyle.FillMode = FillMode.Solid;
+            seriesView.PointMarkerOptions.Size = 9;
+
+
+        }
+    }
+}

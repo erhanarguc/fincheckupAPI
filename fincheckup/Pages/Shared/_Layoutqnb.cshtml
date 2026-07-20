@@ -1,0 +1,243 @@
+﻿<html>
+<head lang="en">
+    <!-- Meta -->
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <!-- Title -->
+    <title>FinCheckup</title>
+
+    <link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/android-icon-192x192.png">
+    <link rel="i con" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+    <link href="/css/sweetalert.css">
+    <!-- Stylesheet -->
+
+    <link href="/vendor/owl-carousel/owl.carousel.css" rel="stylesheet">
+    <link href="/vendor/lightgallery/css/lightgallery.min.css" rel="stylesheet">
+    <link href="/vendor/animate/animate.css" rel="stylesheet">
+
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="/css/style.css">
+    <link class="skin" rel="stylesheet" href="/css/skin/skin-2.css">
+    <link rel="stylesheet" href="/vendor/switcher/switcher.css">
+    <link rel="stylesheet" href="/vendor/rangeslider/rangeslider.css">
+
+    <link href="~/assets/css/sweetalert2.min.css" rel="stylesheet" />
+    @RenderSection("Styles", false)
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-RB1DZ2Q4S2"></script>
+    <script>
+         window.dataLayer = window.dataLayer || [];
+         function gtag() { dataLayer.push(arguments); }
+         gtag('js', new Date());
+
+         gtag('config', 'G-RB1DZ2Q4S2');
+    </script>
+
+    <style>
+        @@media only screen and (hover: none) and (pointer: coarse) {
+            .mo-left .header-nav {
+                background-color: #888;
+            }
+
+            #logomob {
+                display: none;
+            } 
+                }
+
+         
+                .text-black .nav > li > a {
+                    color: #ffffff !important;
+                }
+    </style>
+
+</head>
+<body id="bg">
+    <div id="loading-area" class="loading-01"></div>
+    <div class="page-wraper">
+        <!-- Header -->
+        <header class="site-header header header-transparent text-black mo-left">
+            <!-- Main Header -->
+            <div class="sticky-header main-bar-wraper navbar-expand-lg">
+                <div class="main-bar clearfix ">
+                    <div class="container clearfix">
+                        <!-- Website Logo -->
+                        <div class="logo-header  logo-dark" id="logomob">
+                            <a href="index"><img style="padding:5px" src="/finlogobeyaz.png" alt=""></a>
+                        </div>
+                        <!-- Nav Toggle Button -->
+                        <button class="navbar-toggler collapsed navicon justify-content-end" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </button>
+                        <!-- Extra Nav -->
+                        <div class="extra-nav">
+                            <div class="extra-cell">
+                                <a href="/loginarea" style="height:35px;padding:5px;text-transform:none" class="btn btn-primary">Sisteme Giriş<i class="fa fa-angle-right m-l10"></i></a>
+                            </div>
+                        </div>
+                        <div class="header-nav navbar-collapse collapse justify-content-end" id="navbarNavDropdown">
+                            <div class="logo-header">
+                                <a href="/index"><img src="images/finlogo3.png" alt=""></a>
+                            </div>
+                            <ul class="nav navbar-nav navbar">
+                                <li class="active"><a href="/">Anasayfa</a></li>
+                                <li><a href="/hakkimizda">Hakkımızda</a></li>
+                                <li><a href="/cozumlerimiz">Çözümlerimiz</a></li>
+                                <li><a href="/iletisim">İletişim</a></li>
+
+
+                            </ul>
+                            <div class="dlab-social-icon">
+                                <ul>
+                                    <li><a class="fa fa-linkedin" href="https://www.linkedin.com/company/nef-solution/"></a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Main Header End -->
+        </header>
+        <!-- Header End -->
+
+        <div class="page-content bg-white">
+            @RenderBody()
+
+        </div>
+
+        <!-- Footer -->
+        <footer class="site-footer style-1" id="footer" style="background-image: url(images/background/bg10.png);">
+            <div class="footer-top">
+                <div class="container">
+                    <div class="footer-info wow fadeIn" data-wow-duration="2s" data-wow-delay="0.8s">
+                        <div class="row align-items-center">
+                            <div class="col-xl-5 col-md-4">
+                                <div class="footer-logo">
+                                    <a href="index"><img src="images/finlogo1.png" alt="" /></a>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-md-4 col-sm-6">
+                                <div class="icon-bx-wraper left m-b10">
+                                    <div class="icon-lg">
+                                        <a href="javascript:void(0);" class="icon-cell">
+                                            <i class="flaticon-email"></i>
+                                        </a>
+                                    </div>
+                                    <div class="icon-content">
+                                        <p><strong>+90 216 687 29 74</strong><br />bilgi@nefsolution.com</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-4 col-md-4 col-sm-6">
+                                <div class="icon-bx-wraper left m-b10">
+                                    <div class="icon-lg">
+                                        <a href="javascript:void(0);" class="icon-cell">
+                                            <i class="flaticon-location"></i>
+                                        </a>
+                                    </div>
+                                    <div class="icon-content">
+                                        <p>
+                                            Barbaros Mah. Kardelen Sk. Palladium Tower<br />
+                                            Blok No 2, İç Kapi No 10 Ataşehir/ İstanbul
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+
+                        <div class="col-xl-3 col-lg-2 col-sm-6 wow fadeIn" data-wow-duration="2s" data-wow-delay="0.4s">
+                            <div class="widget widget_services">
+                                <h5 class="footer-title">Kurumsal</h5>
+                                <ul>
+                                    <li><a href="/hakkimizda">Hakkımızda</a></li>
+                                    <li><a href="/kullanici-sozlesmesi">Kullanıcı Sözleşmesi</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-lg-3 col-sm-6 wow fadeIn" data-wow-duration="2s" data-wow-delay="0.6s">
+                            <div class="widget widget_services">
+                                <h5 class="footer-title">Gizlilik</h5>
+                                <ul>
+                                    <li><a href="/kvkk">K.V.K.K.</a></li>
+                                    <li><a href="/gizlilik-sozlesmesi">Gizlilik Politikası </a></li>
+
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-lg-3 col-sm-6 wow fadeIn" data-wow-duration="2s" data-wow-delay="0.8s">
+                            <div class="widget widget_services">
+                                <h5 class="footer-title">İletişim</h5>
+                                <ul>
+                                    <li><a href="/iletisim">İletişim</a></li>
+
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-lg-4 col-sm-6 wow fadeIn" data-wow-duration="2s" data-wow-delay="0.2s">
+                            <div class="widget widget_about">
+                                <img src="/img/ekran7.png" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- footer bottom part -->
+            <div class="footer-bottom wow fadeIn" data-wow-duration="2s" data-wow-delay="0.2s">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-sm-12 text-center">
+                            <span class="copyright-text">Copyright © 2021 <a href="https://nefsolution.com" target="_blank">NefSolution</a>. All rights reserved.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        <!-- Footer End -->
+        <button class="scroltop icon-up" type="button"><i class="fa fa-arrow-up"></i></button>
+    </div>
+
+
+
+    <script src="/js/jquery.min.js"></script><!-- JQUERY.MIN JS -->
+    <script src="/vendor/wow/wow.js"></script><!-- WOW JS -->
+    <script src="/vendor/bootstrap/js/popper.min.js"></script><!-- POPPER.MIN JS -->
+    <script src="/vendor/bootstrap/js/bootstrap.min.js"></script><!-- BOOTSTRAP.MIN JS -->
+    <script src="/vendor/owl-carousel/owl.carousel.js"></script><!-- OWL-CAROUSEL JS -->
+    <script src="/vendor/magnific-popup/magnific-popup.js"></script><!-- MAGNIFIC-POPUP JS -->
+    <script src="/vendor/counter/waypoints-min.js"></script><!-- WAYPOINTS JS -->
+    <script src="/vendor/counter/counterup.min.js"></script><!-- COUNTERUP JS -->
+    <script src="/vendor/masonry/isotope.pkgd.min.js"></script><!-- ISOTOPE -->
+    <script src="/vendor/imagesloaded/imagesloaded.js"></script><!-- IMAGESLOADED -->
+    <script src="/vendor/masonry/masonry-4.2.2.js"></script><!-- MASONRY -->
+    <script src="/vendor/lightgallery/js/lightgallery-all.min.js"></script><!-- LIGHTGALLERY -->
+    <script src="/js/dz.carousel.js"></script><!-- OWL-CAROUSEL -->
+    <script src="/js/dz.ajax.js"></script><!-- CONTACT JS  -->
+    <script src="/js/custom.js"></script><!-- CUSTOM JS -->
+    <!--<script src="/vendor/rangeslider/rangeslider.js"></script>--><!-- SWITCHER JS -->
+    <script src="/js/sweetalert.min.js"></script>
+    @RenderSection("Scripts", required: false)
+</body>
+
+</html>
+

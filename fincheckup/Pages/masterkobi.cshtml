@@ -1,0 +1,367 @@
+﻿@page
+
+@model IndexModel
+@{
+    ViewData["Title"] = "payment";
+    Layout = "~/Pages/Shared/_Layoutmasterkobi.cshtml";
+}
+
+@functions {
+    public class IndexModel : PageModel
+    {
+
+
+        public void OnGet(string lng = "tr")
+        {
+
+        }
+    }
+}
+@section Styles {
+
+    <style>
+        @@media only screen and (hover: none) and (pointer: coarse) {
+            #mobidiv {
+                padding-bottom: 25%;
+            }
+
+            #mobidiv1 {
+                padding-top: 25%;
+            }
+        }
+    </style>
+
+}
+
+
+<section id="mobidiv" style="display:none">
+    <!-- Slider -->
+    <div class="banner-three bg-primary p-t100" style="background-image: url(mastercard.jpeg), url(mastercard.jpeg), var(--gradient-sec);">
+        <div class="container banner-inner">
+            <div class="row align-items-center">
+                <div class="col-xl-8 col-lg-7 col-md-7">
+                    <div class="banner-content text-white">
+                        <h6 data-wow-delay="0.5s" data-wow-duration="3s" class="wow fadeInUp sub-title text-yellow" id="mobidiv1" style="">  Firmaların dijital dönüşümdeki ilk tercihi:   </h6>
+                        <h1 data-wow-delay="1s" data-wow-duration="3s" class="wow fadeInUp m-b15">QNB Dijital Köprü</h1>
+                        <p data-wow-delay="1.5s" data-wow-duration="3s" class="wow fadeInUp m-b30">
+                            QNB Dijital Köprü ile hem bankacılık hem de
+                            bankacılık dışı ihtiyaçlarınızı dijital olarak tek bir yerden
+                            karşılayabilirsiniz. Siz işinizi büyütün, gerisini bize bırakın!
+                        </p>
+                        <p data-wow-delay="1.5s" data-wow-duration="3s" class="wow fadeInUp m-b30">
+                            QNB Dijital Köprü'nün Fincheckup tarafından sağlanan Finansal Durum Raporu müşterilerimize ücretsiz!
+                        </p>
+
+
+                        <a data-wow-delay="2s" data-wow-duration="3s" href="https://www.qnbfinansbank.com/dijitalkopru/dijital-cozumlerimiz/fincheckup?utm_source=cobranded&utm_medium=basvuru" class="wow fadeInUp btn gradient btn-primary">Hemen Başvur</a>
+                    </div>
+                </div>
+                <div class="col-xl-4 col-lg-5 col-md-5" style="min-height: 475px;">
+                    <div class="dz-media">
+                       @*  <img src="/img/ekran5.jpg" class="" style="padding-right:5%" alt=""> *@
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</section>
+
+
+
+ 
+
+<section class="content-inner" style="background-image: url(mastercard.jpeg); background-size: cover; background-repeat: no-repeat; padding-top: 25%">
+    <div class="container">
+        <div class="row align-items-center">
+
+
+
+            <br />
+            <h5>
+         
+            </h5>        <br />
+            <p>
+               
+            </p>
+            <br />
+            <p>
+                   <br />
+                <br />
+                        <br />
+                   <br />
+            </p>
+            <br />
+            <br />
+            <br />
+        </div>
+    </div>
+</section>
+@(Html.DevExtreme().LoadPanel()
+        .ID("loadPanel")
+        .ShadingColor("rgba(0,0,0,0.4)") 
+        .Visible(false)
+        .ShowIndicator(true).Message("Talebiniz Hazırlanıyor ... Lütfen Bekleyiniz...")
+        .ShowPane(true).Height(300).Width(500)
+        .Shading(true)
+          .HideOnOutsideClick(false)
+        .OnShown("loadPanel_shown")
+    )
+
+<!-- Testimonials -->
+<!-- Contact Form -->
+<section class="content-inner" style="background-image: url(images/background/bg6.jpg); background-size: cover; background-repeat: no-repeat; margin-top: 5%">
+    <div class="container">
+        <div class="row align-items-center">
+
+
+
+            <br />
+            <h5>
+                Fincheckup kadın girişimcilere ücretsiz!
+               
+            </h5>        <br />
+            <p>
+
+                Mastercard® Ticari Kart sahibi kadın girişimciler fincheckup
+                hizmetlerinden x ay boyunca ücretsiz yararlanıyor. 
+                Fincheckup; Hem Bayi-Müşteri riski yöneten firmalar , hem de finansal
+                sisteme kendilerini daha iyi anlatma gayreti içinde olan KOBİ&#39;lerimize özel
+                Dijital Finansal Risk Yönetimi çözümümüzdür.
+            </p>
+            <br />
+            <p>
+                Yapmanız gereken e-defter
+                e-beyanname veya mizan belgelerinizi sisteme bırakmanız hemen
+                üzerinden size ait takip ekranları ile anlık finansal sağlık raporunuzu
+                görüntüleyebilir , Nakit Yönetimi risk takibinizi düzenli olarak yapabilirsiniz.
+                Fincheckup Dijital Finans Çözümleri ile Finansal riskinizi en doğru şekilde
+                yönetebilir , ticaretinizi büyütmenizde en doğru dijital asistana sahip
+                olabilirsiniz.
+            </p>
+            <br />
+            <br />
+            <br />
+            <div class="row">
+                <div class="col-12">
+                    <div class="row align-items-center">
+
+                        <div class="col-lg-6 col-m-12 col-sm-12">
+                            <div class="dlab-subscribe style-1 " style=" ">
+                                <div class="row align-items-center">
+
+                                    <h2 class="title">Finansal Durum Raporu Paketi</h2>
+
+
+                                </div>
+                            </div>
+                             
+                            <div><br /></div>
+                            <form class="dlab-form dzForm" action="">
+                                @Html.AntiForgeryToken()
+                                <div class="col-xl-12">
+
+                                    <div class="dzFormMsg"></div>
+                                    <input type="hidden" class="form-control" name="dzToDo" value="Contact" />
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <div class="input-group">
+                                                <input id="txtfirmname" required type="text" class="form-control" placeholder="Firma Adı" />
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-12">
+                                            <div class="input-group">
+                                                <input type="text" id="txtfirmowner" class="form-control" placeholder="Şirket Sahibi" />
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="input-group">
+                                                <input required type="text" id="txtfirmvkn" class="form-control" placeholder="Şirket VKN" />
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="input-group">
+                                                <input required type="text" id="txtfirmnace" class="form-control" placeholder="Şirket NACE KODU" />
+                                            </div>
+                                        </div>
+
+
+
+                                    </div>
+
+                                </div>
+                                <div class="col-xl-12">
+
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="input-group">
+                                                <input id="txname" required type="text" class="form-control" placeholder="Yetkili Ad" />
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="input-group">
+                                                <input type="text" id="txlastname" class="form-control" placeholder="Yetkili Soyad" />
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="input-group">
+                                                <input required type="text" id="txemail" class="form-control" placeholder="Yetkili Eposta" />
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="input-group">
+                                                <input required type="text" id="txphone" class="form-control" placeholder="Yetkili Tel No." />
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="input-group">
+                                                <input required type="text" id="txmastercode" class="form-control" placeholder="MasterCard Kodu" />
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="input-group">
+                                                <label class="form-check-label" style="
+    margin-top: 11px;" for="flexCheckDefault">
+                                                    Kadın Girişimci Kampanyası
+                                                </label>
+                                                <input type="checkbox" id="txwomen" class="form-control" style="font-size: 11px;
+    width: 15px !important;
+    height: auto;" />
+
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-12">
+                                            <btn name="submit" type="submit" value="Submit" onclick="onMasterClick();return false;" class="btn btn-lg gradient btn-primary  ">Paketi Satın Al</btn>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </form>
+                        </div>
+                        <div class="col-lg-6 col-m-12 col-sm-12">
+                            <div class="dlab-subscribe style-1 " style="margin-left:5% !important">
+                                <div class="row align-items-center">
+
+                                    <h2 onclick="location.href='/masterkobipack'" style="cursor:pointer" class="title">Düzenli Finansal Durum Raporu Kullanıım Paketi >></h2>
+
+
+                                </div>
+                            </div>
+                            <br /> <br />
+                        </div>
+                    </div>
+                  
+                </div>
+              
+            </div>
+         
+        </div>
+    </div>
+
+</section>
+
+
+<!-- Service -->
+<!-- Testimonials -->
+<!-- Clients Logo -->
+@section Scripts {
+   
+    <script>
+         function onMasterClick() {
+            var womentxt = "MasterKobi  Rapor Paketi Talebi";
+            if ($("#txwomen").prop('checked') == true) {
+                womentxt = "Kadın Girişimçi MasterKobi  Rapor Paketi Talebi";
+            }
+            console.log(womentxt);
+            var student = {
+                "firmname": $("#txtfirmname").val(),
+                "firmowner": $("#txtfirmowner").val(),
+                "firmvkn": $("#txtfirmvkn").val(),
+                "firmnace": $("#txtfirmnace").val(),
+                "name": $("#txname").val(),
+                "mailto": $("#txemail").val(),
+                "phone": $("#txphone").val(),
+                "education": $("#txlastname").val(),
+                "title": "",
+                "content": womentxt
+            };
+
+            if ($("#txname").val().trim() == "" || $("#txmastercode").val().trim() == "" || $("#txemail").val().trim() == "" || $("#txphone").val().trim() == "" || $("#txlastname").val().trim() == "") {
+                Swal.fire({
+                    type: 'error',
+                    title: 'Hata...',
+                    text: 'Lütfen Tüm alanları Doldurunuz',
+                    footer: 'Bekleniyor'
+                });
+
+
+            }
+            else {
+
+                if ($("#txmastercode").val().trim().toLowerCase()!="master24") {
+                    Swal.fire({
+                        type: 'error',
+                        title: 'Hata...',
+                        text: 'MasterKobi Kampanya Kodu Hatalı',
+                        footer: 'Bekleniyor'
+                    });
+                }
+                else {
+                    getLoadPanelInstance().show();
+                    var token = $('input[name="__RequestVerificationToken"]').val();
+
+                    $.ajax({
+                        type: "POST",
+                        url: "/JsonService/MainPost/SendEmailAskainfomaster",
+                        data: { __RequestVerificationToken: token, tmail: student, },
+                        contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                        dataType: "json",
+                        success: function (response) {
+
+                            Swal.fire({
+                                type: 'success',
+                                title: 'Başarılı...',
+                                text: 'Mesajınız İletilmiştir',
+                                footer: 'Gönderildi'
+                            });
+                            $("#txname").val("");
+                            $("#txemail").val("");
+                            $("#txphone").val("");
+                            $("#txlastname").val("");
+                            $("#txtfirmowner").val("");
+                            $("#txtfirmvkn").val("");
+                            $("#txtfirmnace").val("");
+                            $("#txtfirmname").val("");
+                            getLoadPanelInstance().hide();
+                        },
+                        failure: function (response) {
+                            getLoadPanelInstance().hide();
+                            chkbool = "false";
+                            Swal.fire({
+                                type: 'error',
+                                title: 'Error...',
+                                text: response.d,
+                                footer: 'Please Fix Errors First'
+                            });
+                        }
+                    });
+                }
+
+            }
+
+        }
+
+        function getLoadPanelInstance() {
+            return $("#loadPanel").dxLoadPanel("instance");
+        }
+        function loadPanel_shown(e) {
+            setTimeout(function () {
+                e.component.hide();
+            }, 610000);
+        }
+    </script>
+    <script src="~/js/custommain.js"></script>
+}

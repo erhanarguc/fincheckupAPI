@@ -1,0 +1,202 @@
+﻿
+@page
+@using fincheckup.Models.UserArea
+@using fincheckup.Models.Hvvn
+@{
+    Layout = null;
+}
+
+@model LoginModel
+
+@functions {
+    public class LoginModel : PageModel
+    {
+        public string PageHandler = "Login";
+        [BindProperty]
+        public string AppUsername { get; set; }
+        [BindProperty]
+        public string Password { get; set; }
+
+        public void OnGet()
+        {
+
+        }
+
+        public void OnGetLogin()
+        {
+            PageHandler = "Login";
+            //	AppUsername = HttpContext.Session.GetString("AppUsername");
+        }
+
+        //public IActionResult OnGetLogout()
+        //{
+        //    HttpContext.SignOutAsync();
+        //    return RedirectToPage("/Login");
+        //}
+
+ 
+        //private void SignIn(HhvnUsers User)
+        //{
+
+        //    //var AppUserRoleEntity = new AppUserRole(ConnectionString);
+        //    //var roles = AppUserRoleEntity.GetAppUserRoles(AppUser.UserID);
+
+        //    var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme, ClaimTypes.Name, ClaimTypes.Role);
+        //    identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, User.ID.ToString()));
+        //    identity.AddClaim(new Claim(ClaimTypes.Name, User.Email));
+        //    string role = User.UserType;
+
+
+        //    identity.AddClaim(new Claim("RoleId", role));
+
+
+
+        //    //identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, AppUser.UserID.ToString()));
+        //    //identity.AddClaim(new Claim(ClaimTypes.Name, AppUser.AppUsername));
+
+        //    //if (roles != null && roles.Count > 0)
+        //    //{
+        //    //	foreach (var role in roles)
+        //    //	{
+        //    //		identity.AddClaim(new Claim("Role", role.Name));
+        //    //	}
+        //    //}
+
+
+        //    var principal = new ClaimsPrincipal(identity);
+
+        //    HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+        //    //HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        //}
+        private void Log(string AppUsername, string page, string message)
+        {
+            if (string.IsNullOrEmpty(AppUsername))
+            {
+                try
+                {
+                    AppUsername = HttpContext.User.Identity.Name;
+                }
+                catch (Exception) { }
+            }
+            try
+            {
+
+                var ipAddress = HttpContext.Connection.RemoteIpAddress.ToString();
+
+                //var mobileLog = new Log(ConnectionString);
+                //mobileLog.Add(new Log { Category = "Doğrulama", Title = page, Message = message, AppUsername = AppUsername, IpAddress = ipAddress });
+            }
+            catch (Exception) { }
+        }
+    }
+}
+
+<!DOCTYPE html>
+
+<head>
+    <title>FinCheckup</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge"> 
+    <meta name="description" content="Login">
+    <meta name="author" content=" , design by: nefsolution">
+
+    <link rel="stylesheet" href="/assets/plugins/bootstrap/css/bootstrap.min.css">
+
+    <link rel="stylesheet" href="/assets/css/main.css">
+    <link rel="stylesheet" href="/assets/css/color_skins.css">
+    <script src="~/js/jquery.min.js"></script>
+    <script src="~/assets/js/sweetalert2.min.js"></script>
+    <link href="~/assets/css/sweetalert2.min.css" rel="stylesheet" />
+
+    <style>
+
+
+        /* Might want to wrap a span around your checkbox text */
+        iframe[title="recaptcha challenge"] {
+            height: 100% !important;
+        }
+
+        #rc-imageselect {
+            transform: scale(0.77) !important;
+            -webkit-transform: scale(0.77) !important;
+            transform-origin: 0 0 !important;
+            -webkit-transform-origin: 0 0 !important;
+        }
+
+        #recaptcha > div {
+            width: auto !important;
+            margin-bottom: .5em;
+        }
+    </style>
+</head>
+
+<body class="theme-black">
+    <div class="authentication" style="max-height: 100vh;">
+        <div class="container">
+            <div class="col-md-12 content-center">
+                <div class="row">
+                    <div class="col-lg-6 col-md-12">
+                        <div class="company_detail">
+                            <h4><img src="/images/finlogo1.png" style="height:155px;width:auto;" alt=""> </h4>
+                            <h3><strong style="padding-left:21%">YÖNETİm</strong> Panelİ</h3>
+
+                            <p> </p>
+                            <div class="footer">
+                                <ul class="social_link list-unstyled"></ul>
+                                <hr>
+                                <ul></ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-5 col-md-12 offset-lg-1">
+                        <div class="card-plain">
+                            <div class="header">
+                                <h5>Giriş Ekranı</h5>
+                            </div>
+                            <form id="frm" class="form form-auth-small">
+                                @Html.AntiForgeryToken()
+                                <div class="input-group">
+
+                                    <input id="name" name="name" type="text" class="form-control" placeholder="Email" autofocus="" />
+                                    <div class="input-group-append">
+                                        <span class="input-group-text"><i class="zmdi zmdi-account-circle"></i></span>
+                                    </div>
+
+                                </div>
+                                <div class="input-group">
+
+                                    <input id="pass" name="pass" type="password" class="form-control" placeholder="Password" />
+                                    <div class="input-group-append">
+                                        <span class="input-group-text"><i class="zmdi zmdi-lock"></i></span>
+                                    </div>
+
+                                </div>
+                                <br />
+                                <div class="g-recaptcha" data-sitekey="6LeKFn0dAAAAAL2pEp4ErLA7_zDwG7HETjJf-x6a"></div>
+                                <br />
+
+
+                                <div class="footer">
+                                    <button class="btn btn-primary submit-btn btn-block btnchk" type="submit">Giriş</button>
+
+                                </div>
+
+                            </form>
+
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+    <script src="/assets/bundles/libscripts.bundle.js"></script>
+    <script src="/assets/bundles/vendorscripts.bundle.js"></script>
+    <script src="~/js/jquery.min.js"></script>
+    <script src="https://www.google.com/recaptcha/api.js"></script>
+
+    <script src="~/js/custommain.js"></script>
+</body>
+

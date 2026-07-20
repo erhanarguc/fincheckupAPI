@@ -1,0 +1,752 @@
+﻿@page
+
+@model IndexModel
+@{
+    ViewData["Title"] = "Giriş Ekranı";
+    Layout = "~/Pages/Shared/_Layoutmizan.cshtml";
+}
+@using fincheckup.Models.NKolay.ViewM
+@using fincheckup.Helper.Page
+@using fincheckup.Models.NKolay.json
+@using fincheckup.ENTITY
+@using fincheckup.Models.ViewM
+@using fincheckup.Models.Hvvn
+@using System.Globalization
+@functions {
+    public class IndexModel : PageModel
+    {
+        public IEnumerable<YearResult> myearResult;
+        public long UserID;
+        public long CompID;
+        public int CompCount;
+        public int YearCount;
+        public HhvnUsers CurrentUser;
+        public DashYearlyBilancoChart ncart;
+        public List<DashPivotView> nRequestList;
+        public List<ReportSet> nRequestListReport;
+        public List<DashPivotView> nRequestListChk;
+        public IEnumerable<Companies> mreqListCompany;
+        public string NetIsletme { get; set; }
+        public string CompName { get; set; }
+        public string CompNameNorm { get; set; }
+        public string CariOran { get; set; }
+        public decimal CariOranT { get; set; }
+        public string NakitOran { get; set; }
+        public double val1 { get; set; }
+        public double val3 { get; set; }
+        public void OnGet()
+        {
+
+
+
+
+
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            mreqListCompany = Companies.Getby_User(UserID);
+
+            CompID = mreqListCompany.Where(x => x.IsDefault == 1).FirstOrDefault().ID;
+            CompName = mreqListCompany.Where(x => x.IsDefault == 1).FirstOrDefault().CompanyName;
+            HhvnUsers.SetYearMain(CompID, UserID);
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+            YearCount = TBLXml.GetYearByComapnyIDMizan(CompID);
+            CompCount = mreqListCompany.Count();
+            CompNameNorm = PageHelper.ClearTurkishCharacter(CompName);
+            myearResult = YearResult.getValue();
+
+            DashGelirTablosu.Get_MAINRESULTMultiMainPIVOTCheckFiba(CompID);
+            //nRequestListTx = DashBilancoViewTx.setDashBilanco(nRequestList);
+
+            //ncart = new DashYearlyBilancoChart();
+            //ncart.SetResult(nRequestList, CurrentUser.SelectedYear);
+
+
+            // nRequestListChk = nRequestList;
+            //DashGelirTablosuViewMain.getList(CurrentUser.SelectedYear, CompID);
+
+            //val1 = nRequestListChk.Where(x => x.TypeID == 111).Sum(x => x.Amount);
+            //val3 = nRequestListChk.Where(x => x.TypeID == 2222).Sum(x => x.Amount);
+            //if (val3 < 0) { val3 = val3 * -1; }
+            //NetIsletme = (val1 - val3).ToString("0,0.00", new CultureInfo("en-US", false));
+
+            //// DashBilancoViewMain.getNetIsletme(CurrentUser.SelectedYear, CompID);
+            //var val5 = nRequestListChk.Where(x => x.TypeID == 333).Sum(x => x.Amount);
+            //if (val5 == 0)
+            //{
+            //    val5 = 1;
+            //}
+            //CariOranT = (Convert.ToDecimal(nRequestListChk.Where(x => x.TypeID == 111).Sum(x => x.Amount)) / Convert.ToDecimal(val5));
+            //if (CariOranT < 0)
+            //{
+            //    CariOranT = CariOranT * -1;
+            //}
+            //CariOran = CariOranT.ToString("0,0.00", new CultureInfo("en-US", false));
+            ////DashBilancoViewMain.getCariOran(CurrentUser.SelectedYear, CompID).ToString("F");
+            //NakitOran = (Convert.ToDecimal(nRequestListChk.Where(x => (x.TypeID == 10 || x.TypeID == 11)).Sum(x => x.Amount)) / Convert.ToDecimal(val5)).ToString("N2");
+            //DashBilancoViewMain.getNakitOran(CurrentUser.SelectedYear, CompID).ToString("F");
+        }
+
+      
+        public JsonResult OnGetGraphYear(int nyear)
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            HhvnUsers.SetYear(nyear, UserID);
+            return new JsonResult("ok");
+        }
+        public JsonResult OnGetChartRasyo(DataSourceLoadOptions options)
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+
+            CompID = Companies.Getby_User(UserID).Where(x => x.IsDefault == 1).FirstOrDefault().ID;
+            nRequestList = DashGelirTablosu.Get_MAINRESULTMultiMainPIVOT(CompID).Where(x => x.IsHidden == 0).ToList();
+            //nRequestListTx = DashBilancoViewTx.setDashBilanco(nRequestList);
+
+            ncart = new DashYearlyBilancoChart();
+            //ncart.SetResult(nRequestList, CurrentUser.SelectedYear);
+
+            return new JsonResult(DataSourceLoader.Load(nRequestList, options));
+        }
+        public JsonResult OnGetMarkupMarjin(DataSourceLoadOptions options, long compid)
+        {
+            List<DashBilancoViewMulti> chklist = new List<DashBilancoViewMulti>();
+
+            var chk = DashGelirTablosu.Get_MAINRESULTMultiMainPIVOT(compid).Where(x => x.IsHidden == 0);
+            return new JsonResult(DataSourceLoader.Load(chk, options));
+        }
+        public JsonResult OnGetMarkupMarjinA(DataSourceLoadOptions options, long compid)
+        {
+            List<DashBilancoViewMulti> chklist = new List<DashBilancoViewMulti>();
+
+            var chk = DashGelirTablosu.Get_MAINRESULTMultiMainPIVOTAMIFIBA(compid).Where(x => x.IsHidden == 0).OrderBy(x => x.CounterZone);
+            return new JsonResult(DataSourceLoader.Load(chk, options));
+        }
+        public JsonResult OnGetMarkupMarjinB(DataSourceLoadOptions options, long compid)
+        {
+            List<DashBilancoViewMulti> chklist = new List<DashBilancoViewMulti>();
+
+            var chk = DashGelirTablosu.Get_MAINRESULTMultiMainPIVOTBMIFIBA(compid).Where(x => x.IsHidden == 0).OrderBy(x => x.CounterZone);
+            return new JsonResult(DataSourceLoader.Load(chk, options));
+        }
+        public JsonResult OnGetMarkupMarjinC(DataSourceLoadOptions options, long compid)
+        {
+
+
+            var chk = ReportSetMain.Get_ReportSetFiba(compid).OrderBy(x => x.AccountMainID);
+            return new JsonResult(DataSourceLoader.Load(chk, options));
+        }
+   
+    }
+}
+@section Styles {
+    <link rel="stylesheet" href="/assets/plugins/jquery-datatable/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="/assets/plugins/morrisjs/morris.css">
+    <style>
+        .tdnormall {
+            padding-top: 0.1rem !important;
+            padding-left: 0.75rem !important;
+            padding-bottom: 0.1rem !important;
+            padding-right: 0.75rem !important;
+        }
+
+        #chartxt {
+            max-height: 255px !important;
+        }
+
+        #pivotgrid td {
+            vertical-align: middle;
+        }
+
+        #pivotgrid .chart-cell {
+            overflow: visible;
+        }
+
+        #pivotgrid .current-value {
+            display: inline-block;
+        }
+
+        #pivotgrid .diff {
+            position: relative;
+            display: table-cell;
+            font-size: 16px;
+        }
+
+        #pivotgrid .inc .diff {
+            color: #2ab71b;
+        }
+
+            #pivotgrid .inc .diff:before {
+                content: '+';
+            }
+
+        #pivotgrid .dec .diff:before {
+            content: '-';
+        }
+
+        #pivotgrid .dec .diff {
+            color: #f00;
+        }
+
+            #pivotgrid .inc .diff:after,
+            #pivotgrid .dec .diff:after {
+                content: '';
+                display: block;
+                height: 10px;
+                width: 10px;
+                position: absolute;
+                right: -12px;
+                top: 6px;
+                background-repeat: no-repeat;
+                background-size: 10px 10px;
+            }
+
+        #pivotgrid .inc .diff:after {
+            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAADKSURBVHjaYtTaLs1ABEiG0nPRJa56PEHhsxBhmCUQT4OyrwHxcXyKmQgYJgHE64CYDYrXQcXIMhCbAcgWkGzgNKh38QUB0QamIUUErkhKI9ZAGyCeTERkTYaqxWsgKA2txhdG6GGsvUNGGpeBRMUiGhCFGsqGzUBQQJsxkA5AemaiG5hDIBIIgQSgK0FmMDACs549kN5FZLjhA7+A2A2U9YSAOBeLAk4gnoBDczoOcSFGPIUDPxB/wCHHiKtwYGKgMhg1cBAaCBBgAJTUIL3ToPZfAAAAAElFTkSuQmCC');
+        }
+
+        #pivotgrid .dec .diff:after {
+            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAADJSURBVHjaYvzPgBfgkhYA4o8QFahKmBioDEYNHIQGsgBxIBCLkqgvAYi/g1mMjMjir0EJzR6If/6HpChKMMgMe3DKBeIcKhiY8x/MYoDj+RQYNgdkGLqBbEB8kgzDToL1YjEQhKWB+BUJhj0H64Eahs1AELYhMpJ+gtUiGYbLQBBOI8LANLBaIg1kAAc0vkiAqSPBQFAkHcNi2DGoHMkGgrAENOCRI0ECRQ2JBoKwJTQCfkLZDPgMZPxPXN5NhtJzMSsJVBMAAgwAyWSY2svfmrwAAAAASUVORK5CYII=');
+        }
+    </style>
+}
+<section class="content home" id="employee">
+    @(Html.DevExtreme().LoadPanel()
+        .ID("loadPanel")
+        .ShadingColor("rgba(0,0,0,0.4)")
+        .Position(p => p.Of("#employee"))
+        .Visible(false)
+        .ShowIndicator(true)
+        .ShowPane(true)
+        .Shading(true)
+        .HideOnOutsideClick(false)
+        .OnShown("loadPanel_shown")
+        )
+
+    <input type="hidden" style="display:none" id="txtmyear" value="@Model.CurrentUser.SelectedYear" />
+    <input type="hidden" style="display:none" id="txtmcomp" value="@Model.CompID" />
+    <input type="hidden" style="display:none" id="txtyearcount" value="@Model.YearCount" />
+    <input type="hidden" style="display:none" id="txtcompcount" value="@Model.CompCount" />
+    <div class="container-fluid">
+        <div class="block-header">
+            <div class="row clearfix">
+                <div class="col-lg-5 col-md-5 col-sm-12">
+                    <h2>Bilanço</h2>
+                    <ul class="breadcrumb padding-0">
+                        <li class="breadcrumb-item"><a href=""><i class="zmdi zmdi-home"></i></a>Gelir Tablosu</li>
+                        <li class="breadcrumb-item active">Revenue</li>
+                    </ul>
+                </div>
+                <div class="col-lg-7 col-md-7 col-sm-12">
+                    <div class="input-group m-b-0">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="body">
+                                    <div class="row">
+
+                                        <div class="col-6" style="text-align:left">
+
+                                            <div id="exportGrids"></div>
+                                        </div>
+                                        <div class="col-6" style="text-align: right  ">
+ 
+                                            @(Html.DevExtreme().TextBox()
+                                                .Value(Model.CompName).ReadOnly(true)
+                                                )
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row clearfix">
+
+            <div class="col-md-12 col-lg-12">
+                <div class="card">
+                    <div class="body">
+
+                        <div class="row">
+
+                            <div class="col-md-12 col-lg-12">
+                                <div class="row clearfix">
+                                    <div class="col-md-12 col-lg-12">
+                                        <div class="card">
+                                            <div class="body">
+                                                <div class="row">
+
+                                                    @(Html.DevExtreme().PivotGrid<DashPivotView>()
+                                                        .ID("pivotgrid")
+                                                        .AllowSortingBySummary(true)
+                                                        .AllowFiltering(true)
+                                                        .ShowBorders(true).AllowExpandAll(true)
+                                                        .ShowColumnGrandTotals(false).AllowExpandAll(true)
+                                                        .ShowRowGrandTotals(false)
+                                                        .ShowRowTotals(false)
+                                                        .OnCellPrepared("cell_prepareda")
+                                                        .ShowColumnTotals(false).FieldChooser(fc => fc
+                                                        .AllowSearch(false)
+                                                        .ApplyChangesMode(ApplyChangesMode.Instantly)).FieldPanel(e => e.ShowColumnFields(true).ShowDataFields(false).ShowFilterFields(false).ShowRowFields(false))
+
+                                                        .DataSource(d => d
+                                                        .Store(s => s.RemoteController().LoadUrl(Url.Page(null, "MarkupMarjinA")).LoadParams(new { compid = new JS("function() {return mcompid; }") }))
+                                                        .Fields(fields =>
+                                                        {
+                                                            fields.AddFor(m => m.GroupName)
+                                                            .Width(170)
+                                                            .Area(PivotGridArea.Row).Expanded(true).Visible(false)
+                                                            ; fields.AddFor(m => m.CounterZone)
+                                                            .Width(120)
+                                                            .Area(PivotGridArea.Row).SortBy(PivotGridSortBy.Value).Visible(false)
+                                                            ;
+                                                            fields.AddFor(m => m.AccountMainDescription)
+                                                            .Width(170)
+                                                            .Area(PivotGridArea.Row).SortBy(PivotGridSortBy.None).AllowFiltering(false)
+                                                            ;
+
+                                                            fields.AddFor(m => m.YearTx).SortBy(PivotGridSortBy.Value).Area(PivotGridArea.Column).Expanded(true);
+
+                                                            fields.AddFor(m => m.Amount)
+                                                            .SummaryType(SummaryType.Sum).Caption("Değer")
+                                                            .DataType(PivotGridDataType.Number).Format(x => x.Precision(1)).Format(Format.FixedPoint)
+                                                            .Area(PivotGridArea.Data);
+                                                            fields.AddFor(m => m.Diff).SummaryType(SummaryType.Sum).Width(9)
+                                                            .DataType(PivotGridDataType.Number).Format(x => x.Precision(1)).Caption("Oran(%)")
+                                                            .Area(PivotGridArea.Data);
+                                                        })
+                                                        )
+                                                        )
+
+
+
+                                                </div>
+
+
+                                            </div>
+                                        </div>
+
+
+                                    </div>
+                                    <div class="col-md-12 col-lg-12">
+                                        <div class="card">
+                                            <div class="body">
+                                                <div class="row">
+
+                                                    @(Html.DevExtreme().PivotGrid<DashPivotView>()
+                                                        .ID("pivotgrida")
+                                                        .AllowSortingBySummary(true)
+                                                        .AllowFiltering(true)
+                                                        .ShowBorders(true).AllowExpandAll(true)
+                                                        .ShowColumnGrandTotals(false).AllowExpandAll(true)
+                                                        .ShowRowGrandTotals(false)
+                                                        .ShowRowTotals(false)
+                                                        .OnCellPrepared("cell_prepared")
+                                                        .ShowColumnTotals(false).FieldChooser(fc => fc
+                                                        .AllowSearch(false)
+                                                        .ApplyChangesMode(ApplyChangesMode.Instantly)).FieldPanel(e => e.ShowColumnFields(true).ShowDataFields(false).ShowFilterFields(false).ShowRowFields(false))
+
+                                                        .DataSource(d => d
+                                                        .Store(s => s.RemoteController().LoadUrl(Url.Page(null, "MarkupMarjinB")).LoadParams(new { compid = new JS("function() {return mcompid; }") }))
+                                                        .Fields(fields =>
+                                                        {
+                                                            fields.AddFor(m => m.GroupName)
+                                                            .Width(170).Visible(true)
+                                                            .Area(PivotGridArea.Row).Expanded(true).SortBy(PivotGridSortBy.None)
+                                                            ;
+                                                            fields.AddFor(m => m.CounterZone)
+                                                            .Width(120)
+                                                            .Area(PivotGridArea.Row).SortBy(PivotGridSortBy.Value).Visible(false)
+                                                            ;
+                                                            fields.AddFor(m => m.AccountMainDescription)
+                                                            .Width(170)
+                                                            .Area(PivotGridArea.Row).SortBy(PivotGridSortBy.None).AllowFiltering(false)
+                                                            ;
+
+                                                            fields.AddFor(m => m.YearTx).SortBy(PivotGridSortBy.Value).Area(PivotGridArea.Column).Expanded(true);
+
+                                                            fields.AddFor(m => m.Amount)
+                                                            .SummaryType(SummaryType.Sum).Caption("Değer")
+                                                            .DataType(PivotGridDataType.Number).Format(x => x.Precision(2)).Format(Format.FixedPoint)
+                                                            .Area(PivotGridArea.Data);
+                                                            fields.AddFor(m => m.Diff).SummaryType(SummaryType.Sum).Width(9)
+                                                            .DataType(PivotGridDataType.Number).Format(x => x.Precision(1)).Caption("Oran(%)")
+                                                            .Area(PivotGridArea.Data);
+
+                                                        })
+                                                        )
+                                                        )
+
+
+
+                                                </div>
+
+
+                                            </div>
+                                        </div>
+
+
+                                    </div>
+                                </div>
+
+
+
+                            </div>
+
+                        </div>
+
+
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+
+        </div>
+
+
+
+
+
+    </div>
+    <div class="row" style="display:none">
+
+        @(Html.DevExtreme().PivotGrid<ReportSet>()
+            .ID("pivotgridc")
+            .AllowSortingBySummary(true)
+            .AllowFiltering(true)
+            .ShowBorders(true).AllowExpandAll(true)
+            .ShowColumnGrandTotals(false).AllowExpandAll(true)
+            .ShowRowGrandTotals(false)
+            .ShowRowTotals(false)
+            .ShowColumnTotals(false).FieldChooser(fc => fc
+            .AllowSearch(false)
+            .ApplyChangesMode(ApplyChangesMode.Instantly)).FieldPanel(e => e.ShowColumnFields(true).ShowDataFields(false).ShowFilterFields(false).ShowRowFields(false))
+
+            .DataSource(d => d
+            .Store(s => s.RemoteController().LoadUrl(Url.Page(null, "MarkupMarjinC")).LoadParams(new { compid = new JS("function() {return mcompid; }") }))
+            .Fields(fields =>
+            {
+                fields.AddFor(m => m.AccountMainDescription)
+                .Width(170).Visible(true)
+                .Area(PivotGridArea.Row).Expanded(true).SortBy(PivotGridSortBy.None)
+                ;
+                fields.AddFor(m => m.AccountMainID)
+                .Width(120)
+                .Area(PivotGridArea.Row).SortBy(PivotGridSortBy.Value).Visible(false)
+                ;
+                fields.AddFor(m => m.AccountSubDescription)
+                .Width(170)
+                .Area(PivotGridArea.Row).SortBy(PivotGridSortBy.None).AllowFiltering(false)
+                ;
+
+                fields.AddFor(m => m.Year).SortBy(PivotGridSortBy.Value).Area(PivotGridArea.Column).Expanded(true);
+
+                fields.AddFor(m => m.Amount)
+                .SummaryType(SummaryType.Sum).Caption("Değer")
+                .DataType(PivotGridDataType.Number).Format(x => x.Precision(2))
+                .Area(PivotGridArea.Data);
+
+            })
+            )
+            )
+
+
+
+    </div>
+</section>
+
+
+@section Scripts {
+    <script src="/js/a_poly.js"></script>
+    <script src="/js/a_excel.js"></script>
+    <script src="/js/a_filesave.js"></script>
+
+    <script>
+        var formatCurrency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2 }).format;
+
+        function cell_prepared(e) {
+            var fieldData = e.value;
+            var fieldHtml = "";
+
+
+            if (e.area == 'row') {
+                e.cellElement.css("font-size", "10pt");
+                e.cellElement.css("font-weight", "bold");
+
+                e.cellElement.css("color", "#660081");
+            }
+            // if (e.area == 'data' ) {
+            //     console.log(e.cell.columnPath[0]);
+            //     console.log(e.cell.columnType);
+            //     console.log(e.cell.rowPath[0]);
+            // }
+            // if (fieldData && fieldData.Value) {
+            //     if (fieldData.Diff) {
+            //         options.cellElement.addClass((fieldData.Diff > 0) ? "inc" : "dec");
+            //         fieldHtml += "<div class='current-value'>" +
+            //             formatCurrency(fieldData.Value) +
+            //             "</div> <div class='diff'>" +
+            //             Math.abs(fieldData.Diff).toFixed(2) +
+            //             "  </div>";
+            //     } else {
+            //         fieldHtml = fieldData.Value;
+            //     }
+            //     options.cellElement.html(fieldHtml);
+            // }
+        }
+        function cell_prepareda(e) {
+            var fieldData = e.value;
+            var fieldHtml = "";
+
+
+            if (e.area == 'row') {
+                e.cellElement.css("font-size", "10pt");
+                e.cellElement.css("font-weight", "bold");
+
+                e.cellElement.css("color", "#000080");
+            }
+
+            if (e.area == 'row' && (e.cell.text == 'KASA-BANKA' || e.cell.text == 'DİĞER HAZIR DEĞERLER' || e.cell.text == 'YURTİÇİ ALICILAR' || e.cell.text == 'ALINAN ÇEKLER' || e.cell.text == 'ALACAK SENETLERİ' || e.cell.text == 'HAMMADDE VE MALZEME' || e.cell.text == 'YARIMAMUL VE MAMULLER' || e.cell.text == 'TİCARİ MALLAR' || e.cell.text == 'SATICILARA VERİLEN AVANSLAR' || e.cell.text == 'BANKA KREDİLERİ' || e.cell.text == 'LEASİNG ÖDEMELERİ ve FACTORING BORÇLARI' || e.cell.text == 'DİĞER MALİ BORÇLAR' || e.cell.text == 'UZUN VAD.BORÇ- CARİ YIL TAKSİDİ' || e.cell.text == 'YURTİÇİ SATICILAR (C/H)' || e.cell.text == 'ÖD.ÇEKLER VE BORÇ SENETLERİ')) {
+                e.cellElement.css("font-size", "10pt");
+                e.cellElement.css("font-weight", "normal");
+
+                e.cellElement.css("color", "red");
+
+            }
+
+            if (e.area == 'row' && (e.cell.text == 'TOPLAM CARİ AKTİF' || e.cell.text == 'TOPLAM BAĞLI KIYMETLER' || e.cell.text == 'TOPLAM AKTİF' || e.cell.text == 'TOPLAM CARİ PASİF' || e.cell.text == 'TOPLAM UZUN VADELİ PASİFLER' || e.cell.text == 'TOPLAM BORÇLAR' || e.cell.text == 'TOPLAM ÖZKAYNAKLAR' || e.cell.text == 'TOPLAM PASİF' || e.cell.text == 'AKTİF/PASİF TOPLAMI ARASINDA FARK')) {
+                e.cellElement.css("font-size", "10pt");
+                e.cellElement.css("font-weight", "bold");
+
+                e.cellElement.css("color", "#00ad7e");
+            }
+
+        }
+        function getfdate() {
+            //
+            var usrdate = sessionStorage.getItem("fnckpyear");
+            if (usrdate == null || usrdate == undefined || usrdate == "null") {
+
+
+                usrdate = "";
+            }
+            else {
+                return usrdate;
+            }
+
+        };
+        var myearcount = "@Model.YearCount";
+        var iNum = (parseInt(myearcount) * 3);
+        var tchek = getfdate();
+
+        $("#exportGrids").dxButton({
+            text: "Excel Raporu",
+            onClick: function () {
+                var dataGrid1 = $("#pivotgrid").dxPivotGrid("instance");
+                var dataGrid2 = $("#pivotgrida").dxPivotGrid("instance");
+                var dataGrid3 = $("#pivotgridc").dxPivotGrid("instance");
+                var workbook = new ExcelJS.Workbook();
+                var worksheet = workbook.addWorksheet('@Model.CompNameNorm');
+                var worksheet1 = workbook.addWorksheet('Detay');
+                worksheet.columns = [
+                    { width: 5 }, { width: 30 }, { width: 30 }, { width: 15 }, { width: 15 }, { width: 15 }, { width: 15 }, { width: 15 }, { width: 15 }, { width: 15 }, { width: 15 }, { width: 15 }
+                ];
+                worksheet1.columns = [
+                    { width: 5 }, { width: 45 }, { width: 75 }, { width: 15 }, { width: 15 }, { width: 15 }, { width: 15 }, { width: 15 }, { width: 15 }, { width: 15 }, { width: 15 }, { width: 15 }
+                ];
+                Object.assign(
+                    worksheet.getRow(2).getCell(2),
+                    { value: "@Model.CompNameNorm", font: { bold: true, size: 16, underline: 'double' } }
+                );
+                Object.assign(
+                    worksheet.getRow(2).getCell(7),
+                    { value: "ÜRETİM-PAZ. SPREADSHEET", font: { bold: true, size: 16, underline: 'double' } }
+                );
+
+                DevExpress.excelExporter.exportPivotGrid({
+                    worksheet,
+                    component: dataGrid1,
+                    keepColumnWidths: false,
+                    topLeftCell: { row: 4, column: 2 },
+                    customizeCell: function (e) {
+
+                        if (e.pivotCell.area == 'row') {
+
+                            e.excelCell.font = { size: '10', color: { argb: '000080' }, bold: true };
+
+
+                        }
+                        if (e.pivotCell.area == 'row' && (e.pivotCell.text == 'KASA-BANKA' || e.pivotCell.text == 'YURTİÇİ ALICILAR' || e.pivotCell.text == 'DİĞER HAZIR DEĞERLER' || e.pivotCell.text == 'ALINAN ÇEKLER' || e.pivotCell.text == 'ALACAK SENETLERİ' || e.pivotCell.text == 'HAMMADDE VE MALZEME' || e.pivotCell.text == 'YARIMAMUL VE MAMULLER' || e.pivotCell.text == 'TİCARİ MALLAR' || e.pivotCell.text == 'SATICILARA VERİLEN AVANSLAR' || e.pivotCell.text == 'BANKA KREDİLERİ' || e.pivotCell.text == 'LEASİNG ÖDEMELERİ ve FACTORING BORÇLARI' || e.pivotCell.text == 'DİĞER MALİ BORÇLAR' || e.pivotCell.text == 'UZUN VAD.BORÇ- CARİ YIL TAKSİDİ' || e.pivotCell.text == 'YURTİÇİ SATICILAR (C/H)' || e.pivotCell.text == 'ÖD.ÇEKLER VE BORÇ SENETLERİ')) {
+                            e.excelCell.font = { size: '10', color: { argb: 'f44336' }, bold: true };
+
+                        }
+                        if (e.pivotCell.area == 'row' && (e.pivotCell.text == 'TOPLAM CARİ AKTİF' || e.pivotCell.text == 'TOPLAM BAĞLI KIYMETLER' || e.pivotCell.text == 'TOPLAM AKTİF' || e.pivotCell.text == 'TOPLAM CARİ PASİF' || e.pivotCell.text == 'TOPLAM UZUN VADELİ PASİFLER' || e.pivotCell.text == 'TOPLAM BORÇLAR' || e.pivotCell.text == 'TOPLAM ÖZKAYNAKLAR' || e.pivotCell.text == 'TOPLAM PASİF' || e.pivotCell.text == 'AKTİF/PASİF TOPLAMI ARASINDA FARK')) {
+
+                            e.excelCell.font = { size: '10', color: { argb: '00ad7e' }, bold: true };
+                        }
+
+
+                    }
+                })
+                    .then(function (dataGridRange) {
+                        return DevExpress.excelExporter.exportPivotGrid({
+                            worksheet,
+                            component: dataGrid2,
+                            keepColumnWidths: false,
+                            topLeftCell: { row: dataGridRange.to.row + 2, column: (1) },
+                            customizeCell: function (e) {
+
+                                if (e.pivotCell.area == 'row') {
+
+                                    e.excelCell.font = { size: '10', color: { argb: '660081' }, bold: true };
+
+
+                                }
+                                if (e.pivotCell.area == 'row' && (e.pivotCell.text == 'FAAL.DOĞAN/FAAL.DIŞI FON AKIŞI' || e.pivotCell.text == 'FAALİYETLERDEN DOĞAN BRÜT NAKİT AKIMI' || e.pivotCell.text == 'KISA VADELİ FON KAYNAKLARI' || e.pivotCell.text == 'BAĞLI KIYMETLERDE FON KULLANIMI' || e.pivotCell.text == 'UZUN VADELİ FON KAYNAKLARI' || e.pivotCell.text == 'ÖZKAYNAKLARDAKİ ARTIŞ')) {
+                                    e.excelCell.fill = {
+                                        type: 'pattern',
+                                        pattern: 'solid',
+                                        fgColor: { argb: 'ffff99' }
+                                    };
+
+                                }
+
+                                if (e.pivotCell.area == 'row' && (e.pivotCell.text == 'KISA VADELİ FON AÇIĞI VEYA FAZLASI' || e.pivotCell.text == 'UZUN VADE&ÖZKAYNAK FON AÇIĞI VEYA FAZLASI')) {
+                                    e.excelCell.fill = {
+                                        type: 'pattern',
+                                        pattern: 'solid',
+                                        fgColor: { argb: '00ffff' }
+                                    };
+
+                                }
+
+                                if (e.pivotCell.area == 'row' && (e.pivotCell.text == 'TOPLAM FON KULLANIMI' || e.pivotCell.text == 'ESAS FAAL.YARATILAN TOPL.NAKİT' || e.pivotCell.text == 'FAALİYETLERDEN YARATILAN NAKİT' || e.pivotCell.text == 'TOPLAM NAKİT AÇIĞI / FAZLASI' || e.pivotCell.text == 'NAKİT FAZLASI (AÇIĞI)/FİN. GİD.')) {
+                                    e.excelCell.fill = {
+                                        type: 'pattern',
+                                        pattern: 'solid',
+                                        fgColor: { argb: '00ff00' }
+                                    };
+
+                                    e.excelCell.border = {
+                                        top: { style: 'medium', color: { argb: '444444' } },
+                                        bottom: { style: 'medium', color: { argb: '444444' } }
+                                    };
+
+                                }
+
+                            }
+
+                        }
+                        );
+                    }).then(function (dataGridRange) {
+                        return DevExpress.excelExporter.exportPivotGrid({
+                            worksheet: worksheet1,
+                            component: dataGrid3,
+                            keepColumnWidths: false,
+                            topLeftCell: { row: 4, column: 2 },
+                            customizeCell: function ({ excelCell, pivotCell }) {
+                                if (pivotCell.area === 'data') {
+                                    if (pivotCell.dataType === 'number') {
+                                        excelCell.numFmt = '#,##0';
+                                    }
+                                }
+                            }
+                        }
+
+                        );
+                    }).then(function () {
+                        workbook.xlsx.writeBuffer().then(function (buffer) {
+                            saveAs(new Blob([buffer], { type: "application/octet-stream" }), "@Model.CompNameNorm-BalanceSheet.xlsx");
+                        });
+                    });
+            }
+        });
+
+        // function onExporting(e) {
+        //     var workbook = new ExcelJS.Workbook();
+        //     var worksheet = workbook.addWorksheet('balancesheet');
+
+        //     DevExpress.excelExporter.exportPivotGrid({
+        //         component: e.component,
+        //         worksheet: worksheet
+        //     }).then(function () {
+        //         workbook.xlsx.writeBuffer().then(function (buffer) {
+        //             saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'balancesheet.xlsx');
+        //         });
+        //     });
+        //     e.cancel = true;
+        // }
+    </script>
+
+    <script>
+        var tyear = $("#txtmyear").val();
+        var mcompid = $("#txtmcomp").val();
+        function getLoadPanelInstance() {
+            return $("#loadPanel").dxLoadPanel("instance");
+        }
+        function loadPanel_shown(e) {
+            setTimeout(function () {
+                e.component.hide();
+            }, 7000);
+        }
+        var misready = "nok";
+        var chkReadyState = setInterval(function () {
+            if (document.readyState == "complete") {
+
+                clearInterval(chkReadyState);
+
+                misready = "ok";
+            }
+        }, 100);
+
+        function getselectYearInstance() {
+            return $("#slctYear").dxSelectBox("instance");
+        }
+      
+        function selectYear_Initialized() {
+            getselectYearInstance().option("value", parseInt($("#txtmyear").val()));
+            var chkco = parseInt($("#txtyearcount").val());
+
+            if (chkco < 2) {
+                getselectYearInstance().option("readOnly", true);
+            }
+
+
+        }
+
+      
+        function selectYear_valueChanged(data) {
+            var slctval = data.selectedItem.MYear;
+            var turl = '/admin/dashbilanco?handler=GraphYear&nyear=' + slctval;
+
+            if (misready == "ok" && tyear.toString() != slctval.toString()) {
+                getLoadPanelInstance().show();
+                $.ajax({
+                    type: "GET",
+                    url: turl,
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (response) {
+                        if (response == "ok") {
+                            location.reload();
+                        }
+                    },
+                    failure: function (response) {
+                        alert(response);
+                    }
+                });
+            }
+
+        }
+
+      
+
+        var dt1 = "105";
+    </script>
+} 

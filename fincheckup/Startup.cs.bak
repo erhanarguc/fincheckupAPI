@@ -1,0 +1,164 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc; 
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+//using fincheckup.Data;
+using fincheckup.Models;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Routing;
+using System;
+using Microsoft.AspNetCore.Rewrite;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Extensions;
+using Microsoft.Net.Http.Headers;
+using System.Globalization;
+using Microsoft.AspNetCore.Localization;
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+
+namespace fincheckup
+{
+	public class Startup
+	{
+		public IConfiguration Configuration { get; }
+
+		public Startup(IConfiguration configuration )
+		{
+			Configuration = configuration; 
+
+        }
+        //public class RedirectToWwwRule : IRule
+        //{
+        //    public virtual void ApplyRule(RewriteContext context)
+        //    {
+        //        var req = context.HttpContext.Request;
+        //        if (req.Host.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase))
+        //        {
+        //            context.Result = RuleResult.ContinueRules;
+        //            return;
+        //        }
+
+        //        if (req.Host.Value.StartsWith("www.", StringComparison.OrdinalIgnoreCase))
+        //        {
+        //            context.Result = RuleResult.ContinueRules;
+        //            return;
+        //        }
+
+        //        var wwwHost = new HostString($"{req.Host.Value}");
+        //        var newUrl = UriHelper.BuildAbsolute(req.Scheme, wwwHost, req.PathBase, req.Path, req.QueryString);
+        //        var response = context.HttpContext.Response;
+        //        response.StatusCode = 301;
+        //        response.Headers[HeaderNames.Location] = newUrl;
+        //        context.Result = RuleResult.EndResponse;
+        //    }
+        //}
+
+        public void ConfigureServices(IServiceCollection services)
+		{
+			var connectionString = Configuration.GetConnectionString("DefaultConnection"); 
+			Database.ConnectionString = connectionString;
+            services.AddDetection();
+            services.AddSession(opts =>
+            {
+                opts.Cookie.IsEssential = true;  
+            });
+            services.AddMvc(options => options.EnableEndpointRouting = false);
+            services.AddAntiforgery(o => o.HeaderName = "XSRF-TOKEN");
+            services.AddMemoryCache();
+			services.AddAuthentication( options =>
+			{
+				options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+				options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+				options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+			}).AddCookie(options => {
+				options.LoginPath = "/LoginArea";
+                options.LogoutPath = "/LogOut";
+                options.ExpireTimeSpan = TimeSpan.FromHours(1);
+                options.SlidingExpiration = false;
+
+            });
+            services.Configure<KestrelServerOptions>(options =>
+            {
+                options.AllowSynchronousIO = true;
+            });
+            services.Configure<IISServerOptions>(options =>
+            {
+                options.AllowSynchronousIO = true;
+            });
+            services.ConfigureApplicationCookie(options =>
+            {
+                options.ExpireTimeSpan = TimeSpan.FromHours(1);
+            });
+            services.AddRazorPages().AddRazorRuntimeCompilation();  
+            services.AddControllers();
+            services.AddMvc()
+    .AddNewtonsoftJson();
+            services.AddControllersWithViews();
+            services.AddRouting(options => options.LowercaseUrls = true);
+            services.Configure<FormOptions>(options =>
+
+            {
+
+                options.ValueLengthLimit = int.MaxValue;
+
+                options.MultipartBodyLengthLimit = int.MaxValue;
+
+                options.MultipartHeadersLengthLimit = int.MaxValue;
+
+            });
+            services.AddDataProtection();
+            services.AddMvc()
+				.AddRazorPagesOptions(options =>
+				{
+					options.Conventions.AuthorizeFolder("/"); 
+					options.Conventions.AllowAnonymousToPage("/Index");
+                    options.Conventions.AllowAnonymousToPage("/LoginArea"); 
+                    options.Conventions.AllowAnonymousToPage("/servicedetail");
+                    options.Conventions.AllowAnonymousToPage("/about"); 
+                    options.Conventions.AllowAnonymousToPage("/album"); 
+                    options.Conventions.AllowAnonymousToPage("/login");
+                    options.Conventions.AllowAnonymousToPage("/cart"); 
+                    options.Conventions.AllowAnonymousToPage("/service");
+                    options.Conventions.AllowAnonymousToPage("/blogdetail"); 
+                    options.Conventions.AllowAnonymousToPage("/blog");
+                    options.Conventions.AllowAnonymousToPage("/projectdetail");
+                    options.Conventions.AllowAnonymousToPage("/project");
+                    options.Conventions.AllowAnonymousToPage("/contact");
+           
+                }) 
+				.SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
+            services.ConfigureApplicationCookie(options => { options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.None; });
+        }
+
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        {
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            else
+            {
+                app.UseDeveloperExceptionPage();
+                //app.UseExceptionHandler("/Error");
+                //app.UseHsts();
+            }
+            var options = new RewriteOptions();
+            app.UseRequestLocalization(new RequestLocalizationOptions
+            {
+                DefaultRequestCulture = new RequestCulture(new CultureInfo("en-US")) 
+
+            });
+           
+            //options.Rules.Add(new RedirectToWwwRule());
+            app.UseRewriter(options);
+             app.UseHttpsRedirection();
+			app.UseAuthentication();
+			app.UseStaticFiles();
+			app.UseSession(); 
+            app.UseMvc();
+
+        }
+    }
+}

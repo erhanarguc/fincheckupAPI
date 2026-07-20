@@ -1,0 +1,231 @@
+﻿<link rel="stylesheet" type="text/css" href="~/lib/semantic/semantic.min.css">
+<link rel="stylesheet" type="text/css" href="~/css/card-js-and-cicleloader.min.css">
+
+
+@{
+    ViewData["Title"] = "Pay Smart";
+}
+
+<section class="content home">
+    <div class="container-fluid">
+<form asp-controller="Transaction" asp-action="PaySmart" id="payment-form" name="form" class="ui form fluid" style="padding:10px;">
+    <h4 class="ui horizontal divider header">
+        <span style="text-decoration: underline; color: black" class="tab">Sipariş Bilgileri</span>
+    </h4>
+
+    <div class="two fields">
+        <div class="field">
+            <input class="cvc half" name="Amount" placeholder="Miktar" required>
+        </div>
+        <div class="field">
+            <input class="cvc half" name="OrderId" placeholder="Sipariş No" required>
+        </div>
+    </div>
+
+    <h4 class="ui horizontal divider header">
+        <span style="text-decoration: underline; color: black" class="tab">Ödeme Bilgileri</span>
+    </h4>
+
+    <div class="card-js" data-stripe="true">
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="mb-3">
+                    <label for="the-card-name-id" class="form-label">Kart Sahibinin Adı</label>
+                    <input class="form-control name" id="the-card-name-id" name="CardholderName" placeholder="Kart Sahibinin Adı" required>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="mb-3">
+                    <label for="CardNumber" class="form-label">Kart Numarası</label>
+                    <input class="form-control card-number my-custom-class" name="card-number" id="CardNumber" placeholder="Kart Numarası" required>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <label class="form-label">Son Kullanma Tarihi</label>
+                <div class="mb-3">
+                    <input class="form-control expiry-month" style="width:50px;display:inline;" id="expireMonth" name="ExpireMonth" placeholder="Ay" required>
+
+                    <input class="form-control expiry-year" style="width:50px;display:inline;" name="ExpireYear" id="expireYear" placeholder="Yıl" required>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="mb-3">
+                    <label for="cvv" class="form-label">Güvenlik Kodu (CVV)</label>
+                    <input class="form-control cvc" name="CardCode" id="cvv" placeholder="Güvenlik Kodu (CVV)" placeholder="Cvv" required>
+                </div>
+            </div>
+    </div>
+
+    <div style=" padding: 15px 0 0 0; font-size: 15px;">
+        <input name="Is3D" type="checkbox" style="vertical-align:middle;" />
+        <label style=" font-weight: bold; padding-left: 10px; vertical-align:middle;">3D Payment</label>
+    </div>
+
+    <div class="recurring">
+        <input id="recurringPayment" name="is_recurring_payment" style="vertical-align:middle;" type="checkbox">
+        <label style="font-weight: bold; padding-left: 10px; vertical-align:middle;">Recurring payment</label>
+
+        <div id="recurringArea" class="three fields" style="display:none;">
+            <div class="field">
+                <input type="number" name="recurring_payment_number" placeholder="Toplam Ödeme Sayısı">
+            </div>
+            <div class="field">
+                <select name="recurring_payment_cycle" id="recurring_payment_cycle">
+                    <option value="">Ödeme Tekrarlama Periyodu</option>
+                    <option value="D">Günlük</option>
+                    <option value="M">Aylık</option>
+                    <option value="Y">Yıllık</option>
+                </select>
+            </div>
+            <div class="field">
+                <input type="number" name="recurring_payment_interval" placeholder="Ödeme Sıklık Sayısı">
+            </div>
+        </div>
+    </div>
+
+    <h4 class="ui horizontal divider header">
+        <a href="javascript:return false;" style="text-decoration: underline; color: black" class="tab" id="installment-link">Taksit Seçenekleri</a>
+    </h4>
+
+    <div id="installmentTable" class="installmentTable">
+        <table cellpadding="0" cellspacing="0" style="width: 380px;border: solid 1px #CCCCCC;margin: 10px auto 20px auto;">
+            <thead>
+                <tr>
+                    <td align="center" style="border-top: solid 1px #CCCCCC;border-right: solid 1px #CCCCCC; width: 80px; height:28px;">
+                        <span style="padding:3px;font-weight: bold;color: black;">Taksit Sayısı</span>
+                    </td>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr data-id="1">
+                    <td align="center"> <input type="radio" name="Installment" value=1>1</td>
+                </tr>
+                <tr data-id="2">
+                    <td align="center"> <input type="radio" name="Installment" value=2>2</td>
+                </tr>
+                <tr data-id="3">
+                    <td align="center"> <input type="radio" name="Installment" value=3>3</td>
+                </tr>
+                <tr data-id="4">
+                    <td align="center"> <input type="radio" name="Installment" value=4>4</td>
+                </tr>
+                <tr data-id="5">
+                    <td align="center"> <input type="radio" name="Installment" value=5 >5</td>
+                </tr>
+                <tr data-id="6">
+                    <td align="center"> <input type="radio" name="Installment" value=6>6</td>
+                </tr>
+                <tr data-id="7">
+                    <td align="center"> <input type="radio" name="Installment" value=7>7</td>
+                </tr>
+                <tr data-id="8">
+                    <td align="center"> <input type="radio" name="Installment" value=8>8</td>
+                </tr>
+                <tr data-id="9">
+                    <td align="center"> <input type="radio" name="Installment" value=9>9</td>
+                </tr>
+
+            </tbody>
+        </table>
+
+    </div>
+
+    <div class="ui center aligned segment">
+            <button class="ui button" id="paymentButton" name="paymentButton" type="submit" style="background-color: #870052 ; color: #ffffff; width: 60%;
+          margin-left: 0;">
+            ÖDEMEYİ TAMAMLA
+        </button>
+    </div>
+    <div style="clear:both;"></div>
+</form>
+</div></section>
+@section Scripts {
+
+    <script src="~/lib/semantic/semantic.min.js"></script>
+    <script src="~/js/card-js.min.js"></script>
+
+    <script type="text/javascript">
+
+        var posDatas = [];
+
+        $(document).ready(function () {
+            sixDigitLastValue = 0;
+            previousRecurring = false;
+
+
+            $('#recurringPayment').click(function () {
+                if ($(this).is(':checked')) {
+                    $("#recurringArea").show();
+                } else {
+                    $("#recurringArea").hide();
+                }
+
+            });
+
+      
+
+            $('input[type=radio][name="Installment"]').first().prop('checked', true)
+
+
+                $('#payment-form').submit(function (e) {
+                    if ($("input[name='Installment']:checked").length > 0) {
+                        var radioValue = $("input[name='Installment']:checked").val();
+                        if (!radioValue) {
+
+                            alert("Please select installment");
+                            e.preventDefault();
+                            return;
+                        }
+
+
+                    }
+
+                var secureTypeValue = $("input[name='Is3D']:checked").val();
+                console.log(secureTypeValue);
+                    if(secureTypeValue != 'on')                    
+                    {
+                        console.log("entered");
+                    e.preventDefault();
+                    var form = $("#payment-form")
+                    var datas = JSON.stringify(form.serialize());
+                    console.log(datas);
+                    $.ajax({
+                        type: 'POST',
+                        dataType: 'json',
+                        data: datas,
+                        url: '/Transaction/PaySmart/',
+                        success: function (data) {
+                            console.log(data);
+                            const result = jQuery.parseJSON(data);
+                            console.log(result);
+                            $("#modalHeader").text(result.status_description);
+                            $("#modalBody").text(`Status Code : ${result.status_code}`);
+                            $('#btnResultModel').click();
+
+                        },
+                        error: function (err) {
+                            console.log(err);
+                        }
+                    });
+
+                    }           
+            });
+               
+
+        });
+
+      
+    </script>
+
+}
+

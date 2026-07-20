@@ -1,0 +1,145 @@
+﻿@page
+
+@using fincheckup.Models.EarlyWarning
+@using fincheckup.ENTITY 
+@using fincheckup.Models.EarlyWarning.Response
+
+@model IndexModel
+@{
+    ViewData["Title"] = "Giriş Ekranı";
+    Layout = "~/Pages/Shared/_LayoutFirm.cshtml";
+}
+
+
+@functions {
+    public class IndexModel : PageModel
+    {
+        public long UserID;
+        public IEnumerable<ReminderAccountGroup> mreqList;
+
+        public void OnGet(int year = 2021)
+        {
+            mreqList = new List<ReminderAccountGroup>();
+
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        }
+
+        public JsonResult OnGetMarkupMarjin(DataSourceLoadOptions options)
+        {
+
+            mreqList = ReminderAccountGroup.Get_ReminderAccountGroup();
+            return new JsonResult(DataSourceLoader.Load(mreqList, options));
+        }
+
+
+
+    }
+}
+@section Styles {
+    <link rel="stylesheet" href="/assets/plugins/jquery-datatable/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="/assets/plugins/morrisjs/morris.css">
+    <style>
+        .tdnormall {
+            padding-top: 0.1rem !important;
+            padding-left: 0.75rem !important;
+            padding-bottom: 0.1rem !important;
+            padding-right: 0.75rem !important;
+        }
+
+        #chartxt {
+            max-height: 255px !important;
+        }
+    </style>
+}
+<section class="content home">
+    <div class="container-fluid">
+        <div class="block-header">
+            <div class="row clearfix">
+                <div class="col-lg-5 col-md-5 col-sm-12">
+                    <h2>Kontrol Grubu  Listesi</h2>
+                    <ul class="breadcrumb padding-0">
+                        <li class="breadcrumb-item"><a href=""><i class="zmdi zmdi-home"></i></a></li>
+                        <li class="breadcrumb-item active">Kontrol Grubu Listesi</li>
+                    </ul>
+                </div>
+                <div class="col-lg-7 col-md-7 col-sm-12">
+                    <div class="input-group m-b-0">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row clearfix">
+        <div class="row clearfix">
+
+            <div class="col-md-12 col-lg-12">
+                <div class="card">
+                    <div class="body">
+
+                        <div class="row">
+
+                            @(Html.DevExtreme().DataGrid<ReminderAccountGroup>().ID("grdContainerDefter")
+                                .Paging(p => p.PageSize(10))
+                                .ColumnAutoWidth(true)
+                                .HeaderFilter(f => f.Visible(false))
+                                .WordWrapEnabled(true)
+                                .ShowBorders(true).DataSource(d => d.RemoteController().LoadUrl(Url.Page(null, "MarkupMarjin"))).Columns(columns =>
+                                {
+                                    columns.AddFor(m => m.ID).Visible(false);
+                                        columns.AddFor(m => m.Name).Caption("Kontrol Grubu Adı");
+
+                                    columns.Add().Caption("Seç").CssClass("").CellTemplate(@<text>
+                                    <div id="dx-68851ede-d630-8962-db5dsad-00d54ad2219d" onclick="functionedit('[%= data.ID %]')" class="dtbtn dx-link-editchk dx-button dx-button-normal dx-button-mode-contained dx-widget dx-button-has-text" aria-label="Yükle" tabindex="0" role="button"><div class="dx-button-content"> <i class="zmdi zmdi-arrow-right"></i></div></div>
+
+
+                            </text>);
+                                })
+                                )
+
+                        </div>
+
+
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+
+        </div>
+
+
+
+
+        </div>
+    </div>
+</section>
+
+
+@section Scripts {
+
+
+
+    <script>
+
+        var dt1 = "105";
+
+        function functionedit(data) {
+
+
+            location.href = '/admin/warn/editAccountgroup?accountid=' + data;
+
+
+
+
+        }
+        function functionrefresh(data) {
+
+            alert(data);
+
+
+        }
+    </script>
+} 

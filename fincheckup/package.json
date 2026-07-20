@@ -1,0 +1,23 @@
+{
+  "version": "1.0.0",
+  "name": "asp.net",
+  "private": true,
+  "dependencies": {
+
+    "@devexpress/analytics-core": "23.2.6",
+    "devexpress-dashboard": "23.2.6",
+    "devexpress-dashboard-vue": "23.2.6",
+    "devexpress-reporting": "23.2.6",
+    "devextreme": "23.2.6",
+    "devextreme-vue": "23.2.6",
+    "vue": "^3.2",
+    "zone.js": "^0.14.6",
+    "rxjs": "^7.8.1",
+    "popper.js": "2.0.0-next.4",
+    "jquery-ui-dist": "^1.13.2",
+    "bootstrap": "5.3.3",
+    "@angular/core": "18.0.0-rc.2",
+    "globalize": "^1.7.0"
+
+  }
+}

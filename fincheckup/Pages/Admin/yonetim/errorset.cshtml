@@ -1,0 +1,700 @@
+﻿@page
+
+@using fincheckup.Models.Hvvn
+@using fincheckup.Models.NKolay.UploadArea
+@using fincheckup.Models.ViewM 
+@using fincheckup.Models.ViewModel
+@using fincheckup.ENTITY
+
+@model IndexModel
+@{
+    ViewData["Title"] = "Giriş Ekranı";
+    Layout = "~/Pages/Shared/_LayoutFirm.cshtml";
+}
+ 
+@functions {
+    public class IndexModel : PageModel
+    {
+        public IEnumerable<YearResult> myearResult;
+        public long UserID;
+        public long CompID;
+        public int CompCount;
+        public int YearCount;
+        public long curcomID;
+        public int curcomCount;
+        public DataViewerMain mrequestDataViewer;
+        public HhvnUsers CurrentUser;
+        public IEnumerable<Companies> CompanieList;
+        public DataViewerError CurrentViewerError;
+         
+        
+        public IEnumerable<Companies> mreqListCompany;
+        
+        public ReportFilterView nReportFilterView;
+        public string currentdesc { get; set; }
+        public string currentcompname { get; set; }
+        public string currentSelectTEd{ get; set; }
+        public string currentcomp { get; set; }
+        public string currentdatu { get; set; }
+        public void OnGet(string tlist = null, string compid = null, string datu = null)
+        {
+            myearResult = YearResult.getValue();
+            currentSelectTEd = "";
+            nReportFilterView = new ReportFilterView();
+            CompanieList = Companies.Get_All();
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+            mreqListCompany = Companies.Getby_User(UserID);
+            currentcompname = mreqListCompany.Where(x => x.IsDefault == 1).FirstOrDefault().CompanyName;
+            curcomID = mreqListCompany.Where(x => x.IsDefault == 1).FirstOrDefault().ID;
+            curcomCount = mreqListCompany.Count();
+            //currentUpload = UploadMain.Get_Data(DateTime.Now.Year, curcomID);
+
+            CompID = mreqListCompany.Where(x => x.IsDefault == 1).FirstOrDefault().ID;
+            YearCount = TBLXml.GetYearByComapnyID(CompID);
+            CompCount = mreqListCompany.Count();
+            CurrentViewerError = new DataViewerError();
+            currentcomp = "";
+            currentdatu = "";
+
+            if (compid != null)
+            {
+                currentcomp = compid;
+                nReportFilterView.CompanyID = Convert.ToInt32(compid);
+            }
+
+            if (datu != null)
+            {
+                currentdatu = datu;
+                nReportFilterView.FirstDate = Convert.ToDateTime(datu);
+            }
+
+            if (tlist != null && tlist.Length>4)
+            {
+                try
+                {
+                    var nlist = tlist.Split(',').Select(x => Convert.ToInt32(x));
+                    var uniqueItems = nlist.Distinct().OrderBy(x => x);
+                    var setchk = uniqueItems.Select(s => s.ToString()).ToList();
+                    currentdesc = string.Join(",", setchk);
+                    currentSelectTEd = "Muhasebe Kayıtları Seçildi";
+                    CurrentViewerError = MainDash.DataViewerCheckOne(currentdesc);
+                }
+                catch (Exception)
+                {
+
+                    currentdesc = "";
+                }
+
+            }
+            else
+            {
+                currentdesc = "";
+            }
+
+
+            if (CurrentViewerError==null)
+            {
+                CurrentViewerError = new DataViewerError();
+
+            }
+        }
+
+
+        public JsonResult OnGetSalerMainChk(DataSourceLoadOptions options)
+        {
+            mrequestDataViewer = new DataViewerMain();
+
+
+
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+
+            curcomID = Companies.Getby_User(UserID).Where(x => x.IsDefault == 1).FirstOrDefault().ID;
+
+            //mrequestDataViewer.SetDataViewer(MainDash.DataViewerMainT(CurrentUser.SelectedYear, curcomID));
+            if (mrequestDataViewer == null)
+            {
+                return new JsonResult(DataSourceLoader.Load(mrequestDataViewer.EntryData, options));
+
+            }
+
+            return new JsonResult(DataSourceLoader.Load(mrequestDataViewer.EntryData, options));
+
+        }
+        public JsonResult OnGetSalerMainZeta(DataSourceLoadOptions options, int monthid)
+        {
+            mrequestDataViewer = new DataViewerMain();
+            if (monthid < 1)
+            {
+                return new JsonResult(DataSourceLoader.Load(mrequestDataViewer.EntryData, options));
+            }
+
+
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+
+            curcomID = Companies.Getby_User(UserID).Where(x => x.IsDefault == 1).FirstOrDefault().ID;
+
+
+            mrequestDataViewer.SetDataViewer(MainDash.DataViewerMain(CurrentUser.SelectedYear, curcomID));
+
+            return new JsonResult(DataSourceLoader.Load(mrequestDataViewer.EntryData.Where(x => x.EndDate.Month == monthid), options));
+
+        }
+        public JsonResult OnGetSalerDate(DataSourceLoadOptions options)
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            CurrentUser = HhvnUsers.GetRow_User(UserID);
+
+            curcomID = Companies.Getby_User(UserID).Where(x => x.IsDefault == 1).FirstOrDefault().ID;
+            List<int> chkErrormonthID = MainDash.Get_DatabyError(CurrentUser.SelectedYear, curcomID).Where(x => x.TErrorRowCount == 0).Select(x => x.MainMonth).ToList();
+            var currentUploadM = UploadMain.Get_Data(CurrentUser.SelectedYear, curcomID);
+
+            currentUploadM.Where(x => chkErrormonthID.Contains(x.MainMonth)).Select(c => { c.ErrorCount = -1; return c; }).OrderBy(x => x.MainMonth).ToList();
+            return new JsonResult(DataSourceLoader.Load(currentUploadM, options));
+
+        }
+        public JsonResult OnGetSalerYear(DataSourceLoadOptions options)
+        {
+
+
+            var YearSetm = YearResult.getValue().OrderByDescending(x => x.MYear);
+            return new JsonResult(DataSourceLoader.Load(YearSetm, options));
+
+        }
+        public JsonResult OnGetSalerComp(DataSourceLoadOptions options)
+        {
+
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            mreqListCompany = Companies.Getby_User(UserID);
+            return new JsonResult(DataSourceLoader.Load(mreqListCompany, options));
+
+        }
+        public JsonResult OnGetErrorComp(DataSourceLoadOptions options)
+        {
+            var getVal = MainDash.DataTBLErrColor();
+            return new JsonResult(DataSourceLoader.Load(getVal, options));
+
+        }
+      
+        public JsonResult OnGetGraphYear(int nyear)
+        {
+            UserID = Int64.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            HhvnUsers.SetYear(nyear, UserID);
+            return new JsonResult("ok");
+        }
+
+    }
+}
+@section Styles {
+    <script src="~/assets/progress.js"></script>
+
+    <style>
+        .orangecolor {
+            background-color: #874651;
+        }
+
+        .greencolor {
+            background-color: #004aad; 
+        }
+
+        /*   .dx-scrollview-content {
+            position: absolute;
+        }*/
+
+        #grdContYearDefter .centerdiv {
+            vertical-align: middle !important;
+            font-weight: bold;
+            font-size: 13px;
+            color: whitesmoke;
+        }
+
+        #grdContYearDefter .dx-header-row .centerdiv {
+            vertical-align: middle !important;
+            font-weight: bold;
+            font-size: 13px;
+            color: black;
+        }
+    </style>
+}
+<input type="hidden" style="display:none" id="txtcompname" value="@Model.currentcompname" />
+<input type="hidden" style="display:none" id="txtcurcomCount" value="@Model.curcomCount" />
+<input type="hidden" style="display:none" id="txtcurcomide" value="@Model.curcomID" />
+<section class="content home">
+    <div class="container-fluid">
+        <div class="block-header">
+            <div class="row clearfix">
+                <div class="col-lg-5 col-md-5 col-sm-12">
+                    <h2>Dashboard</h2>
+                    <ul class="breadcrumb padding-0">
+                        <li class="breadcrumb-item"><a href=""><i class="zmdi zmdi-home"></i></a></li>
+                        <li class="breadcrumb-item active">Error Set Color</li>
+                    </ul>
+                </div>
+                <div class="col-lg-7 col-md-7 col-sm-12">
+                    <div class="input-group m-b-0">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="body">
+                                    <div class="row">
+                                        <div class="col-6" style="text-align:left">
+                                        
+                                        </div>
+                                        <div class="col-6" style="text-align:right">
+
+                                           
+                      
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row clearfix">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="row">
+                        <div class="col-lg-12 col-md-12 col-sm-12 text-right" style="text-align:center; padding:35px;">
+
+                            <div id="form-container">
+                                <form id="frmzz">
+                                    @(Html.DevExtreme().Form<ReportFilterView>
+    ()
+    .ID("formzz")
+    .ColCount(2)
+    .Items(items => {
+        items.AddSimpleFor(m => m.CompanyID)
+        .Editor(e => e
+        .SelectBox().OnValueChanged("selectchage")
+        .DataSource(Model.CompanieList)
+        .ValueExpr("ID")
+        .DisplayExpr("CompanyName")
+        .SearchEnabled(true)
+        );
+
+
+
+
+        items.AddSimpleFor(m => m.FirstDate)
+        .Editor(e => e
+        .DateBox().OnValueChanged("datumchage")
+       .DisplayFormat("dd-MMM-yyyy")
+        .Width("100%")
+        )
+        .ValidationRules(r => r
+        .AddRequired()
+        .Message("First date is required")
+        );
+
+        items.AddSimpleFor(m => m.SearchValue)
+        .Editor(e => e
+        .TextBox()
+        .Width("100%")
+        ).ValidationRules(r => r
+        .AddRequired()
+        .Message("  is required")
+        )
+        .IsRequired(true);
+
+
+        items.AddGroup()
+        .CssClass("first-group")
+        .ColCount(2).ColSpan(2)
+        .Items(groupItems =>
+        {
+            groupItems.AddButton()
+        .HorizontalAlignment(HorizontalAlignment.Right)
+        .ButtonOptions(b => b.Text("REPORT SELECTED")
+        .Type(ButtonType.Default)
+        .UseSubmitBehavior(true));
+
+        });
+
+    })
+    .FormData(Model.nReportFilterView)
+    )
+                                </form>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <input type="hidden" style="display:none" id="txtmyear" value="@Model.CurrentUser.SelectedYear" />
+        <input type="hidden" style="display:none" id="txtmcomp" value="@Model.CompID" />
+        <input type="hidden" style="display:none" id="txtyearcount" value="@Model.YearCount" />
+        <input type="hidden" style="display:none" id="txtcompcount" value="@Model.CompCount" />
+        <input type="hidden" style="display:none" value="0" id="txtisupdate" />
+        <input type="hidden" style="display:none" value="0" id="txtentrynuma" />
+        <div class="row clearfix">
+            <div class="col-lg-12 col-md-12">
+
+
+
+
+
+
+
+                <div class="card">
+                    <div class="body">
+
+                        <div class="row">
+
+                            <div class="col-md-12 col-lg-7">
+                                <div class="col-md-12 col-lg-12">
+                                    <div class="card" id="griddiv" style="">
+
+                                        <div class="body">
+                                            @(Html.DevExtreme().DataGrid<DataViewer>().ID("grdContainerDefter").ColumnHidingEnabled(true).RemoteOperations(false)
+     
+    .Paging(p => p.PageSize(10)).AllowColumnResizing(true).Selection(s => s.Mode(SelectionMode.Multiple))
+    .ColumnMinWidth(50)
+    .ColumnAutoWidth(true)
+    .HeaderFilter(f => f.Visible(false))
+    .WordWrapEnabled(true)
+    .Height(410)
+    .ShowBorders(true)
+  
+    .DataSource(d => d.Mvc().Controller("ReportApi").LoadParams(new { userData = new JS("function() { return buildValidationSuggestionRequest();  }") })
+.LoadAction("GetList"))
+     .Columns(columns =>
+      {
+          columns.AddFor(m => m.DocumentDate).Caption("DocumentDate").CssClass("centerdiv").Visible(false);
+          columns.AddFor(m => m.EnteredBy).Caption("EnteredBy").CssClass("centerdiv").Visible(false);
+          columns.AddFor(m => m.EntryNumber).Caption("EntryNumber").CssClass("centerdiv").Format(Format.FixedPoint);
+          columns.AddFor(m => m.AccountMainID).Caption("AccountMainID").CssClass("centerdiv");
+          columns.AddFor(m => m.AccountMainDescription).Caption("AccountMainDescription").Visible(false).Width(0);
+          columns.AddFor(m => m.AccountSubID).Caption("AccountSubID").CssClass("centerdiv").Visible(false);
+          columns.AddFor(m => m.AccountSubDescription).Caption("AccountSubDescription").CssClass("centerdiv").Visible(false);
+          columns.AddFor(m => m.DebitCreditCode).Caption("DebitCreditCode").CssClass("centerdiv");
+          columns.AddFor(m => m.Amount).Caption("Amount").CssClass("centerdiv").Format(Format.Decimal);
+          columns.AddFor(m => m.DetailComment).Caption("DetailComment").CssClass("centerdiv").Visible(false);
+
+          columns.AddFor(m => m.GroupName)
+             .GroupIndex(0).Caption("");
+      }).Grouping(grouping => grouping.AutoExpandAll(false)).GroupPanel(groupPanel => groupPanel.Visible(false))
+                        )
+
+
+
+
+                                        </div>
+                                        <div class="footer" style="text-align:right">
+                                            @(Html.DevExtreme().Button()
+                        .Text("Hata Uyarısı Ekle")
+                        .Type(ButtonType.Default).Height(45)
+                        .Width(175)
+                        .OnClick("notify")
+                    )
+                                            @*//.DataSource(d => d.RemoteController().LoadUrl(Url.Page(null, "SalerMainChk"))*@
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="col-md-12 col-lg-5">
+
+                                <div class="col-md-12 col-lg-12">
+                                    <div class="card" id="gridddiv" style="">
+
+                                        <div class="body">
+                                            <div class="card">
+                                                <div class="header">
+                                                    <div class="body l-seagreen text-center">
+                                                        @Model.currentSelectTEd
+                                                        <span class="m-b-0 m-t-10 text-white" id="txtEntryNum"></span>
+
+                                                    </div>
+
+                                                </div>
+                                                <div class="body">
+                                                    <div class="row">
+                                                        <form id="frm" style="width:100%">
+                                                            @(Html.DevExtreme().Form<DataViewerError>()
+        .ID("form")
+        .Items(items => {
+            items.AddGroup()
+                .Items(groupItems => {
+
+
+                });
+            items.AddGroup().ColCount(1)
+
+                .Items(groupItems => {
+
+                    groupItems.AddGroup().Items(secondGroupItems => {
+
+                        secondGroupItems.AddSimpleFor(m => m.ID);
+                        secondGroupItems.AddSimpleFor(m => m.Description).Label(l => l.Text("Muhasebe Hata Açıklama")).ColSpan(2)
+                        .Editor(e => e
+                            .TextArea()
+                            .Height(65)
+                        );
+                        secondGroupItems.AddSimpleFor(m => m.ColorDesc).Label(l => l.Text("Renk Kodu")).Editor(x=>x.SelectBox().DataSource(d => d.RemoteController().LoadUrl(Url.Page(null, "ErrorComp")).Key("ID"))
+            .DisplayExpr("ColorDesc")
+            .ValueExpr("ID"));
+
+
+
+                        secondGroupItems.AddSimpleFor(m => m.DescriptionTax).Label(l => l.Text("Vergi Hata Açıklama")).ColSpan(2)
+                      .Editor(e => e
+                          .TextArea()
+                          .Height(65)
+                      ); ;
+                        secondGroupItems.AddSimpleFor(m => m.ColorDescTax).Label(l => l.Text("Renk Kodu")).Editor(x => x.SelectBox().DataSource(d => d.RemoteController().LoadUrl(Url.Page(null, "ErrorComp")).Key("ID"))
+                .DisplayExpr("ColorDesc")
+                .ValueExpr("ID"));
+
+
+                        secondGroupItems.AddSimpleFor(m => m.DescriptionInside).Label(l => l.Text("İç Denetim Hata Açıklama")).ColSpan(2)
+         .Editor(e => e
+             .TextArea()
+             .Height(65)
+         ); ;
+                        secondGroupItems.AddSimpleFor(m => m.ColorDescInside).Label(l => l.Text("Renk Kodu")).Editor(x => x.SelectBox().DataSource(d => d.RemoteController().LoadUrl(Url.Page(null, "ErrorComp")).Key("ID"))
+            .DisplayExpr("ColorDesc")
+            .ValueExpr("ID"));
+                    });
+
+                }); items.AddGroup()
+       .ColCount(4)
+       .Items(groupItems =>
+       {
+
+           groupItems.AddGroup().ColSpan(4).Items(secondGroupItems =>
+           {
+
+
+               secondGroupItems.AddButton()
+                   .HorizontalAlignment(HorizontalAlignment.Right)
+                   .ButtonOptions(b => b.Text("Kaydet")
+                       .Type(ButtonType.Success)
+                       .UseSubmitBehavior(true)
+               );
+
+           });
+       });
+        })
+        .FormData(Model.CurrentViewerError)
+    )
+                                                        </form>
+                                                    </div>
+
+
+                                                </div>
+                                                <footer style="text-align:right">
+                                                </footer>
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+
+                                </div>
+
+
+
+
+
+                            </div>
+
+                        </div>
+
+
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+
+
+    </div>
+</section>
+@(Html.DevExtreme().LoadPanel()
+        .ID("loadPanel")
+        .ShadingColor("rgba(0,0,0,0.4)")
+        .Position(p => p.Of("#employee"))
+        .Visible(false)
+        .ShowIndicator(true).Message("E-defter İşleniyor.. Lütfen Bekleyiniz...")
+        .ShowPane(true).Height(300).Width(500)
+        .Shading(true)
+          .HideOnOutsideClick(false)
+        .OnShown("loadPanel_shown")
+    )
+<input type="text" id="mainyear" name="mainyear" value="@Model.CurrentUser.SelectedYear" style="display:none" />
+<input type="text" id="mainmonth" name="mainmonth" style="display:none" />
+<input type="text" id="maindesc" name="maindesc" value="@Model.currentdesc" style="display:none" />
+
+<input type="text" id="maincommpid" name="maincommpid" value="@Model.currentcomp" style="display:none" />
+<input type="text" id="maindatumm" name="maindatumm" value="@Model.currentdatu" style="display:none" />
+
+ 
+
+@section Scripts{
+ 
+
+    <script>
+
+        function buildValidationSuggestionRequest() {
+            var form = $("#formzz").dxForm("instance");
+            var data = form.option("formData");
+            return JSON.stringify(data);
+        } 
+        $("#frmzz").submit(function (e) {
+            e.preventDefault();
+            var vals = $(this).serialize();
+            $("#grdContainerDefter").dxDataGrid("getDataSource").reload();
+
+            var form = $("#formzz").dxForm("instance");
+            var data = form.option("formData");
+
+            return false;
+        });
+        var tyear = $("#txtmyear").val();
+        var misready = "nok";
+        function getLoadPanelInstance() {
+            return $("#loadPanel").dxLoadPanel("instance");
+        }
+        function loadPanel_shown(e) {
+            setTimeout(function () {
+                e.component.hide();
+            }, 610000);
+        }
+        function getDataGridInstance() {
+            return $("#grdContainerDefter").dxDataGrid("instance");
+        }
+        var txcompname = $("#txtcompname").val();
+
+        
+        $("#frm").submit(function (e) {
+            e.preventDefault();
+            console.log($("#maindesc").val());
+            var chklist = $("#maindesc").val();
+            if (chklist.length > 1) {
+             
+                var vals = $(this).serialize() + '&MainDescription=' + chklist;
+                console.log(vals);
+             //   location.href = "/admin/yonetim/errorset?nlist=" + chklistmain.join(",");
+
+                $.ajax({
+                    url: "/JsonService/MainPost/FormSubmitError",
+                    method: "POST",
+                    data: vals,
+                    success: function (data) {
+
+                        location.reload();
+                    }
+                });
+
+
+                $("#txtEntryNum").text("");
+                $("#txtentrynuma").val("");
+            }
+
+            return false;
+        });
+
+        function convertdat(str) {
+            var date = new Date(str),
+                mnth = ("0" + (date.getMonth() + 1)).slice(-2),
+                day = ("0" + date.getDate()).slice(-2);
+            return [date.getFullYear(), mnth, day].join("-");
+        }
+
+        function datumchage(e) {
+
+            console.log(e);
+           var txttt=convertdat(e.value);
+            $("#maindatumm").val(txttt);
+        }
+
+        function selectchage(e) {
+
+            console.log(e);
+            console.log(e.value);
+            
+            $("#maincommpid").val(e.value);
+        }
+        var chklistmain = [];
+        function notify(e) {
+       
+            var dataGrid = getDataGridInstance();
+           // var data = selectedItems.selectedRowsData;
+            var lalallalal = "";
+            chklistmain = [];
+            $.when.apply($, dataGrid.getSelectedRowsData().map(function (data) {
+                chklistmain.push(data.AccountMainID)
+                lalallalal = data.EntryNumber;
+            })).done(function () {
+                if (chklistmain.length > 1) {
+                    $("#txtEntryNum").text(lalallalal + " Entry Numarası Seçildi");
+                    $("#txtentrynuma").val(lalallalal);
+                }
+                
+                location.href = "/admin/yonetim/errorset?tlist=" + chklistmain.join(",") + "&compid=" + $("#maincommpid").val() + "&datu=" + $("#maindatumm").val();
+            });
+           
+
+            return false;
+
+            
+        }
+        function formatMessage(e) {
+
+            return $("#txtcompname").val();
+        }
+        var chkReadyState = setInterval(function () {
+            if (document.readyState == "complete") {
+
+                clearInterval(chkReadyState);
+
+                misready = "ok";
+            }
+        }, 100);
+        function onCellPrepared(e) {
+
+            if (e.columnIndex == 4 && e.rowType == "data") {
+                var chkk = e.data;
+
+                if (chkk.TxResult == "Bekleniyor" || parseInt(chkk.ErrorCount) < 0) {
+                    e.cellElement.find(".dx-link-edit").remove();
+
+
+                }
+            }
+
+
+        }
+        function onRowPrepared(info) {
+            if (info.rowType != "header" && info.data.TxResult == "Bekleniyor") {
+
+                info.rowElement.addClass("orangecolor");
+            } else if (info.rowType != "header") {
+                info.rowElement.addClass("greencolor");
+            }
+        }
+        var dt1 = "0";
+        var compid = $("#txtmcomp").val();
+        var monthid = 0;
+        var year = $("#txtmyear").val();
+      
+       
+
+        
+        
+    </script>
+
+}
+
