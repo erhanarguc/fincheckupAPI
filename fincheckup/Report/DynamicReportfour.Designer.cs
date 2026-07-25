@@ -7395,7 +7395,7 @@
             this.xrCrossTabCell27.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(48)))), ((int)(((byte)(97)))));
             this.xrCrossTabCell27.Name = "xrCrossTabCell27";
             this.xrCrossTabCell27.RowIndex = 0;
-            this.xrCrossTabCell27.Text = "Likitide";
+            this.xrCrossTabCell27.Text = "Likidite";
             this.xrCrossTabCell27.TextAlignment = DevExpress.XtraPrinting.TextAlignment.BottomLeft;
             // 
             // xrCrossTabCell28
@@ -8400,7 +8400,7 @@
             this.xrLabel25.StylePriority.UseFont = false;
             this.xrLabel25.StylePriority.UseForeColor = false;
             this.xrLabel25.StylePriority.UseTextAlignment = false;
-            this.xrLabel25.Text = "Likitide -Asit - Test Oranı";
+            this.xrLabel25.Text = "Likidite -Asit - Test Oranı";
             this.xrLabel25.TextAlignment = DevExpress.XtraPrinting.TextAlignment.MiddleLeft;
             // 
             // xrRichText14
@@ -9463,7 +9463,7 @@
             this.xrLabel42.SizeF = new System.Drawing.SizeF(241.6667F, 17.44444F);
             this.xrLabel42.StylePriority.UseFont = false;
             this.xrLabel42.StylePriority.UseForeColor = false;
-            this.xrLabel42.Text = "Likitide Oranı";
+            this.xrLabel42.Text = "Likidite Oranı";
             // 
             // xrLikidite1
             // 

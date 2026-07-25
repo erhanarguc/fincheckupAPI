@@ -846,7 +846,7 @@ namespace fincheckup.Report
             this.xrLabel33.Padding = new DevExpress.XtraPrinting.PaddingInfo(2, 2, 0, 0, 100F);
             this.xrLabel33.SizeF = new System.Drawing.SizeF(196.6579F, 21.66663F);
             this.xrLabel33.StylePriority.UseFont = false;
-            this.xrLabel33.Text = "Likitide Oranı";
+            this.xrLabel33.Text = "Likidite Oranı";
             // 
             // xrTableCell91
             // 
@@ -2866,7 +2866,7 @@ namespace fincheckup.Report
             this.xrLabel7.Padding = new DevExpress.XtraPrinting.PaddingInfo(2, 2, 0, 0, 100F);
             this.xrLabel7.SizeF = new System.Drawing.SizeF(522.085F, 23F);
             this.xrLabel7.StylePriority.UseFont = false;
-            this.xrLabel7.Text = "Likitide";
+            this.xrLabel7.Text = "Likidite";
             // 
             // DetailReport14
             // 
@@ -3693,7 +3693,7 @@ namespace fincheckup.Report
             this.xrLabel25.SizeF = new System.Drawing.SizeF(459.9066F, 23.00006F);
             this.xrLabel25.StylePriority.UseFont = false;
             this.xrLabel25.StylePriority.UseTextAlignment = false;
-            this.xrLabel25.Text = "Likitide -Asit - Test Oranı";
+            this.xrLabel25.Text = "Likidite -Asit - Test Oranı";
             this.xrLabel25.TextAlignment = DevExpress.XtraPrinting.TextAlignment.MiddleRight;
             // 
             // xrRichText14

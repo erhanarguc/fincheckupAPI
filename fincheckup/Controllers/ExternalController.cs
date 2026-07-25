@@ -858,7 +858,7 @@ namespace fincheckup.Controllers
             nYearlyReportDashMain = new YearlyReportDashMain();
             nYearlyReportDashMain.ChartTypeID = 11;
             nYearlyReportDashMain.yearlyReportDash = getMonthYearValueNew(mrequestResult_1);
-            nYearlyReportDashMain.dashRep = new DashRep();
+            nYearlyReportDashMain.dashRep = NetGrossProfitGraphic;
             nlist.Add(nYearlyReportDashMain);
 
             return new JsonResult(nlist);
@@ -3441,7 +3441,7 @@ namespace fincheckup.Controllers
             if (apiKey != secretKey)
                 return new JsonResult(Unauthorized("Invalid key"));
 
-            string compnacecode = "2790";
+        
             try
             {
                 Companies curCompany = Companies.Get_CompanyRow(reg.CompanyID);
@@ -3450,10 +3450,7 @@ namespace fincheckup.Controllers
                 int nyear = curCompanyYearList.Max();
 
                 var codde = NaceCode.GetRow_NaceCodes(reg.NaceCode);
-                if (!string.IsNullOrEmpty(curCompany.NaceCode) && !string.IsNullOrWhiteSpace(curCompany.NaceCode))
-                {
-                    compnacecode = curCompany.NaceCode.Replace(".", "").Substring(0, 4);
-                }
+               
                 var str = DateTime.Now.ToString("yyyyMMddHHmm");
                 string NewRepName = "FinansalDurumRapor-" + str + curCompany.TaxID.ToString() + ".pdf";
                 var FileDocz = "FileContent/" + NewRepName;
